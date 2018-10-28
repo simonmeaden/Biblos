@@ -1,0 +1,12 @@
+#ifndef QYAMLCPP_GLOBAL_H
+#define QYAMLCPP_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(QYAMLCPP_LIBRARY)
+#  define QYAMLCPPSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define QYAMLCPPSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // QYAMLCPP_GLOBAL_H

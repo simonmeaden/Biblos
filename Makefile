@@ -30,60 +30,184 @@ COMPRESS      = gzip -9f
 DISTNAME      = EBookEdit1.0.0
 DISTDIR = /workspace/qt/EBookEdit/.tmp/EBookEdit1.0.0
 SUBTARGETS    =  \
-		sub-libmobi \
-		sub-EBookEdit
+		sub-quazip \
+		sub-qlogger \
+		sub-epub \
+		sub-ebookedit
 
 
-sub-libmobi-qmake_all:  FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
-	cd libmobi/ && $(MAKE) -f Makefile qmake_all
-sub-libmobi: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
-sub-libmobi-make_first: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
-sub-libmobi-all: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
-sub-libmobi-clean: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
-sub-libmobi-distclean: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
-sub-libmobi-install_subtargets: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
-sub-libmobi-uninstall_subtargets: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
-sub-EBookEdit-qmake_all:  FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
-	cd EBookEdit/ && $(MAKE) -f Makefile qmake_all
-sub-EBookEdit: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
-sub-EBookEdit-make_first: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
-sub-EBookEdit-all: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
-sub-EBookEdit-clean: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
-sub-EBookEdit-distclean: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
-sub-EBookEdit-install_subtargets: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
-sub-EBookEdit-uninstall_subtargets: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-quazip-qmake_all:  FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+	cd quazip/ && $(MAKE) -f Makefile qmake_all
+sub-quazip: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
+sub-quazip-make_first-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-quazip-make_first: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-quazip-all-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-quazip-all: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-quazip-clean-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-quazip-clean: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-quazip-distclean-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-quazip-distclean: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-quazip-install_subtargets-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-quazip-install_subtargets: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-quazip-uninstall_subtargets-ordered: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-quazip-uninstall_subtargets: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-qlogger-qmake_all: sub-quazip-qmake_all FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+	cd qlogger/ && $(MAKE) -f Makefile qmake_all
+sub-qlogger: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
+sub-qlogger-make_first-ordered: sub-quazip-make_first-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-qlogger-make_first: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-qlogger-all-ordered: sub-quazip-all-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-qlogger-all: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-qlogger-clean-ordered: sub-quazip-clean-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-qlogger-clean: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-qlogger-distclean-ordered: sub-quazip-distclean-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-qlogger-distclean: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-qlogger-install_subtargets-ordered: sub-quazip-install_subtargets-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-qlogger-install_subtargets: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-qlogger-uninstall_subtargets-ordered: sub-quazip-uninstall_subtargets-ordered  FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-qlogger-uninstall_subtargets: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-epub-qmake_all: sub-qlogger-qmake_all FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+	cd epub/ && $(MAKE) -f Makefile qmake_all
+sub-epub: sub-quazip FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
+sub-epub-make_first-ordered: sub-qlogger-make_first-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-epub-make_first: sub-quazip-make_first FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-epub-all-ordered: sub-qlogger-all-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-epub-all: sub-quazip-all FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-epub-clean-ordered: sub-qlogger-clean-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-epub-clean: sub-quazip-clean FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-epub-distclean-ordered: sub-qlogger-distclean-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-epub-distclean: sub-quazip-distclean FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-epub-install_subtargets-ordered: sub-qlogger-install_subtargets-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-epub-install_subtargets: sub-quazip-install_subtargets FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-epub-uninstall_subtargets-ordered: sub-qlogger-uninstall_subtargets-ordered  FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-epub-uninstall_subtargets: sub-quazip-uninstall_subtargets FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-ebookedit-qmake_all: sub-epub-qmake_all FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+	cd ebookedit/ && $(MAKE) -f Makefile qmake_all
+sub-ebookedit: sub-epub FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile
+sub-ebookedit-make_first-ordered: sub-epub-make_first-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-ebookedit-make_first: sub-epub-make_first FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile 
+sub-ebookedit-all-ordered: sub-epub-all-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-ebookedit-all: sub-epub-all FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile all
+sub-ebookedit-clean-ordered: sub-epub-clean-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-ebookedit-clean: sub-epub-clean FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile clean
+sub-ebookedit-distclean-ordered: sub-epub-distclean-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-ebookedit-distclean: sub-epub-distclean FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile distclean
+sub-ebookedit-install_subtargets-ordered: sub-epub-install_subtargets-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-ebookedit-install_subtargets: sub-epub-install_subtargets FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile install
+sub-ebookedit-uninstall_subtargets-ordered: sub-epub-uninstall_subtargets-ordered  FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
+sub-ebookedit-uninstall_subtargets: sub-epub-uninstall_subtargets FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile uninstall
 
 Makefile: EBookEdit.pro /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/common/unix.conf \
@@ -254,6 +378,7 @@ Makefile: EBookEdit.pro /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf /opt/
 		/opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_config.prf \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/features/exclusive_builds.prf \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/features/toolchain.prf \
 		/opt/Qt/5.11.2/gcc_64/mkspecs/features/default_pre.prf \
@@ -438,6 +563,7 @@ Makefile: EBookEdit.pro /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf /opt/
 /opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_config.prf:
 /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf:
 /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /opt/Qt/5.11.2/gcc_64/mkspecs/features/exclusive_builds.prf:
 /opt/Qt/5.11.2/gcc_64/mkspecs/features/toolchain.prf:
 /opt/Qt/5.11.2/gcc_64/mkspecs/features/default_pre.prf:
@@ -455,32 +581,44 @@ EBookEdit.pro:
 qmake: FORCE
 	@$(QMAKE) -o Makefile EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
 
-qmake_all: sub-libmobi-qmake_all sub-EBookEdit-qmake_all FORCE
+qmake_all: sub-quazip-qmake_all sub-qlogger-qmake_all sub-epub-qmake_all sub-ebookedit-qmake_all FORCE
 
-make_first: sub-libmobi-make_first sub-EBookEdit-make_first  FORCE
-all: sub-libmobi-all sub-EBookEdit-all  FORCE
-clean: sub-libmobi-clean sub-EBookEdit-clean  FORCE
-distclean: sub-libmobi-distclean sub-EBookEdit-distclean  FORCE
+make_first: sub-quazip-make_first-ordered sub-qlogger-make_first-ordered sub-epub-make_first-ordered sub-ebookedit-make_first-ordered  FORCE
+all: sub-quazip-all-ordered sub-qlogger-all-ordered sub-epub-all-ordered sub-ebookedit-all-ordered  FORCE
+clean: sub-quazip-clean-ordered sub-qlogger-clean-ordered sub-epub-clean-ordered sub-ebookedit-clean-ordered  FORCE
+distclean: sub-quazip-distclean-ordered sub-qlogger-distclean-ordered sub-epub-distclean-ordered sub-ebookedit-distclean-ordered  FORCE
 	-$(DEL_FILE) Makefile
 	-$(DEL_FILE) .qmake.stash
-install_subtargets: sub-libmobi-install_subtargets sub-EBookEdit-install_subtargets FORCE
-uninstall_subtargets: sub-libmobi-uninstall_subtargets sub-EBookEdit-uninstall_subtargets FORCE
+install_subtargets: sub-quazip-install_subtargets-ordered sub-qlogger-install_subtargets-ordered sub-epub-install_subtargets-ordered sub-ebookedit-install_subtargets-ordered FORCE
+uninstall_subtargets: sub-quazip-uninstall_subtargets-ordered sub-qlogger-uninstall_subtargets-ordered sub-epub-uninstall_subtargets-ordered sub-ebookedit-uninstall_subtargets-ordered FORCE
 
-sub-libmobi-check:
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
-sub-EBookEdit-check:
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
-check: sub-libmobi-check sub-EBookEdit-check
+sub-quazip-check_ordered:
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
+sub-qlogger-check_ordered: sub-quazip-check_ordered 
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
+sub-epub-check_ordered: sub-qlogger-check_ordered 
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
+sub-ebookedit-check_ordered: sub-epub-check_ordered 
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile check
+check: sub-quazip-check_ordered sub-qlogger-check_ordered sub-epub-check_ordered sub-ebookedit-check_ordered
 
-sub-libmobi-benchmark:
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
-sub-EBookEdit-benchmark:
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
-benchmark: sub-libmobi-benchmark sub-EBookEdit-benchmark
+sub-quazip-benchmark_ordered:
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
+sub-qlogger-benchmark_ordered: sub-quazip-benchmark_ordered 
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
+sub-epub-benchmark_ordered: sub-qlogger-benchmark_ordered 
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
+sub-ebookedit-benchmark_ordered: sub-epub-benchmark_ordered 
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -f Makefile benchmark
+benchmark: sub-quazip-benchmark_ordered sub-qlogger-benchmark_ordered sub-epub-benchmark_ordered sub-ebookedit-benchmark_ordered
 install:install_subtargets  FORCE
 
 uninstall: uninstall_subtargets FORCE
@@ -490,15 +628,23 @@ FORCE:
 dist: distdir FORCE
 	(cd `dirname $(DISTDIR)` && $(TAR) $(DISTNAME).tar $(DISTNAME) && $(COMPRESS) $(DISTNAME).tar) && $(MOVE) `dirname $(DISTDIR)`/$(DISTNAME).tar.gz . && $(DEL_FILE) -r $(DISTDIR)
 
-distdir: sub-libmobi-distdir sub-EBookEdit-distdir FORCE
+distdir: sub-quazip-distdir sub-qlogger-distdir sub-epub-distdir sub-ebookedit-distdir FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
-	$(COPY_FILE) --parents /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_pre.prf /opt/Qt/5.11.2/gcc_64/mkspecs/common/unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/linux.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/sanitize.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/gcc-base.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/gcc-base-unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/g++-base.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/g++-unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/qconfig.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3danimation.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dcore.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dextras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dinput.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3drender.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_accessibility_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bootstrap_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_charts.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_charts_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_concurrent.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_core.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_core_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_datavisualization.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_datavisualization_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_dbus.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designer.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designer_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designercomponents_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_devicediscovery_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_edid_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_egl_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eglfs_kms_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eglfsdeviceintegration_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eventdispatcher_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_fb_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_fontdatabase_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gamepad.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gamepad_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_glx_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gui.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gui_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_help.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_help_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_input_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_kms_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_location.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_location_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimedia.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimedia_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediagsttools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediawidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediawidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_network.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_network_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_networkauth.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_networkauth_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_nfc.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_opengl.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_openglextensions.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_openglextensions_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_packetprotocol_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_platformcompositor_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioning.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioning_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioningquick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioningquick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_printsupport.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_printsupport_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_purchasing.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_purchasing_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmldebug_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmldevtools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmltest.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmltest_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickcontrols2.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickcontrols2_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickparticles_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quicktemplates2_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickwidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickwidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_remoteobjects.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_remoteobjects_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_repparser.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_repparser_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_script.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_script_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scripttools.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scripttools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scxml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scxml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sensors.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sensors_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialbus.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialbus_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialport.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialport_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_service_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sql.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sql_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_svg.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_svg_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_testlib.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_testlib_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_texttospeech.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_texttospeech_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_theme_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uiplugin.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uitools.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webchannel.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webengine.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webengine_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecore_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecoreheaders_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginewidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginewidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_websockets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_websockets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webview.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webview_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_widgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_widgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_x11extras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_x11extras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xmlpatterns.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xmlpatterns_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_functions.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_config.prf /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_post.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/exclusive_builds.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/toolchain.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/default_pre.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/resolve_config.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/default_post.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qml_debug.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/warn_on.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qmake_use.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/file_copies.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/testcase_targets.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/exceptions.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/yacc.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/lex.prf EBookEdit.pro $(DISTDIR)/
+	$(COPY_FILE) --parents /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_pre.prf /opt/Qt/5.11.2/gcc_64/mkspecs/common/unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/linux.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/sanitize.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/gcc-base.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/gcc-base-unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/g++-base.conf /opt/Qt/5.11.2/gcc_64/mkspecs/common/g++-unix.conf /opt/Qt/5.11.2/gcc_64/mkspecs/qconfig.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3danimation.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3danimation_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dcore.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dcore_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dextras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dextras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dinput.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dinput_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dlogic.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dlogic_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickanimation.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickanimation_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickextras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickextras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickinput.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickinput_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickrender.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickrender_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3dquickscene2d_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3drender.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_3drender_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_accessibility_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bluetooth.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bluetooth_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_bootstrap_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_charts.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_charts_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_concurrent.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_concurrent_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_core.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_core_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_datavisualization.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_datavisualization_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_dbus.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_dbus_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designer.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designer_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_designercomponents_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_devicediscovery_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_edid_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_egl_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eglfs_kms_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eglfsdeviceintegration_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_eventdispatcher_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_fb_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_fontdatabase_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gamepad.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gamepad_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_glx_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gui.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_gui_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_help.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_help_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_input_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_kms_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_location.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_location_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimedia.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimedia_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediagsttools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediawidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_multimediawidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_network.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_network_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_networkauth.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_networkauth_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_nfc.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_nfc_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_opengl.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_opengl_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_openglextensions.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_openglextensions_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_packetprotocol_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_platformcompositor_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioning.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioning_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioningquick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_positioningquick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_printsupport.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_printsupport_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_purchasing.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_purchasing_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmldebug_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmldevtools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmltest.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qmltest_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quick.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quick_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickcontrols2.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickcontrols2_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickparticles_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quicktemplates2_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickwidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_quickwidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_remoteobjects.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_remoteobjects_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_repparser.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_repparser_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_script.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_script_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scripttools.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scripttools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scxml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_scxml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sensors.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sensors_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialbus.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialbus_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialport.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_serialport_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_service_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sql.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_sql_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_svg.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_svg_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_testlib.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_testlib_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_texttospeech.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_texttospeech_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_theme_support_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uiplugin.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uitools.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_uitools_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandclient.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandclient_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandcompositor.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_waylandcompositor_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webchannel.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webchannel_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webengine.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webengine_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecore.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecore_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginecoreheaders_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginewidgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webenginewidgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_websockets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_websockets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webview.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_webview_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_widgets.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_widgets_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_x11extras.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_x11extras_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xml.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xml_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xmlpatterns.pri /opt/Qt/5.11.2/gcc_64/mkspecs/modules/qt_lib_xmlpatterns_private.pri /opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_functions.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qt_config.prf /opt/Qt/5.11.2/gcc_64/mkspecs/linux-g++/qmake.conf /opt/Qt/5.11.2/gcc_64/mkspecs/features/spec_post.prf .qmake.stash /opt/Qt/5.11.2/gcc_64/mkspecs/features/exclusive_builds.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/toolchain.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/default_pre.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/resolve_config.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/default_post.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qml_debug.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/warn_on.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/qmake_use.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/file_copies.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/testcase_targets.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/exceptions.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/yacc.prf /opt/Qt/5.11.2/gcc_64/mkspecs/features/lex.prf EBookEdit.pro $(DISTDIR)/
 
-sub-libmobi-distdir: FORCE
-	@test -d libmobi/ || mkdir -p libmobi/
-	cd libmobi/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/libmobi/libmobi.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/libmobi
+sub-quazip-distdir: FORCE
+	@test -d quazip/ || mkdir -p quazip/
+	cd quazip/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/quazip/quazip.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/quazip
 
-sub-EBookEdit-distdir: FORCE
-	@test -d EBookEdit/ || mkdir -p EBookEdit/
-	cd EBookEdit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/EBookEdit/EBookEdit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/EBookEdit
+sub-qlogger-distdir: FORCE
+	@test -d qlogger/ || mkdir -p qlogger/
+	cd qlogger/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/qlogger/qlogger.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/qlogger
+
+sub-epub-distdir: FORCE
+	@test -d epub/ || mkdir -p epub/
+	cd epub/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/epub/epub.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/epub
+
+sub-ebookedit-distdir: FORCE
+	@test -d ebookedit/ || mkdir -p ebookedit/
+	cd ebookedit/ && ( test -e Makefile || $(QMAKE) -o Makefile /workspace/qt/EBookEdit/ebookedit/ebookedit.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug ) && $(MAKE) -e -f Makefile distdir DISTDIR=$(DISTDIR)/ebookedit
 
