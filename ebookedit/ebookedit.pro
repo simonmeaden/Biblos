@@ -22,7 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++14
 #CONFIG += debug_and_release # prepared to build in debug and release forms
 #CONFIG -= debug_and_release_target # but NOT in debug and release directories
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)
@@ -46,10 +46,16 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    hovertabwidget.cpp \
+    hoverpopup.cpp \
+    optionsdialog.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    hovertabwidget.h \
+    hoverpopup.h \
+    optionsdialog.h
 
 FORMS += \
         mainwindow.ui
@@ -99,3 +105,6 @@ else:unix: LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitter
 
 INCLUDEPATH += $$PWD/../csvsplitter
 DEPENDPATH += $$PWD/../csvsplitter
+
+# NUSPELL spellchecker library
+unix|win32: LIBS += -lnuspell

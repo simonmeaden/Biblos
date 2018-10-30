@@ -3,17 +3,17 @@
 using namespace qlogger;
 
 MobiDocument::MobiDocument(QObject *parent)
-  : EBookDocument(parent), m_loaded(false) {}
+  : EBookDocument(parent), m_loaded(false), m_data(Q_NULLPTR) {}
 
 MobiDocument::MobiDocument(const MobiDocument &doc) {}
 
 MobiDocument::~MobiDocument() {
-  if (m_data) {
-    mobi_free(m_data);
-  }
-  if (m_rawdata) {
-    mobi_free_rawml(m_rawdata);
-  }
+//  if (m_data) {
+//    mobi_free(m_data);
+//  }
+//  if (m_rawdata) {
+//    mobi_free_rawml(m_rawdata);
+//  }
 }
 
 void MobiDocument::openDocument(const QString &path) {

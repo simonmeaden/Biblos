@@ -7,6 +7,7 @@
 #include "ebook_global.h"
 
 struct EBookData {
+  QPoint position;
   QString title;
   QString subject;
   QString language;
