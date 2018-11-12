@@ -4,15 +4,19 @@ SUBDIRS += \
     quazip \
     qlogger \
     csvsplitter \
+#    regex \
     ebook \
     yaml-cpp \
     qyaml-cpp \
-    ebookedit
+    ebookedit \
+    plugin/nuspellplugin
 
 
 CONFIG += ordered
 
 quazip.subdir = quazip
+
+#regex.subdir = regex
 
 qlogger.subdir = qlogger
 
@@ -27,4 +31,4 @@ ebook.subdir = ebook
 ebook.depends = quazip qlogger csvsplitter
 
 ebookedit.subdir = ebookedit
-ebookedit.depends = ebook qyaml-cpp
+ebookedit.depends = ebook qyaml-cpp #regex

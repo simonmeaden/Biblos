@@ -1,10 +1,11 @@
 #include "mainwindow.h"
 #include <QApplication>
 
+#include "epubcommon.h"
 #include "ebookeditor.h"
-#include "ebookdocument.h"
-#include "epubdocument.h"
-#include "mobidocument.h"
+#include "qebookdocument.h"
+#include "qepubdocument.h"
+#include "qmobidocument.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +14,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<EBookEditor>();
     qRegisterMetaType<EBookData>();
     qRegisterMetaType<EPubDocument>();
-    qRegisterMetaType<MobiDocument>();
+    qRegisterMetaType<QMobiDocument>();
 
     MainWindow w;
     w.show();

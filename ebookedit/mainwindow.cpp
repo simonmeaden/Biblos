@@ -2,7 +2,7 @@
 
 #include <qlogger.h>
 
-#include "ebookdocument.h"
+#include "qebookdocument.h"
 
 using namespace qlogger;
 
@@ -12,17 +12,41 @@ const QString MainWindow::NO_FILE = MainWindow::tr("No File");
 const QString MainWindow::NOT_MODIFIED = MainWindow::tr("Not Modified");
 const QString MainWindow::MODIFIED = MainWindow::tr("Modified");
 
+const QString MainWindow::PREF_FILE = "preferences.yaml";
+QString MainWindow::POSITION = "window";
+QString MainWindow::DIALOG = "options dialog";
+QString MainWindow::PREF_POPUP_TIMEOUT = "popup timeout";
+QString MainWindow::PREF_ENABLE_POPUP = "popup enable";
+QString MainWindow::PREF_CURRENT_INDEX = "current book";
+QString MainWindow::PREF_COUNT = "count";
+QString MainWindow::PREF_BOOKLIST = "book list";
+QString MainWindow::CODE_OPTIONS = "code editor";
+QString MainWindow::CODE_FONT = "font";
+QString MainWindow::CODE_NORMAL = "normal";
+QString MainWindow::CODE_ATTRIBUTE = "attribute";
+QString MainWindow::CODE_TAG = "tag";
+QString MainWindow::CODE_ERROR = "error";
+QString MainWindow::CODE_STRING = "string";
+QString MainWindow::CODE_STYLE = "style";
+QString MainWindow::CODE_SCRIPT = "script";
+QString MainWindow::CODE_COLOR = "color";
+QString MainWindow::CODE_BACK = "background";
+QString MainWindow::CODE_WEIGHT = "weight";
+QString MainWindow::CODE_ITALIC = "italic";
+
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
+  , m_initialising(true)
+  , m_options(new Options())
   , m_bookcount(0)
   , m_popup(Q_NULLPTR)
 {
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
+  loadPlugins();
   initBuild();
 
-  //  createEPubDocument(/*m_currentbook*/);
-  //  m_editor->setDocument(m_document);
+  m_initialising = false;
 }
 
 MainWindow::~MainWindow() {}
@@ -31,20 +55,20 @@ void
 MainWindow::resizeEvent(QResizeEvent* e)
 {
   QSize size = e->size();
-  m_options.width = size.width();
-  m_options.height = size.height();
+  m_options->rect.setSize(size);
   m_prefchanged = true;
-  saveOptions();
+  if (!m_initialising)
+    saveOptions();
 }
 
 void
 MainWindow::moveEvent(QMoveEvent* e)
 {
   QPoint pos = e->pos();
-  m_options.x = pos.x();
-  m_options.y = pos.y();
+  m_options->rect.setTopLeft(pos);
   m_prefchanged = true;
-  saveOptions();
+  if (!m_initialising)
+    saveOptions();
 }
 
 void
@@ -65,11 +89,8 @@ MainWindow::initGui()
   QGridLayout* l = new QGridLayout;
   mainFrame->setLayout(l);
 
-  m_tabs = new HoverTabWidget();
-  connect(
-    m_tabs, &QTabWidget::currentChanged, this, &MainWindow::documentChanged);
-  connect(m_tabs, &HoverTabWidget::tabEntered, this, &MainWindow::tabEntered);
-  connect(m_tabs, &HoverTabWidget::tabExited, this, &MainWindow::tabExited);
+  m_tabs = new QTabWidget();
+  m_tabs->setTabsClosable(true);
   l->addWidget(m_tabs, 0, 0);
 }
 
@@ -248,30 +269,136 @@ MainWindow::initStatusbar()
 void
 MainWindow::saveOptions()
 {
-  QFile file(QString("preferences.yaml"));
+  QFile file(PREF_FILE);
   if (m_prefchanged) {
     if (file.open((QFile::ReadWrite | QFile::Truncate))) {
       YAML::Emitter emitter;
-      emitter << YAML::BeginMap;
-      emitter << YAML::Key << "x";
-      emitter << YAML::Value << m_options.x;
-      emitter << YAML::Key << "y";
-      emitter << YAML::Value << m_options.y;
-      emitter << YAML::Key << "width";
-      emitter << YAML::Value << m_options.width;
-      emitter << YAML::Key << "height";
-      emitter << YAML::Value << m_options.height;
-      emitter << YAML::Key << "popup timeout";
-      emitter << YAML::Value << m_options.popuptimeout;
-      emitter << YAML::Key << "current book";
-      emitter << YAML::Value << m_options.currentindex;
-      emitter << YAML::Key << "book list";
-      emitter << YAML::BeginSeq;
-      foreach (QString book, m_options.currentfiles) {
-        emitter << book;
+      {
+        emitter << YAML::BeginMap;
+        emitter << YAML::Key << POSITION;
+        emitter << YAML::Value << m_options->rect;
+        emitter << YAML::Key << DIALOG;
+        emitter << YAML::Value << m_options->options_dlg;
+        emitter << YAML::Key << PREF_POPUP_TIMEOUT;
+        emitter << YAML::Value << m_options->popuptimeout;
+        emitter << YAML::Key << PREF_ENABLE_POPUP;
+        emitter << YAML::Value << m_options->enablepopup;
+        emitter << YAML::Key << PREF_CURRENT_INDEX;
+        emitter << YAML::Value << m_options->currentindex;
+        emitter << YAML::Key << PREF_BOOKLIST;
+        { // Start of PREF_BOOKLIST
+          emitter << YAML::BeginSeq;
+          foreach (QString book, m_options->currentfiles) {
+            emitter << book;
+          }
+          emitter << YAML::EndSeq;
+        } // End of PREF_BOOKLIST
+        emitter << YAML::Key << CODE_OPTIONS;
+        { // Start of CODE_OPTIONS
+          emitter << YAML::BeginMap;
+          emitter << YAML::Key << CODE_FONT;
+          emitter << YAML::Value << m_options->codeFont;
+          emitter << YAML::Key << CODE_NORMAL;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->normalColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->normalBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << int(m_options->normalWeight);
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->normalItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_ATTRIBUTE;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->attributeColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->attributeBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << int(m_options->attributeWeight);
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->attributeItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_TAG;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->tagColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->tagBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << int(m_options->tagWeight);
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->tagItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_STRING;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->stringColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->stringBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << int(m_options->stringWeight);
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->stringItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_ERROR;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->errorColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->errorBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << m_options->errorWeight;
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->errorItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_STYLE;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->styleColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->styleBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << m_options->styleWeight;
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->styleItalic;
+            emitter << YAML::EndMap;
+          }
+          emitter << YAML::Key << CODE_SCRIPT;
+          emitter << YAML::Value;
+          {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << CODE_COLOR;
+            emitter << YAML::Value << m_options->scriptColor;
+            emitter << YAML::Key << CODE_BACK;
+            emitter << YAML::Value << m_options->scriptBack;
+            emitter << YAML::Key << CODE_WEIGHT;
+            emitter << YAML::Value << m_options->scriptWeight;
+            emitter << YAML::Key << CODE_ITALIC;
+            emitter << YAML::Value << m_options->scriptItalic;
+            emitter << YAML::EndMap;
+          }
+        } // End of CODE_OPTIONS
+        emitter << YAML::EndMap;
       }
-      emitter << YAML::EndSeq;
-      emitter << YAML::EndMap;
       QTextStream out(&file);
       out << emitter.c_str();
     }
@@ -282,77 +409,118 @@ MainWindow::saveOptions()
 void
 MainWindow::loadOptions()
 {
-  QFile file(QString("preferences.yaml"));
+  QFile file(PREF_FILE);
   if (file.exists()) {
     m_preferences = YAML::LoadFile(QString("preferences.yaml"));
     // Last window position.
-    if (m_preferences["x"]) {
-      m_options.x = m_preferences["x"].as<int>();
+    if (m_preferences[POSITION]) {
+      m_options->rect = m_preferences[POSITION].as<QRect>();
     } else {
-      m_options.x = DEF_X;
-      m_prefchanged = true;
+      m_options->rect = QRect(0, 0, DEF_WIDTH, DEF_HEIGHT);
     }
-    if (m_preferences["y"]) {
-      m_options.y = m_preferences["y"].as<int>();
+    if (m_preferences[DIALOG]) {
+      m_options->options_dlg = m_preferences[DIALOG].as<QSize>();
     } else {
-      m_options.y = DEF_Y;
-      m_prefchanged = true;
+      m_options->options_dlg = QSize(DEF_DLG_WIDTH, DEF_DLG_HEIGHT);
     }
-    if (m_preferences["width"]) {
-      m_options.width = m_preferences["width"].as<int>();
+    // Popup information enablement.
+    if (m_preferences[PREF_ENABLE_POPUP]) {
+      m_options->enablepopup = m_preferences[PREF_ENABLE_POPUP].as<bool>();
     } else {
-      m_options.width = DEF_WIDTH;
-      m_prefchanged = true;
-    }
-    if (m_preferences["height"]) {
-      m_options.height = m_preferences["height"].as<int>();
-    } else {
-      m_options.height = DEF_HEIGHT;
-      m_prefchanged = true;
+      m_options->enablepopup = true;
     }
     // Timeout for popup information.
-    if (m_preferences["popup timeout"]) {
-      m_options.popuptimeout = m_preferences["popup timeout"].as<int>();
+    if (m_preferences[PREF_POPUP_TIMEOUT]) {
+      m_options->popuptimeout = m_preferences[PREF_POPUP_TIMEOUT].as<int>();
     } else {
-      m_options.popuptimeout = DEF_POPUP_TIMEOUT;
-      m_prefchanged = true;
+      m_options->popuptimeout = DEF_POPUP_TIMEOUT;
     }
     // Current book being read/edited.
-    if (m_preferences["current"]) {
-      m_options.currentindex = m_preferences["current"].as<int>();
+    if (m_preferences[PREF_CURRENT_INDEX]) {
+      m_options->currentindex = m_preferences[PREF_CURRENT_INDEX].as<int>();
     } else {
-      m_options.currentindex = 0;
-      m_prefchanged = true;
-    }
-    // Last book count.
-    if (m_preferences["count"]) {
-      m_options.bookcount = m_preferences["count"].as<int>();
-    } else {
-      m_options.bookcount = 0;
-      m_prefchanged = true;
+      m_options->currentindex = 0;
     }
     // Last books loaded.
-    YAML::Node books = m_preferences["book list"];
+    YAML::Node books = m_preferences[PREF_BOOKLIST];
     if (books && books.IsSequence()) {
-      m_options.currentfiles.clear(); // Empty list just in case.
+      m_options->currentfiles.clear(); // Empty list just in case.
       for (uint i = 0; i < books.size(); i++) {
-        m_options.currentfiles.append(books[i].as<QString>());
+        m_options->currentfiles.append(books[i].as<QString>());
+      }
+    }
+    YAML::Node codeoptions = m_preferences[CODE_OPTIONS];
+    if (codeoptions && codeoptions.IsMap()) {
+      YAML::Node codefont = codeoptions[CODE_FONT];
+      if (codefont) {
+        m_options->codeFont = codefont.as<QFont>();
+      }
+      YAML::Node codenormal = codeoptions[CODE_NORMAL];
+      if (codenormal && codenormal.IsMap()) {
+        m_options->normalColor = codenormal[CODE_COLOR].as<QColor>();
+        m_options->normalBack = codenormal[CODE_BACK].as<QColor>();
+        m_options->normalWeight =
+          QFont::Weight(codenormal[CODE_WEIGHT].as<int>());
+        m_options->normalItalic = codenormal[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codeatt = codeoptions[CODE_ATTRIBUTE];
+      if (codeatt && codeatt.IsMap()) {
+        m_options->attributeColor = codeatt[CODE_COLOR].as<QColor>();
+        m_options->attributeBack = codeatt[CODE_BACK].as<QColor>();
+        m_options->attributeWeight =
+          QFont::Weight(codeatt[CODE_WEIGHT].as<int>());
+        m_options->attributeItalic = codeatt[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codetag = codeoptions[CODE_TAG];
+      if (codetag && codetag.IsMap()) {
+        m_options->tagColor = codetag[CODE_COLOR].as<QColor>();
+        m_options->tagBack = codetag[CODE_BACK].as<QColor>();
+        m_options->tagWeight = QFont::Weight(codetag[CODE_WEIGHT].as<int>());
+        m_options->tagItalic = codeatt[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codeattstr = codeoptions[CODE_STRING];
+      if (codeattstr && codeattstr.IsMap()) {
+        m_options->stringColor = codeattstr[CODE_COLOR].as<QColor>();
+        m_options->stringBack = codeattstr[CODE_BACK].as<QColor>();
+        m_options->stringWeight =
+          QFont::Weight(codeattstr[CODE_WEIGHT].as<int>());
+        m_options->stringItalic = codeattstr[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codeerr = codeoptions[CODE_ERROR];
+      if (codeerr && codeerr.IsMap()) {
+        m_options->errorColor = codeerr[CODE_COLOR].as<QColor>();
+        m_options->errorBack = codeerr[CODE_BACK].as<QColor>();
+        m_options->errorWeight = QFont::Weight(codeerr[CODE_WEIGHT].as<int>());
+        m_options->errorItalic = codeerr[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codestyle = codeoptions[CODE_STYLE];
+      if (codestyle && codestyle.IsMap()) {
+        m_options->styleColor = codestyle[CODE_COLOR].as<QColor>();
+        m_options->styleBack = codestyle[CODE_BACK].as<QColor>();
+        m_options->styleWeight =
+          QFont::Weight(codestyle[CODE_WEIGHT].as<int>());
+        m_options->styleItalic = codestyle[CODE_ITALIC].as<bool>();
+      }
+      YAML::Node codescript = codeoptions[CODE_SCRIPT];
+      if (codescript && codescript.IsMap()) {
+        m_options->scriptColor = codescript[CODE_COLOR].as<QColor>();
+        m_options->scriptBack = codescript[CODE_BACK].as<QColor>();
+        m_options->scriptWeight =
+          QFont::Weight(codescript[CODE_WEIGHT].as<int>());
+        m_options->scriptItalic = codescript[CODE_ITALIC].as<bool>();
       }
     }
     //    m_currentfiles = m_preferences["book list"].as<QList<QString>>();
   } else {
-    m_options.x = DEF_X;
-    m_options.y = DEF_Y;
-    m_options.width = DEF_WIDTH;
-    m_options.height = DEF_HEIGHT;
-    m_options.currentindex = -1;
-    m_options.currentfiles = QStringList();
-    m_options.bookcount = 0;
+    m_options->rect = QRect(DEF_X, DEF_Y, DEF_WIDTH, DEF_HEIGHT);
+    m_options->currentindex = -1;
+    m_options->currentfiles = QStringList();
+    m_options->bookcount = 0;
     m_prefchanged = true;
   }
 
-  if (!m_options.currentfiles.empty()) {
-    foreach (QString filename, m_options.currentfiles) {
+  if (!m_options->currentfiles.empty()) {
+    foreach (QString filename, m_options->currentfiles) {
       loadDocument(filename);
     }
   }
@@ -361,7 +529,7 @@ MainWindow::loadOptions()
 void
 MainWindow::documentChanged(int index)
 {
-  EBookDocument* document = m_documents.at(index);
+  QEBookDocument* document = m_documents.at(index);
   if (document->isModified()) {
     setModified();
   } else {
@@ -380,30 +548,47 @@ MainWindow::initSetup()
 {
   m_prefchanged = false;
   loadOptions();
-  setGeometry(m_options.x, m_options.y, m_options.width, m_options.height);
-  saveOptions();
+  setGeometry(m_options->rect);
 }
 
 void
 MainWindow::loadDocument(QString filename)
 {
-  if (!m_options.currentfiles.contains(filename)) {
-    m_options.currentfiles.append(filename);
+  if (!m_options->currentfiles.contains(filename)) {
+    m_options->currentfiles.append(filename);
   }
-  EBookDocument* document = createDocument(filename);
-  EBookEditor* edit = new EBookEditor(this);
-  edit->setDocument(document);
-  m_documents.append(document);
-  QString tabname =
-    QString(tr("%1, (%2)").arg(document->title()).arg(document->authorNames()));
-  m_tabs->addTab(
-    edit, tabname, QVariant::fromValue<EBookData>(document->data()));
-  //  } else {
-  //    int index = m_currentfiles.indexOf(filename);
-  //    if (index != -1) {
-  //      m_tabs->setCurrentIndex(index);
-  //    }
-  //  }
+
+  EBookWrapper* wrapper = new EBookWrapper(m_options, this);
+
+  QEBookDocument* htmldocument = createDocument(filename);
+  QEBookDocument* codeDocument = createDocument(htmldocument);
+  wrapper->editor()->setDocument(htmldocument);
+  wrapper->codeEditor()->setDocument(codeDocument);
+  connect(
+    this, &MainWindow::codeChanged, wrapper, &EBookWrapper::optionsHaveChanged);
+
+  m_documents.append(htmldocument);
+  QString tabname = QString(
+    tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->authorNames()));
+  m_tabs->addTab(wrapper, tabname);
+}
+
+void
+MainWindow::saveDocument(QEBookDocument* document)
+{
+  // TODO save the document
+}
+
+void
+MainWindow::tabClosing(int tab)
+{
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->widget(tab));
+  QEBookDocument* document =
+    qobject_cast<QEBookDocument*>(wrapper->editor()->document());
+  if (document->isModified()) {
+    // TODO - Check if the user wants to save the document.
+    saveDocument(document);
+  }
 }
 
 void
@@ -414,25 +599,27 @@ MainWindow::fileOpen()
   foreach (QString filename, filenames) {
     loadDocument(filename);
   }
-  m_bookcount = m_options.currentfiles.size();
+  m_bookcount = m_options->currentfiles.size();
   m_prefchanged = true;
   saveOptions();
 }
 
 void
 MainWindow::fileSave()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::fileSaveAs()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::fileExit()
 {
-  if (m_prefchanged) {
-    saveOptions();
-  }
+  saveOptions();
 
   // TODO Are you really really really sure?
   close();
@@ -440,37 +627,51 @@ MainWindow::fileExit()
 
 void
 MainWindow::editUndo()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editRedo()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editCopy()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editCut()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editPaste()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editPasteFromHistory()
-{}
+{
+  // TODO
+}
 
 void
 MainWindow::editOptions()
 {
   OptionsDialog* dlg = new OptionsDialog(m_options, this);
+  connect(dlg, &OptionsDialog::codeChanged, this, &MainWindow::codeChanged);
   int result = dlg->exec();
   if (result == QDialog::Accepted) {
     if (dlg->modified()) {
       m_options = dlg->options();
       saveOptions();
+      m_prefchanged = true;
     }
   }
 }
@@ -540,41 +741,44 @@ MainWindow::setFilename(QString name)
   m_filelbl->setText(name);
 }
 
-void
-MainWindow::tabEntered(int index, QPoint pos, QVariant data)
-{
-  // new tab entrance.
-  if (m_popupindex != -1) // this stops restarting popup.
-    return;
+// void
+// MainWindow::tabEntered(int index, QPoint pos, QVariant data)
+//{
+//  // new tab entrance.
+//  if (m_popupindex != -1) // this stops restarting popup.
+//    return;
 
-  if (m_options.enablepopup) {
-    m_popup = new HoverPopup(data, this);
-    m_popup->setFrameStyle(QFrame::NoFrame);
-    m_popupindex = index;
-    m_popuptimer = new QTimer(this);
-    connect(m_popuptimer, &QTimer::timeout, this, &MainWindow::closePopup);
-    m_popuptimer->start(m_options.popuptimeout);
-    m_popup->show();
-  }
-}
+//  if (m_options->enablepopup) {
+//    QPoint globalPos = mapToGlobal(pos);
+//    m_popup = new HoverPopup(data, this);
+//    m_popup->setFrameStyle(QFrame::NoFrame);
+//    m_popup->setGeometry(
+//      globalPos.x(), globalPos.y(), m_popup->width(), m_popup->height());
+//    m_popupindex = index;
+//    m_popuptimer = new QTimer(this);
+//    connect(m_popuptimer, &QTimer::timeout, this, &MainWindow::closePopup);
+//    m_popuptimer->start(m_options->popuptimeout);
+//    m_popup->show();
+//  }
+//}
 
-void
-MainWindow::tabExited(int /*index*/)
-{
-  closePopup();
-  m_popupindex = -1;
-}
+// void
+// MainWindow::tabExited(int /*index*/)
+//{
+//  closePopup();
+//  m_popupindex = -1;
+//}
 
-void
-MainWindow::closePopup()
-{
-  if (m_popup) {
-    m_popup->close();
-    m_popup = Q_NULLPTR;
-  }
-}
+// void
+// MainWindow::closePopup()
+//{
+//  if (m_popup) {
+//    m_popup->close();
+//    m_popup = Q_NULLPTR;
+//  }
+//}
 
-EBookDocument*
+QEBookDocument*
 MainWindow::createDocument(QString path)
 {
   // TODO something more rigorous perhaps
@@ -586,7 +790,28 @@ MainWindow::createDocument(QString path)
   return Q_NULLPTR;
 }
 
-EBookDocument*
+QEBookDocument*
+MainWindow::createDocument(QEBookDocument* doc)
+{
+  EPubDocument* epub = dynamic_cast<EPubDocument*>(doc);
+  if (epub) {
+    EBookContents* contents = doc->cloneData();
+    EPubDocument* document = new EPubDocument(doc->parent());
+    document->setDocumentLayout(new QPlainTextDocumentLayout(document));
+    document->setClonedData(contents);
+    return document;
+  }
+  //  MobiDocument* mobi = dynamic_cast<MobiDocument*>(doc);
+  //  if (mobi) {
+  //    EPubDocument contents = doc->cloneData();
+  //    MobiDocument* document = new MobiDocument(this);
+  //    document->setClonedData(contents);
+  //    return document;
+  //  }
+  return Q_NULLPTR;
+}
+
+QEBookDocument*
 MainWindow::createEPubDocument(QString path)
 {
   EPubDocument* document = new EPubDocument(this);
@@ -595,11 +820,31 @@ MainWindow::createEPubDocument(QString path)
   return document;
 }
 
-EBookDocument*
+QEBookDocument*
 MainWindow::createMobiDocument(QString path)
 {
-  MobiDocument* document = new MobiDocument(this);
+  QMobiDocument* document = new QMobiDocument(this);
   clearDocuments();
   document->openDocument(path);
   return document;
+}
+
+void
+MainWindow::loadPlugins()
+{
+
+  QDir pluginsDir = QDir(qApp->applicationDirPath());
+  pluginsDir.cd("plugins");
+
+  foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
+    QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+    QObject* plugin = loader.instance();
+
+    if (plugin) {
+
+      SpellInterface* spellchecker = qobject_cast<SpellInterface*>(plugin);
+      if (spellchecker)
+        m_spellcheckers[spellchecker->name()] = spellchecker;
+    }
+  }
 }

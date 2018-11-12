@@ -23,11 +23,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    ebookdocument.cpp \
     epub.cpp \
-    epubcontainer.cpp \
-    epubdocument.cpp \
-    mobidocument.cpp \
     buffer.c \
     compression.c \
     debug.c \
@@ -44,10 +40,14 @@ SOURCES += \
     util.c \
     write.c \
     xmlwriter.c \
-    ebookeditor.cpp
+    private/qebookdocument_p.cpp \
+    private/qepubdocument_p.cpp \
+    qebookdocument.cpp \
+    qepubcontainer.cpp \
+    qepubdocument.cpp \
+    qmobidocument.cpp
 
 HEADERS += \
-    ebookdocument.h \
     ebook_global.h \
     buffer.h \
     compression.h \
@@ -55,14 +55,11 @@ HEADERS += \
     debug.h \
     encryption.h \
     epub.h \
-    epubcontainer.h \
-    epubdocument.h \
     index.h \
     memory.h \
     meta.h \
     miniz.h \
     mobi.h \
-    mobidocument.h \
     opf.h \
     parse_rawml.h \
     read.h \
@@ -71,7 +68,13 @@ HEADERS += \
     util.h \
     write.h \
     xmlwriter.h \
-    ebookeditor.h
+    private/qepubdocument_p.h \
+    private/qebookdocument_p.h \
+    qebookdocument.h \
+    qepubcontainer.h \
+    qepubdocument.h \
+    epubcommon.h \
+    qmobidocument.h
 
 unix {
     target.path = /usr/lib

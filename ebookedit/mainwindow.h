@@ -5,17 +5,22 @@
 
 #include <QStringList>
 #include <QtWidgets>
+#include <QDir>
 
-#include <qyaml.h>
+#include <QYamlCpp>
 #include <yaml.h>
 
-#include "optionsdialog.h"
-#include "ebookdocument.h"
+#include "ebookcodeeditor.h"
 #include "ebookeditor.h"
-#include "epubdocument.h"
-#include "hoverpopup.h"
-#include "hovertabwidget.h"
-#include "mobidocument.h"
+#include "ebookwrapper.h"
+//#include "hoverpopup.h"
+//#include "hovertabwidget.h"
+#include "optionsdialog.h"
+#include "qebookdocument.h"
+#include "qepubdocument.h"
+#include "qmobidocument.h"
+
+#include "spellinterface.h"
 
 class MainWindow : public QMainWindow
 {
@@ -27,33 +32,38 @@ public:
 
   void closePopup();
 
+signals:
+  void codeChanged();
+
 protected:
   // main document pointer.
-  EBookDocument* m_document = Q_NULLPTR;
+  QEBookDocument* m_document = Q_NULLPTR;
   // pointer when cast to epub/mobi.
   EPubDocument* m_epub_doc = Q_NULLPTR;
-  MobiDocument* m_mobi_doc = Q_NULLPTR;
-  HoverTabWidget* m_tabs;
-  //  QTabWidget*m_tabs;
-  QList<EBookDocument*> m_documents;
+  QMobiDocument* m_mobi_doc = Q_NULLPTR;
+  //  HoverTabWidget* m_tabs;
+  QTabWidget* m_tabs;
+  QList<QEBookDocument*> m_documents;
+  QMap<QString, SpellInterface*> m_spellcheckers;
 
   void resizeEvent(QResizeEvent* e);
   void moveEvent(QMoveEvent* e);
   void saveOptions();
   void loadOptions();
   void documentChanged(int index);
+  void tabClosing(int);
   //  bool eventFilter(QObject *object, QEvent *event);
 
   YAML::Node m_preferences;
-  Options m_options;
+  bool m_initialising;
+  Options* m_options;
   bool m_prefchanged = false;
   QString m_defbookpath;
-
   int m_bookcount;
   //  HoverDialog *m_dlg;
   //  int m_hovertab;
   QFrame* m_popup;
-  QTimer *m_popuptimer;
+  QTimer* m_popuptimer;
   int m_popupindex;
 
   void initBuild();
@@ -65,10 +75,12 @@ protected:
   void initFileActions();
   void initWindowActions();
   void initEditActions();
-  EBookDocument* createDocument(QString path);
-  EBookDocument* createEPubDocument(QString path);
-  EBookDocument* createMobiDocument(QString path);
+  QEBookDocument* createDocument(QString path);
+  QEBookDocument* createDocument(QEBookDocument*);
+  QEBookDocument* createEPubDocument(QString path);
+  QEBookDocument* createMobiDocument(QString path);
   void loadDocument(QString filename);
+  void saveDocument(QEBookDocument* document);
   void clearDocuments();
 
   void setModified();
@@ -129,11 +141,15 @@ protected: // Menu/StatusBar stuff
   void winMinimise();
   void winCentre();
 
+  void loadPlugins();
+
 public:
   static const int DEF_WIDTH = 600;
   static const int DEF_HEIGHT = 1200;
   static const int DEF_X = 0;
   static const int DEF_Y = 0;
+  static const int DEF_DLG_WIDTH = 300;
+  static const int DEF_DLG_HEIGHT = 300;
   static const QString READ_ONLY;
   static const QString READ_WRITE;
   static const QString NO_FILE;
@@ -143,6 +159,30 @@ public:
   void initFileMenu();
   void initEditMenu();
   void initWindowMenu();
+
+  static const QString PREF_FILE;
+  static QString POSITION;
+  static QString DIALOG;
+  static QString PREF_POPUP_TIMEOUT;
+  static QString PREF_ENABLE_POPUP;
+  static QString PREF_CURRENT_INDEX;
+  static QString PREF_COUNT;
+  static QString PREF_BOOKLIST;
+  static QString CODE_OPTIONS;
+  static QString CODE_NORMAL;
+  static QString CODE_FONT;
+  static QString CODE_ATTRIBUTE;
+  static QString CODE_TAG;
+  static QString CODE_ERROR;
+  static QString CODE_STRING;
+  static QString CODE_STYLE;
+  static QString CODE_SCRIPT;
+  static QString CODE_COLOR;
+  static QString CODE_BACK;
+  static QString CODE_WEIGHT;
+  static QString CODE_ITALIC;
+
+  static const QString BTN_STYLE;
 };
 
 #endif // MAINWINDOW_H

@@ -5,7 +5,7 @@
 #include <QFrame>
 #include <QStringList>
 
-#include "ebookdocument.h"
+#include "qebookdocument.h"
 
 class HoverPopup : public QFrame {
   Q_OBJECT

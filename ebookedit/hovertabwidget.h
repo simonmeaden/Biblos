@@ -3,6 +3,8 @@
 
 #include <QtWidgets>
 
+#include "epubcommon.h"
+
 class HoverTabBar;
 
 class HoverTabWidget : public QTabWidget {

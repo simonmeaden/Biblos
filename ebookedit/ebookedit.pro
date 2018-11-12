@@ -49,13 +49,21 @@ SOURCES += \
         mainwindow.cpp \
     hovertabwidget.cpp \
     hoverpopup.cpp \
-    optionsdialog.cpp
+    optionsdialog.cpp \
+    xhtmlhighlighter.cpp \
+    ebookcodeeditor.cpp \
+    ebookwrapper.cpp \
+    ebookeditor.cpp
 
 HEADERS += \
         mainwindow.h \
     hovertabwidget.h \
     hoverpopup.h \
-    optionsdialog.h
+    optionsdialog.h \
+    xhtmlhighlighter.h \
+    ebookcodeeditor.h \
+    ebookwrapper.h \
+    ebookeditor.h
 
 FORMS += \
         mainwindow.ui
@@ -108,3 +116,4 @@ DEPENDPATH += $$PWD/../csvsplitter
 
 # NUSPELL spellchecker library
 unix|win32: LIBS += -lnuspell
+
