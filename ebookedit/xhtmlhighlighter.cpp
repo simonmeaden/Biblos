@@ -1,7 +1,5 @@
 #include "xhtmlhighlighter.h"
 
-#include <qlogger.h>
-
 using namespace qlogger;
 
 // XhtmlHighlighter::TagNode::TagNode()

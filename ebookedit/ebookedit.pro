@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml svg
+QT       += core gui xml svg sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,50 +28,37 @@ CONFIG += c++14
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)
 #CONFIG += shared_and_static # Build both static and shared libraries
 
-#CONFIG(debug, debug|release) {
-#    TARGET = ebookedit
-#    DESTDIR = ../build/ebookedit
-#    OBJECTS_DIR = $$DESTDIR/.objd
-#    MOC_DIR = $$DESTDIR/.mocd
-#    RCC_DIR = $$DESTDIR/.qrcd
-#    UI_DIR = $$DESTDIR/.uid
-#} else {
-#    TARGET = ebookedit
-#    DESTDIR = ../build/ebookedit
-#    OBJECTS_DIR = $$DESTDIR/.obj
-#    MOC_DIR = $$DESTDIR/.moc
-#    RCC_DIR = $$DESTDIR/.qrc
-#    UI_DIR = $$DESTDIR/.ui
-#}
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
-    hovertabwidget.cpp \
-    hoverpopup.cpp \
+    main.cpp \
+    mainwindow.cpp \
     optionsdialog.cpp \
     xhtmlhighlighter.cpp \
     ebookcodeeditor.cpp \
     ebookwrapper.cpp \
-    ebookeditor.cpp
+    ebookeditor.cpp \
+    deletefiledialog.cpp \
+    library.cpp \
+    authordialog.cpp \
+    metadataeditor.cpp \
+    dbmanager.cpp
 
 HEADERS += \
-        mainwindow.h \
-    hovertabwidget.h \
-    hoverpopup.h \
+    mainwindow.h \
     optionsdialog.h \
     xhtmlhighlighter.h \
     ebookcodeeditor.h \
     ebookwrapper.h \
-    ebookeditor.h
+    ebookeditor.h \
+    deletefiledialog.h \
+    library.h \
+    authordialog.h \
+    metadataeditor.h \
+    dbmanager.h
 
 FORMS += \
         mainwindow.ui
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
 
 # EBOOK library
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
@@ -80,40 +67,22 @@ else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
 
 INCLUDEPATH += $$PWD/../ebook
 DEPENDPATH += $$PWD/../ebook
+# SpellInterface
+INCLUDEPATH += ../plugins
 
-# QLOGGER library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qlogger/release/ -lqlogger
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qlogger/debug/ -lqlogger
-else:unix: LIBS += -L$$OUT_PWD/../qlogger/ -lqlogger
-
-INCLUDEPATH += $$PWD/../qlogger
-DEPENDPATH += $$PWD/../qlogger
-
-# YAML-CPP library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../yaml-cpp/ -lyaml-cpp
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../yaml-cpp/ -lyaml-cppd
-else:unix: LIBS += -L$$OUT_PWD/../yaml-cpp/ -lyaml-cpp
-
-INCLUDEPATH += $$PWD/../yaml-cpp/include
-DEPENDPATH += $$PWD/../yaml-cpp/include
-DEPENDPATH += $$PWD/../yaml-cpp/src
-
-# QYAML-CPP library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cpp
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppd
-else:unix: LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cpp
-
-INCLUDEPATH += $$PWD/../qyaml-cpp
-DEPENDPATH += $$PWD/../qyaml-cpp
 
 # CVSSplitter library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitter
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitterd
-else:unix: LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitter
+unix|win32: LIBS += -lcsvsplitter
+# QYAML-CPP library
+unix|win32: LIBS += -lqyaml-cpp
+# YAML-CPP library
+unix|win32: LIBS += -lyaml-cpp
+# QUAZIP
+unix|win32: LIBS += -lquazip
+# QLOGGER library
+unix|win32: LIBS += -lqloggerlib
+# STRINGUTIL
+unix|win32: LIBS += -lstringutil
 
-INCLUDEPATH += $$PWD/../csvsplitter
-DEPENDPATH += $$PWD/../csvsplitter
-
-# NUSPELL spellchecker library
-unix|win32: LIBS += -lnuspell
-
+RESOURCES += \
+    icons.qrc

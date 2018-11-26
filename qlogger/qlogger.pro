@@ -21,7 +21,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++14
+CONFIG += staticlib
 #CONFIG += debug_and_release # prepared to build in debug and release forms
 #CONFIG -= debug_and_release_target # but NOT in debug and release directories
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)

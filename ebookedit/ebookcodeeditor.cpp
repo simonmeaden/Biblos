@@ -129,7 +129,7 @@ EBookCodeEditor::updateLineNumberArea(const QRect& rect, int dy)
 }
 
 void
-EBookCodeEditor::setDocument(QEBookDocument* document)
+EBookCodeEditor::setDocument(EBookDocument* document)
 {
   m_highlighter = new XhtmlHighlighter(m_options, document);
   QPlainTextEdit::setDocument(document);

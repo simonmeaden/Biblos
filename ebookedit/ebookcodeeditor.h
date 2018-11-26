@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <QPlainTextEdit>
 
-#include "qebookdocument.h"
+#include "ebookdocument.h"
 #include "xhtmlhighlighter.h"
 
 class EBookCodeEditor : public QPlainTextEdit
@@ -17,7 +17,7 @@ public:
   void lineNumberAreaPaintEvent(QPaintEvent* event);
   int lineNumberAreaWidth();
 
-  void setDocument(QEBookDocument* document);
+  void setDocument(EBookDocument *document);
   void rehighlight();
 
 protected:

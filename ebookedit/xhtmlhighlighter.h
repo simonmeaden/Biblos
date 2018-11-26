@@ -6,7 +6,9 @@
 #include <QSyntaxHighlighter>
 #include <QStack>
 
-#include "epubcommon.h"
+#include <qlogger/qlogger.h>
+
+#include "ebookcommon.h"
 
 class XhtmlHighlighter : public QSyntaxHighlighter
 {

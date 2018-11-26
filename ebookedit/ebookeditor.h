@@ -3,7 +3,7 @@
 
 #include <QTextEdit>
 
-#include "qebookdocument.h"
+#include "ebookdocument.h"
 
 class EBookEditor : public QTextEdit
 {
@@ -14,12 +14,12 @@ public:
   EBookEditor(const EBookEditor& editor);
   ~EBookEditor();
 
-  void setDocument(QEBookDocument* document);
+  void setDocument(EBookDocument *document);
   QVariant data();
 
 protected:
   QVariant m_data;
-  QEBookDocument* m_document;
+  EBookDocument* m_document;
 };
 
 Q_DECLARE_METATYPE(EBookEditor)

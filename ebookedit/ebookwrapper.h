@@ -5,7 +5,8 @@
 
 #include "ebookeditor.h"
 #include "ebookcodeeditor.h"
-#include "epubcommon.h"
+#include "ebookcommon.h"
+#include "metadataeditor.h"
 
 class EBookWrapper : public QStackedWidget
 {
@@ -17,14 +18,17 @@ public:
 
   void setToEditor();
   void setToCode();
+  void setToMetadata();
   EBookCodeEditor* codeEditor();
   EBookEditor* editor();
+  MetadataEditor* metaEditor();
   void optionsHaveChanged();
 
 protected:
   EBookEditor* m_editor;
   EBookCodeEditor* m_codeeditor;
-  int m_editorindex, m_codeindex;
+  MetadataEditor *m_metaeditor;
+  int m_editorindex, m_codeindex, m_metaindex;
   Options *m_options;
 
 };

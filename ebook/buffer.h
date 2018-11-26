@@ -1,4 +1,4 @@
-/** @file buffer.h
+              /** @file buffer.h
  *
  * Copyright (c) 2014 Bartek Fabiszewski
  * http://www.fabiszewski.net

@@ -21,7 +21,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++14
+CONFIG += staticlib
 #CONFIG += shared_and_static # Build both static and shared libraries
 #CONFIG += staticlib
 
@@ -62,7 +63,8 @@ SOURCES += \
     src/simplekey.cpp \
     src/singledocparser.cpp \
     src/stream.cpp \
-    src/tag.cpp
+    src/tag.cpp \
+    parse.cpp
 
 HEADERS += \
     include/anchor.h \
@@ -144,7 +146,8 @@ HEADERS += \
     src/stringsource.h \
     src/tag.h \
     src/token.h \
-    include/yaml-cpp_global.h
+    include/yaml-cpp_global.h \
+    parse.h
 
 unix {
     target.path = /usr/lib

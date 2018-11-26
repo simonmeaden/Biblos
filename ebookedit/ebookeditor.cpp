@@ -11,7 +11,7 @@ EBookEditor::EBookEditor(const EBookEditor& editor)
 EBookEditor::~EBookEditor() {}
 
 void
-EBookEditor::setDocument(QEBookDocument* document)
+EBookEditor::setDocument(EBookDocument* document)
 {
   QTextEdit::setDocument(document);
   m_document = document;

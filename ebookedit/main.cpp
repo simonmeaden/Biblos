@@ -1,23 +1,27 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-#include "epubcommon.h"
+#include "ebookcommon.h"
 #include "ebookeditor.h"
-#include "qebookdocument.h"
-#include "qepubdocument.h"
-#include "qmobidocument.h"
+#include "ebookdocument.h"
+#include "epubdocument.h"
+#include "mobidocument.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
-    QApplication a(argc, argv);
+  QApplication a(argc, argv);
+//  QCoreApplication::setOrganizationName("SM Electronic Components");
+//  QCoreApplication::setOrganizationDomain("smelecomp.co.uk");
+  QCoreApplication::setApplicationName("EBookEditor");
 
-    qRegisterMetaType<EBookEditor>();
-    qRegisterMetaType<EBookData>();
-    qRegisterMetaType<EPubDocument>();
-    qRegisterMetaType<QMobiDocument>();
+  qRegisterMetaType<EBookEditor>();
+  qRegisterMetaType<EBookData>();
+  qRegisterMetaType<EPubDocument>();
+  qRegisterMetaType<MobiDocument>();
 
-    MainWindow w;
-    w.show();
+  MainWindow w;
+  w.show();
 
-    return a.exec();
+  return a.exec();
 }

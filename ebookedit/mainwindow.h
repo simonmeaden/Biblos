@@ -1,27 +1,31 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QDir>
 #include <QMainWindow>
-
 #include <QStringList>
 #include <QtWidgets>
-#include <QDir>
+#include <QSqlDatabase>
 
-#include <QYamlCpp>
-#include <yaml.h>
+#include <qlogger/qlogger.h>
+#include <qyaml-cpp/QYamlCpp>
+#include <stringutil/stringutil.h>
+#include <yaml-cpp/yaml.h>
 
 #include "ebookcodeeditor.h"
+#include "ebookcommon.h"
 #include "ebookeditor.h"
 #include "ebookwrapper.h"
-//#include "hoverpopup.h"
-//#include "hovertabwidget.h"
 #include "optionsdialog.h"
-#include "qebookdocument.h"
-#include "qepubdocument.h"
-#include "qmobidocument.h"
+#include "ebookdocument.h"
+#include "epubdocument.h"
+#include "mobidocument.h"
+#include "authordialog.h"
+#include "dbmanager.h"
 
-#include "spellinterface.h"
+#include "interface.h"
 
+class Library;
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -32,19 +36,29 @@ public:
 
   void closePopup();
 
+  SharedAuthorList selectAuthorNames(QString filename, EBookData *data);
+
+  void loadNonLibraryFiles();
+
 signals:
   void codeChanged();
 
 protected:
   // main document pointer.
-  QEBookDocument* m_document = Q_NULLPTR;
+  EBookDocument* m_document = Q_NULLPTR;
   // pointer when cast to epub/mobi.
   EPubDocument* m_epub_doc = Q_NULLPTR;
-  QMobiDocument* m_mobi_doc = Q_NULLPTR;
+  MobiDocument* m_mobi_doc = Q_NULLPTR;
   //  HoverTabWidget* m_tabs;
   QTabWidget* m_tabs;
-  QList<QEBookDocument*> m_documents;
   QMap<QString, SpellInterface*> m_spellcheckers;
+  QStringList m_languages;
+  QMap<QString, QString> m_dict_paths;
+  QMap<QString, CountryData*> m_dict_data;
+  QString m_home_directiory, m_data_directory, m_config_directory,
+    m_config_file;
+  QSharedPointer<Library> m_library;
+  DbManager *m_database;
 
   void resizeEvent(QResizeEvent* e);
   void moveEvent(QMoveEvent* e);
@@ -65,23 +79,39 @@ protected:
   QFrame* m_popup;
   QTimer* m_popuptimer;
   int m_popupindex;
+  EBookDocument* m_current_document;
+  SpellInterface* m_current_spell_checker;
 
   void initBuild();
   void initGui();
   void initMenus();
   void initActions();
   void initStatusbar();
+  void initToolbar();
   void initSetup();
   void initFileActions();
   void initWindowActions();
   void initEditActions();
-  QEBookDocument* createDocument(QString path);
-  QEBookDocument* createDocument(QEBookDocument*);
-  QEBookDocument* createEPubDocument(QString path);
-  QEBookDocument* createMobiDocument(QString path);
+  void initEditorActions();
+  void initFileMenu();
+  void initEditMenu();
+  void initWindowMenu();
+  //  void initSpellingMenu();
+  void initHelpMenu();
+  EBookDocument *createDocument(QString path);
+  EBookDocument* createDocument(EBookDocument*);
+  EBookDocument* createEPubDocument(QString path);
+  EBookDocument* createMobiDocument(QString path);
+  void loadPlugins();
   void loadDocument(QString filename);
-  void saveDocument(QEBookDocument* document);
+  void saveDocument(EBookDocument* document);
   void clearDocuments();
+  void copyBookToStore(QString filename, QString authors);
+  QString concatenateAuthorNames(SharedAuthorList names);
+  QString concatenateAuthorNames(QStringList names);
+  QStringList removeEmpty(QStringList values);
+  QStringList attemptToExtractAuthorFromFilename(QString, EBookData* data);
+  QString cleanString(QString toClean);
 
   void setModified();
   void setNotModified();
@@ -90,12 +120,14 @@ protected:
   void setFilename(QString name);
   void tabEntered(int, QPoint pos, QVariant);
   void tabExited(int);
+  void openWindow();
 
 protected: // Menu/StatusBar stuff
   QMenuBar* m_menubar;
   QMenu* m_filemenu;
   QMenu* m_editmenu;
   QMenu* m_windowmenu;
+  QMenu* m_spellingmenu;
   QMenu* m_helpmenu;
 
   QLabel* m_modifiedlbl;
@@ -115,6 +147,15 @@ protected: // Menu/StatusBar stuff
   QAction* m_editpaste;
   QAction* m_editpastehistory;
   QAction* m_editoptions;
+  QAction* m_editspellcheck;
+  QAction* m_edithighlight_misspelled;
+  QAction* m_editnextmisspelled;
+  QAction* m_editsendtobooklist;
+  QAction* m_editsendtoauthorlist;
+
+  QAction *m_openeditor;
+  QAction *m_opencodeeditor;
+  QAction *m_openmetadata;
 
   QActionGroup* m_screengrp;
   QAction* m_winfullscreen;
@@ -135,15 +176,17 @@ protected: // Menu/StatusBar stuff
   void editPaste();
   void editPasteFromHistory();
   void editOptions();
+  void editSpellcheck();
+  void editHighlightWords();
+  void editNextWord();
+  void editSendToBookList();
+  void editSendToAuthorList();
 
   void winFullscreen();
   void winMaximise();
   void winMinimise();
   void winCentre();
 
-  void loadPlugins();
-
-public:
   static const int DEF_WIDTH = 600;
   static const int DEF_HEIGHT = 1200;
   static const int DEF_X = 0;
@@ -156,9 +199,8 @@ public:
   static const QString NOT_MODIFIED;
   static const QString MODIFIED;
   static const int DEF_POPUP_TIMEOUT = 10000; // 10 seconds
-  void initFileMenu();
-  void initEditMenu();
-  void initWindowMenu();
+
+  static const QString DB_NAME;
 
   static const QString PREF_FILE;
   static QString POSITION;
@@ -168,6 +210,7 @@ public:
   static QString PREF_CURRENT_INDEX;
   static QString PREF_COUNT;
   static QString PREF_BOOKLIST;
+  static QString PREF_LIBRARY;
   static QString CODE_OPTIONS;
   static QString CODE_NORMAL;
   static QString CODE_FONT;
@@ -181,8 +224,11 @@ public:
   static QString CODE_BACK;
   static QString CODE_WEIGHT;
   static QString CODE_ITALIC;
+  static QString COPY_BOOKS_TO_STORE;
+  static QString DELETE_OLD_BOOK;
 
   static const QString BTN_STYLE;
+  void loadLibraryFiles();
 };
 
 #endif // MAINWINDOW_H

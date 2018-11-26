@@ -22,92 +22,85 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+CONFIG += c++14
+CONFIG += staticlib
+
 SOURCES += \
     epub.cpp \
-    buffer.c \
-    compression.c \
-    debug.c \
-    encryption.c \
-    index.c \
-    memory.c \
-    meta.c \
-    miniz.c \
-    opf.c \
-    parse_rawml.c \
-    read.c \
-    sha1.c \
-    structure.c \
-    util.c \
-    write.c \
-    xmlwriter.c \
-    private/qebookdocument_p.cpp \
-    private/qepubdocument_p.cpp \
-    qebookdocument.cpp \
-    qepubcontainer.cpp \
-    qepubdocument.cpp \
-    qmobidocument.cpp
+#    buffer.c \
+#    compression.c \
+#    debug.c \
+#    encryption.c \
+#    index.c \
+#    memory.c \
+#    meta.c \
+#    miniz.c \
+#    opf.c \
+#    parse_rawml.c \
+#    read.c \
+#    sha1.c \
+#    structure.c \
+#    util.c \
+#    write.c \
+#    xmlwriter.c \
+    ebookcommon.cpp \
+    epubcontainer.cpp \
+    epubdocument.cpp \
+    private/epubdocument_p.cpp \
+    private/ebookdocument_p.cpp \
+    ebookdocument.cpp \
+    mobidocument.cpp
 
 HEADERS += \
     ebook_global.h \
-    buffer.h \
-    compression.h \
-    config.h \
-    debug.h \
-    encryption.h \
-    epub.h \
-    index.h \
-    memory.h \
-    meta.h \
-    miniz.h \
-    mobi.h \
-    opf.h \
-    parse_rawml.h \
-    read.h \
-    sha1.h \
-    structure.h \
-    util.h \
-    write.h \
-    xmlwriter.h \
-    private/qepubdocument_p.h \
-    private/qebookdocument_p.h \
-    qebookdocument.h \
-    qepubcontainer.h \
-    qepubdocument.h \
-    epubcommon.h \
-    qmobidocument.h
+#    buffer.h \
+#    compression.h \
+#    config.h \
+#    debug.h \
+#    encryption.h \
+#    epub.h \
+#    index.h \
+#    memory.h \
+#    meta.h \
+#    miniz.h \
+#    mobi.h \
+#    opf.h \
+#    parse_rawml.h \
+#    read.h \
+#    sha1.h \
+#    structure.h \
+#    util.h \
+#    write.h \
+#    xmlwriter.h \
+    ebookcommon.h \
+    epubcontainer.h \
+    epubdocument.h \
+    private/epubdocument_p.h \
+    private/ebookdocument_p.h \
+    ebookdocument.h \
+    mobidocument.h
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
 }
 
-DISTFILES += \
-    qpm.json
+DISTFILES += #\
+#    qpm.json
 
-SUBDIRS += \
-    mobi.pro
+SUBDIRS += #\
+#    mobi.pro
 
-# QUAZIP library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../quazip/release/ -lquazip
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/debug/ -lquazip
-else:unix: LIBS += -L$$OUT_PWD/../quazip/ -lquazip
-
-INCLUDEPATH += $$PWD/../quazip
-DEPENDPATH += $$PWD/../quazip
-
+# QYAML-CPP library
+unix|win32: LIBS += -lqyaml-cpp
+# QUAZIP
+unix|win32: LIBS += -lquazip
+# YAML-CPP library
+unix|win32: LIBS += -lyaml-cpp
 # QLOGGER library
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qlogger/release/ -lqlogger
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qlogger/debug/ -lqlogger
-else:unix: LIBS += -L$$OUT_PWD/../qlogger/ -lqlogger
-
-INCLUDEPATH += $$PWD/../qlogger
-DEPENDPATH += $$PWD/../qlogger
-
+unix|win32: LIBS += -lqloggerlib
 # CVSSplitter library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitter
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitterd
-else:unix: LIBS += -L$$OUT_PWD/../csvsplitter/ -lcsvsplitter
+unix|win32: LIBS += -lcsvsplitter
 
-INCLUDEPATH += $$PWD/../csvsplitter
-DEPENDPATH += $$PWD/../csvsplitter
+INCLUDEPATH += $$PWD/../../common/csvsplitter
+DEPENDPATH += $$PWD/../../common/csvsplitter

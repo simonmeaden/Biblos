@@ -1,15 +1,15 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    quazip \
-    qlogger \
-    csvsplitter \
-#    regex \
+#    quazip \
+#    qlogger \
+#    csvsplitter \
     ebook \
-    yaml-cpp \
-    qyaml-cpp \
-    ebookedit \
-    plugin/nuspellplugin
+#    yaml-cpp \
+#    qyaml-cpp \
+    qnuspell \
+    plugins \
+    ebookedit
 
 
 CONFIG += ordered
@@ -29,6 +29,11 @@ csvsplitter.subdir = csvsplitter
 
 ebook.subdir = ebook
 ebook.depends = quazip qlogger csvsplitter
+
+qnuspell.subdir = qnuspell
+
+plugins.subdir = plugins
+plugins.depends = qnuspell
 
 ebookedit.subdir = ebookedit
 ebookedit.depends = ebook qyaml-cpp #regex

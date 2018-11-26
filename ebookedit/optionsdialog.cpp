@@ -8,7 +8,7 @@ OptionsDialog::OptionsDialog(Options* options, QWidget* parent)
   , m_options(options)
   , m_oldoptions(options)
   , m_modified(false)
-  , normalColorBtn(Q_NULLPTR)
+  , normal_color_btn(Q_NULLPTR)
   , normalBackBtn(Q_NULLPTR)
   , normalItalicBox(Q_NULLPTR)
   , normalWeightBox(Q_NULLPTR)
@@ -39,7 +39,7 @@ OptionsDialog::OptionsDialog(Options* options, QWidget* parent)
 {
   initGui();
 
-  setGeometry(QRect(QPoint(0,0), m_options->options_dlg));
+  setGeometry(QRect(QPoint(0, 0), m_options->options_dlg));
 }
 
 OptionsDialog::~OptionsDialog() {}
@@ -91,6 +91,51 @@ OptionsDialog::initEditorTab()
   QFrame* f = new QFrame(this);
   QFormLayout* l = new QFormLayout;
   f->setLayout(l);
+
+  copy_book_to_store_box = new QCheckBox(this);
+  copy_book_to_store_box->setChecked(m_options->copy_books_to_store);
+  copy_book_to_store_box->setToolTip(
+    tr("Copy the book to the book store before"
+       "you start to edit it. This allows the "
+       "original copy to be retained unmodified."));
+  connect(copy_book_to_store_box,
+          &QCheckBox::clicked,
+          this,
+          &OptionsDialog::setCopyBookToStore);
+  l->addRow(tr("Copy Books to Book Store Before Editing"),
+            copy_book_to_store_box);
+
+  delete_old_book_box = new QCheckBox(this);
+  if (!m_options->copy_books_to_store)
+    delete_old_book_box->setEnabled(false);
+  else
+    delete_old_book_box->setEnabled(true);
+  delete_old_book_box->setChecked(m_options->delete_old_book);
+  delete_old_book_box->setToolTip(tr("Delete the original copy of the book "
+                                     "when the book has been copied to the "
+                                     "book store."));
+  connect(delete_old_book_box,
+          &QCheckBox::clicked,
+          this,
+          &OptionsDialog::setDeleteOldBook);
+  l->addRow(tr("Delete the old copy of the stored book"), delete_old_book_box);
+
+  never_confirm_delete_box = new QCheckBox(this);
+  if (!m_options->copy_books_to_store)
+    never_confirm_delete_box->setEnabled(false);
+  else
+    never_confirm_delete_box->setEnabled(true);
+  never_confirm_delete_box->setChecked(m_options->never_confirm_delete);
+  never_confirm_delete_box->setToolTip(
+    tr("Delete the original copy of the book "
+       "when the book has been copied to the "
+       "book store."));
+  connect(never_confirm_delete_box,
+          &QCheckBox::clicked,
+          this,
+          &OptionsDialog::setNeverConfirmDelete);
+  l->addRow(tr("Never Confirm Deleteion of Old Book"),
+            never_confirm_delete_box);
 
   return f;
 }
@@ -324,10 +369,10 @@ OptionsDialog::getColorBtn(Options::CodeOptions options)
 {
   switch (options) {
     case Options::NORMAL: {
-      if (!normalColorBtn) {
-        normalColorBtn = new QPushButton(this);
+      if (!normal_color_btn) {
+        normal_color_btn = new QPushButton(this);
       }
-      return normalColorBtn;
+      return normal_color_btn;
     }
     case Options::TAG: {
       if (!tagColorBtn) {
@@ -346,7 +391,7 @@ OptionsDialog::getColorBtn(Options::CodeOptions options)
         errorColorBtn = new QPushButton(this);
       }
       return errorColorBtn;
-  }
+    }
     case Options::STRING: {
       if (!stringColorBtn) {
         stringColorBtn = new QPushButton(this);
@@ -466,6 +511,7 @@ OptionsDialog::getItalicBox(Options::CodeOptions options)
       return styleItalicBox;
     }
   }
+  return Q_NULLPTR;
 }
 
 QComboBox*
@@ -515,6 +561,7 @@ OptionsDialog::getWeightBox(Options::CodeOptions options)
       return styleWeightBox;
     }
   }
+  return Q_NULLPTR;
 }
 
 QString
@@ -596,11 +643,11 @@ OptionsDialog::initCodeEditorTab()
   l->addWidget(frm);
   frm->setLayout(form);
 
-  fontBtn = new QPushButton(tr("Change Font"), this);
-  fontBtn->setFont(m_options->codeFont);
-  form->addRow(tr("Font"), fontBtn);
+  font_btn = new QPushButton(tr("Change Font"), this);
+  font_btn->setFont(m_options->codeFont);
+  form->addRow(tr("Font"), font_btn);
   connect(
-    fontBtn, &QAbstractButton::clicked, this, &OptionsDialog::setCodeFont);
+    font_btn, &QAbstractButton::clicked, this, &OptionsDialog::setCodeFont);
   tabs->addTab(frm, tr("Font"));
 
   frm = initCodeTab(Options::NORMAL);
@@ -629,7 +676,7 @@ OptionsDialog::setCodeFont()
   if (ok) {
     m_options->codeFont = font;
     emit codeChanged();
-    fontBtn->setFont(font);
+    font_btn->setFont(font);
     m_modified = true;
   }
 }
@@ -854,6 +901,34 @@ void
 OptionsDialog::setScriptWeight(int index)
 {
   m_options->setWeight(Options::SCRIPT, QFont::Weight(index));
+  emit codeChanged();
+  m_modified = true;
+}
+
+void
+OptionsDialog::setCopyBookToStore(bool state)
+{
+  m_options->copy_books_to_store = state;
+  emit codeChanged();
+  m_modified = true;
+  if (state)
+    delete_old_book_box->setEnabled(true);
+  else
+    delete_old_book_box->setEnabled(false);
+}
+
+void
+OptionsDialog::setDeleteOldBook(bool state)
+{
+  m_options->delete_old_book = state;
+  emit codeChanged();
+  m_modified = true;
+}
+
+void
+OptionsDialog::setNeverConfirmDelete(bool state)
+{
+  m_options->never_confirm_delete = state;
   emit codeChanged();
   m_modified = true;
 }

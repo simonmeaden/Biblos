@@ -7,7 +7,7 @@
 //#include <QtGlobal>
 #include <QColorDialog>
 
-#include "epubcommon.h"
+#include "ebookcommon.h"
 
 class OptionsDialog : public QDialog
 {
@@ -27,8 +27,8 @@ public slots:
 protected:
   Options *m_options, *m_oldoptions;
   bool m_modified;
-  QPushButton* fontBtn;
-  QPushButton* normalColorBtn;
+  QPushButton* font_btn;
+  QPushButton* normal_color_btn;
   QPushButton* normalBackBtn;
   QCheckBox* normalItalicBox;
   QComboBox* normalWeightBox;
@@ -56,6 +56,10 @@ protected:
   QPushButton* scriptBackBtn;
   QCheckBox* scriptItalicBox;
   QComboBox* scriptWeightBox;
+
+  QCheckBox* copy_book_to_store_box;
+  QCheckBox* delete_old_book_box;
+  QCheckBox* never_confirm_delete_box;
 
   void initGui();
   void resizeEvent(QResizeEvent* e);
@@ -93,6 +97,11 @@ protected:
   void setScriptBackground();
   void setScriptItalic(bool);
   void setScriptWeight(int);
+
+  void setCopyBookToStore(bool);
+  void setDeleteOldBook(bool);
+  void setNeverConfirmDelete(bool);
+
   QColor enactColorDialog(QColor old_color);
   void buildCodeSection();
   QFrame* initCodeTab(Options::CodeOptions options);
