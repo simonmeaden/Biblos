@@ -16,6 +16,7 @@ EBookEditor::setDocument(EBookDocument* document)
   QTextEdit::setDocument(document);
   m_document = document;
   m_data.setValue(*document->data());
+  emit documentLoaded();
 }
 
 QVariant

@@ -5,6 +5,7 @@
 #include "authordialog.h"
 #include "library.h"
 #include "ebookdocument.h"
+#include "ebookwordreader.h"
 
 using namespace qlogger;
 
@@ -806,6 +807,7 @@ MainWindow::loadDocument(QString filename)
   EBookDocument* codeDocument = createDocument(htmldocument);
   wrapper->editor()->setDocument(htmldocument);
   wrapper->codeEditor()->setDocument(codeDocument);
+//  wrapper->startWordReader();
   connect(
     this, &MainWindow::codeChanged, wrapper, &EBookWrapper::optionsHaveChanged);
   EBookData* data = htmldocument->data();
@@ -1053,7 +1055,7 @@ MainWindow::editCut()
 void
 MainWindow::editSpellcheck()
 {
-  // TODO
+  // TDOD
 }
 
 void

@@ -41,7 +41,8 @@ SOURCES += \
     library.cpp \
     authordialog.cpp \
     metadataeditor.cpp \
-    dbmanager.cpp
+    dbmanager.cpp \
+    ebookwordreader.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -54,7 +55,8 @@ HEADERS += \
     library.h \
     authordialog.h \
     metadataeditor.h \
-    dbmanager.h
+    dbmanager.h \
+    ebookwordreader.h
 
 FORMS += \
         mainwindow.ui

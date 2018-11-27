@@ -13,8 +13,9 @@ public:
   HunspellChecker(QString dict_path, QObject *parent=Q_NULLPTR);
   ~HunspellChecker();
 
+  void stopRunning();
   void checkWord(QString word);
-  QStringList suggestions(QString word);
+  void suggestions(QString word);
 
 signals:
   void wordCorrect(QString);

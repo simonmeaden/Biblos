@@ -17,6 +17,9 @@ public:
   void setDocument(EBookDocument *document);
   QVariant data();
 
+signals:
+  void documentLoaded();
+
 protected:
   QVariant m_data;
   EBookDocument* m_document;

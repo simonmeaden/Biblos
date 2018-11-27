@@ -8,6 +8,8 @@
 #include "ebookcommon.h"
 #include "metadataeditor.h"
 
+class EBookWordReader;
+
 class EBookWrapper : public QStackedWidget
 {
   Q_OBJECT
@@ -23,11 +25,13 @@ public:
   EBookEditor* editor();
   MetadataEditor* metaEditor();
   void optionsHaveChanged();
+  void startWordReader();
 
 protected:
   EBookEditor* m_editor;
   EBookCodeEditor* m_codeeditor;
   MetadataEditor *m_metaeditor;
+  EBookWordReader *m_word_reader;
   int m_editorindex, m_codeindex, m_metaindex;
   Options *m_options;
 

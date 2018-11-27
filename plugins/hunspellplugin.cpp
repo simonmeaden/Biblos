@@ -163,6 +163,11 @@ HunspellChecker::HunspellChecker(QString dict_path, QObject* parent)
 
 HunspellChecker::~HunspellChecker() {}
 
+void HunspellChecker::stopRunning()
+{
+  m_running = false;
+}
+
 /*!
  * \brief Checks a word against various word lists and dictionaries.
  *
@@ -179,7 +184,7 @@ HunspellChecker::checkWord(QString word)
   m_words_to_test.append(word);
 }
 
-QStringList
+void
 HunspellChecker::suggestions(QString word)
 {
   m_suggestion_words.append(word);

@@ -1,0 +1,9 @@
+#pragma once
+
+#include <QtGlobal>
+
+#if defined(NUSPELLPLUGIN_LIBRARY)
+#  define NUSPELLPLUGINSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define NUSPELLPLUGINSHARED_EXPORT Q_DECL_IMPORT
+#endif
