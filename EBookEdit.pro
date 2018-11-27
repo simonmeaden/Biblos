@@ -7,10 +7,12 @@ SUBDIRS += \
     ebook \
 #    yaml-cpp \
 #    qyaml-cpp \
-    qnuspell \
+#    qnuspell \
     plugins \
     ebookedit
 
+DISTFILES += \
+    README.md
 
 CONFIG += ordered
 
