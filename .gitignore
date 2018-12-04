@@ -43,3 +43,7 @@ lib/*
 
 *.zip
 *.xlsx
+
+*.epub
+*.mobi
+*.original_epub
