@@ -3,25 +3,25 @@
 
 #include <QDir>
 #include <QMainWindow>
+#include <QSqlDatabase>
 #include <QStringList>
 #include <QtWidgets>
-#include <QSqlDatabase>
 
 #include <qlogger/qlogger.h>
 #include <qyaml-cpp/QYamlCpp>
 #include <stringutil/stringutil.h>
 #include <yaml-cpp/yaml.h>
 
-#include "ebookcodeeditor.h"
-#include "ebookcommon.h"
-#include "ebookeditor.h"
-#include "ebookwrapper.h"
-#include "optionsdialog.h"
-#include "ebookdocument.h"
-#include "epubdocument.h"
-#include "mobidocument.h"
 #include "authordialog.h"
 #include "dbmanager.h"
+#include "ebookcodeeditor.h"
+#include "ebookcommon.h"
+#include "ebookdocument.h"
+#include "ebookeditor.h"
+#include "ebookwrapper.h"
+#include "epubdocument.h"
+#include "mobidocument.h"
+#include "optionsdialog.h"
 
 #include "interface.h"
 
@@ -36,7 +36,7 @@ public:
 
   void closePopup();
 
-  SharedAuthorList selectAuthorNames(QString filename, EBookData *data);
+  SharedAuthorList selectAuthorNames(QString filename, EBookData* data);
 
   void loadNonLibraryFiles();
 
@@ -51,14 +51,16 @@ protected:
   MobiDocument* m_mobi_doc = Q_NULLPTR;
   //  HoverTabWidget* m_tabs;
   QTabWidget* m_tabs;
-  QMap<QString, SpellInterface*> m_spellcheckers;
+  QMap<QString, SpellInterface*> m_spellchecker_plugins;
+  QMap<QString, EBookInterface*> m_ebookplugins;
+  QList<EBookInterface*> m_plugins;
   QStringList m_languages;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
   QString m_home_directiory, m_data_directory, m_config_directory,
     m_config_file;
   QSharedPointer<Library> m_library;
-  DbManager *m_database;
+  DbManager* m_database;
 
   void resizeEvent(QResizeEvent* e);
   void moveEvent(QMoveEvent* e);
@@ -77,7 +79,7 @@ protected:
   //  HoverDialog *m_dlg;
   //  int m_hovertab;
   QFrame* m_popup;
-  QTimer* m_popuptimer;
+  //  QTimer* m_popuptimer;
   int m_popupindex;
   EBookDocument* m_current_document;
   SpellInterface* m_current_spell_checker;
@@ -93,12 +95,13 @@ protected:
   void initWindowActions();
   void initEditActions();
   void initEditorActions();
+  void initHelpActions();
   void initFileMenu();
   void initEditMenu();
   void initWindowMenu();
   //  void initSpellingMenu();
   void initHelpMenu();
-  EBookDocument *createDocument(QString path);
+  EBookDocument* createDocument(QString path);
   EBookDocument* createDocument(EBookDocument*);
   EBookDocument* createEPubDocument(QString path);
   EBookDocument* createMobiDocument(QString path);
@@ -134,28 +137,35 @@ protected: // Menu/StatusBar stuff
   QLabel* m_readonlylbl;
   QLabel* m_filelbl;
 
-  QAction* m_fileopen;
-  QAction* m_filesave;
-  QAction* m_filesaveas;
-  QAction* m_filesaveall;
-  QAction* m_fileexit;
+  QAction* m_file_open;
+  QAction* m_file_save;
+  QAction* m_file_save_as;
+  QAction* m_file_save_all;
+  QAction* m_file_exit;
 
-  QAction* m_editundo;
-  QAction* m_editredo;
-  QAction* m_editcut;
-  QAction* m_editcopy;
-  QAction* m_editpaste;
-  QAction* m_editpastehistory;
-  QAction* m_editoptions;
-  QAction* m_editspellcheck;
-  QAction* m_edithighlight_misspelled;
-  QAction* m_editnextmisspelled;
-  QAction* m_editsendtobooklist;
-  QAction* m_editsendtoauthorlist;
+  QAction* m_edit_undo;
+  QAction* m_edit_redo;
+  QAction* m_edit_cut;
+  QAction* m_edit_copy;
+  QAction* m_edit_paste;
+  QAction* m_edit_paste_history;
+  QAction* m_edit_options;
+  QAction* m_edit_spellcheck;
+  QAction* m_edit_highlight_misspelled;
+  QAction* m_edit_next_misspelled;
+  QAction* m_edit_send_to_booklist;
+  QAction* m_edit_send_to_authorlist;
 
-  QAction *m_openeditor;
-  QAction *m_opencodeeditor;
-  QAction *m_openmetadata;
+  QAction* m_open_editor;
+  QAction* m_open_codeeditor;
+  QAction* m_open_metadata;
+
+  QAction* m_help_contents;
+  QAction* m_help_index;
+  QAction* m_help_context;
+  QAction* m_help_about_ebookeditor;
+  QAction* m_help_about_plugins;
+  QAction* m_help_check_updates;
 
   QActionGroup* m_screengrp;
   QAction* m_winfullscreen;
@@ -186,6 +196,13 @@ protected: // Menu/StatusBar stuff
   void winMaximise();
   void winMinimise();
   void winCentre();
+
+  void helpContents();
+  void helpIndex();
+  void helpContext();
+  void helpAboutEbookEditor();
+  void helpAboutPlugins();
+  void helpCheckUpdates();
 
   static const int DEF_WIDTH = 600;
   static const int DEF_HEIGHT = 1200;

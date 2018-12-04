@@ -8,7 +8,7 @@
 #include <QPainter>
 #include <QTextCursor>
 
-#include "csvsplitter.h"
+#include <csvsplitter/csvsplitter.h>
 
 #include "ebookdocument_p.h"
 #include "epubdocument.h"

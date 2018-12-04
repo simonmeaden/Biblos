@@ -1,13 +1,8 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-#    quazip \
-#    qlogger \
-#    csvsplitter \
+    interface \
     ebook \
-#    yaml-cpp \
-#    qyaml-cpp \
-#    qnuspell \
     plugins \
     ebookedit
 

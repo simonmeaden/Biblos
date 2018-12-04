@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++14
 CONFIG += staticlib
+DESTDIR = $$PWD/../../build/ebookedit/ebook
 
 SOURCES += \
     epub.cpp \
@@ -80,10 +81,10 @@ HEADERS += \
     ebookdocument.h \
     mobidocument.h
 
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
+#unix {
+#    target.path = /usr/lib
+#    INSTALLS += target
+#}
 
 DISTFILES += #\
 #    qpm.json
@@ -102,5 +103,5 @@ unix|win32: LIBS += -lqloggerlib
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
 
-INCLUDEPATH += $$PWD/../../common/csvsplitter
-DEPENDPATH += $$PWD/../../common/csvsplitter
+#INCLUDEPATH += $$PWD/../../common/csvsplitter
+#DEPENDPATH += $$PWD/../../common/csvsplitter

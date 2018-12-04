@@ -3,9 +3,10 @@
 #include <qlogger/qlogger.h>
 
 #include "authordialog.h"
-#include "library.h"
 #include "ebookdocument.h"
 #include "ebookwordreader.h"
+#include "library.h"
+#include "plugindialog.h"
 
 using namespace qlogger;
 
@@ -130,36 +131,36 @@ void
 MainWindow::initFileMenu()
 {
   m_filemenu = menuBar()->addMenu(tr("&File"));
-  m_filemenu->addAction(m_fileopen);
-  m_filemenu->addAction(m_filesave);
-  m_filemenu->addAction(m_filesaveas);
-  m_filemenu->addAction(m_filesaveall);
+  m_filemenu->addAction(m_file_open);
+  m_filemenu->addAction(m_file_save);
+  m_filemenu->addAction(m_file_save_as);
+  m_filemenu->addAction(m_file_save_all);
   m_filemenu->addSeparator();
-  m_filemenu->addAction(m_fileexit);
+  m_filemenu->addAction(m_file_exit);
 }
 
 void
 MainWindow::initEditMenu()
 {
   m_editmenu = menuBar()->addMenu(tr("&Edit"));
-  m_editmenu->addAction(m_editundo);
-  m_editmenu->addAction(m_editredo);
+  m_editmenu->addAction(m_edit_undo);
+  m_editmenu->addAction(m_edit_redo);
   m_editmenu->addSeparator();
-  m_editmenu->addAction(m_editcut);
-  m_editmenu->addAction(m_editcopy);
-  m_editmenu->addAction(m_editpaste);
-  m_editmenu->addAction(m_editpastehistory);
+  m_editmenu->addAction(m_edit_cut);
+  m_editmenu->addAction(m_edit_copy);
+  m_editmenu->addAction(m_edit_paste);
+  m_editmenu->addAction(m_edit_paste_history);
   m_editmenu->addSeparator();
   m_spellingmenu = m_editmenu->addMenu(tr("Spelling"));
-  m_spellingmenu->addAction(m_editspellcheck);
+  m_spellingmenu->addAction(m_edit_spellcheck);
   m_spellingmenu->addSeparator();
-  m_spellingmenu->addAction(m_edithighlight_misspelled);
-  m_spellingmenu->addAction(m_editnextmisspelled);
+  m_spellingmenu->addAction(m_edit_highlight_misspelled);
+  m_spellingmenu->addAction(m_edit_next_misspelled);
   m_spellingmenu->addSeparator();
-  m_spellingmenu->addAction(m_editsendtobooklist);
-  m_spellingmenu->addAction(m_editsendtoauthorlist);
+  m_spellingmenu->addAction(m_edit_send_to_booklist);
+  m_spellingmenu->addAction(m_edit_send_to_authorlist);
   m_editmenu->addSeparator();
-  m_editmenu->addAction(m_editoptions);
+  m_editmenu->addAction(m_edit_options);
 }
 
 void
@@ -182,6 +183,12 @@ void
 MainWindow::initHelpMenu()
 {
   m_helpmenu = menuBar()->addMenu(tr("&Help"));
+  m_helpmenu->addAction(m_help_contents);
+  m_helpmenu->addAction(m_help_index);
+  m_helpmenu->addAction(m_help_context);
+  m_helpmenu->addAction(m_help_about_ebookeditor);
+  m_helpmenu->addAction(m_help_about_plugins);
+  m_helpmenu->addAction(m_help_check_updates);
 }
 
 void
@@ -190,36 +197,37 @@ MainWindow::initMenus()
   initFileMenu();
   initEditMenu();
   initWindowMenu();
+  initHelpMenu();
 }
 
 void
 MainWindow::initFileActions()
 {
-  m_fileopen = new QAction(tr("&Open"), this);
+  m_file_open = new QAction(tr("&Open"), this);
   //    m_fileopen->setCheckable(true);
-  m_fileopen->setShortcut(QKeySequence::Open);
-  m_fileopen->setStatusTip(tr("Open a new file."));
-  connect(m_fileopen, &QAction::triggered, this, &MainWindow::fileOpen);
+  m_file_open->setShortcut(QKeySequence::Open);
+  m_file_open->setStatusTip(tr("Open a new file."));
+  connect(m_file_open, &QAction::triggered, this, &MainWindow::fileOpen);
 
-  m_filesave = new QAction(tr("&Save"), this);
-  m_filesave->setShortcut(QKeySequence::Save);
-  m_filesave->setStatusTip(tr("Save the current file."));
-  connect(m_filesave, &QAction::triggered, this, &MainWindow::fileSave);
+  m_file_save = new QAction(tr("&Save"), this);
+  m_file_save->setShortcut(QKeySequence::Save);
+  m_file_save->setStatusTip(tr("Save the current file."));
+  connect(m_file_save, &QAction::triggered, this, &MainWindow::fileSave);
 
-  m_filesaveas = new QAction(tr("Save &As"), this);
-  m_filesaveas->setShortcut(QKeySequence::SaveAs);
-  m_filesaveas->setStatusTip(tr("Save the current file with a new name."));
-  connect(m_filesaveas, &QAction::triggered, this, &MainWindow::fileSaveAs);
+  m_file_save_as = new QAction(tr("Save &As"), this);
+  m_file_save_as->setShortcut(QKeySequence::SaveAs);
+  m_file_save_as->setStatusTip(tr("Save the current file with a new name."));
+  connect(m_file_save_as, &QAction::triggered, this, &MainWindow::fileSaveAs);
 
-  m_filesaveall = new QAction(tr("Save A&ll"), this);
-  m_filesaveall->setShortcut(tr("Ctrl_Shift+l"));
-  m_filesaveall->setStatusTip(tr("Save all open file(s)."));
-  connect(m_filesaveall, &QAction::triggered, this, &MainWindow::fileSaveAs);
+  m_file_save_all = new QAction(tr("Save A&ll"), this);
+  m_file_save_all->setShortcut(tr("Ctrl_Shift+l"));
+  m_file_save_all->setStatusTip(tr("Save all open file(s)."));
+  connect(m_file_save_all, &QAction::triggered, this, &MainWindow::fileSaveAs);
 
-  m_fileexit = new QAction(tr("E&xit"), this);
-  m_fileexit->setShortcut(QKeySequence::Quit);
-  m_fileexit->setStatusTip(tr("Quit the application."));
-  connect(m_fileexit, &QAction::triggered, this, &MainWindow::fileExit);
+  m_file_exit = new QAction(tr("E&xit"), this);
+  m_file_exit->setShortcut(QKeySequence::Quit);
+  m_file_exit->setStatusTip(tr("Quit the application."));
+  connect(m_file_exit, &QAction::triggered, this, &MainWindow::fileExit);
 }
 
 void
@@ -260,75 +268,77 @@ MainWindow::initWindowActions()
 void
 MainWindow::initEditActions()
 {
-  m_editundo = new QAction(tr("&Undo"), this);
-  m_editundo->setShortcut(QKeySequence::Undo);
-  m_editundo->setStatusTip(tr("Undo last change."));
-  connect(m_editundo, &QAction::triggered, this, &MainWindow::editUndo);
+  m_edit_undo = new QAction(tr("&Undo"), this);
+  m_edit_undo->setShortcut(QKeySequence::Undo);
+  m_edit_undo->setStatusTip(tr("Undo last change."));
+  connect(m_edit_undo, &QAction::triggered, this, &MainWindow::editUndo);
 
-  m_editredo = new QAction(tr("&Redo"), this);
-  m_editredo->setShortcut(QKeySequence::Redo);
-  m_editredo->setStatusTip(tr("Redo last Undone change."));
-  connect(m_editredo, &QAction::triggered, this, &MainWindow::editRedo);
+  m_edit_redo = new QAction(tr("&Redo"), this);
+  m_edit_redo->setShortcut(QKeySequence::Redo);
+  m_edit_redo->setStatusTip(tr("Redo last Undone change."));
+  connect(m_edit_redo, &QAction::triggered, this, &MainWindow::editRedo);
 
-  m_editcopy = new QAction(tr("&Copy"), this);
-  m_editcopy->setShortcut(QKeySequence::Copy);
-  m_editcopy->setStatusTip(tr("Copy selected text."));
-  connect(m_editcopy, &QAction::triggered, this, &MainWindow::editCopy);
+  m_edit_copy = new QAction(tr("&Copy"), this);
+  m_edit_copy->setShortcut(QKeySequence::Copy);
+  m_edit_copy->setStatusTip(tr("Copy selected text."));
+  connect(m_edit_copy, &QAction::triggered, this, &MainWindow::editCopy);
 
-  m_editcut = new QAction(tr("Cu&t"), this);
-  m_editcut->setShortcut(QKeySequence::Cut);
-  m_editcut->setStatusTip(tr("Cut selected text."));
-  connect(m_editcut, &QAction::triggered, this, &MainWindow::editCut);
+  m_edit_cut = new QAction(tr("Cu&t"), this);
+  m_edit_cut->setShortcut(QKeySequence::Cut);
+  m_edit_cut->setStatusTip(tr("Cut selected text."));
+  connect(m_edit_cut, &QAction::triggered, this, &MainWindow::editCut);
 
-  m_editpaste = new QAction(tr("&Paste"), this);
-  m_editpaste->setShortcut(QKeySequence::Paste);
-  m_editpaste->setStatusTip(tr("paste selected text."));
-  connect(m_editpaste, &QAction::triggered, this, &MainWindow::editPaste);
+  m_edit_paste = new QAction(tr("&Paste"), this);
+  m_edit_paste->setShortcut(QKeySequence::Paste);
+  m_edit_paste->setStatusTip(tr("paste selected text."));
+  connect(m_edit_paste, &QAction::triggered, this, &MainWindow::editPaste);
 
-  m_editpastehistory = new QAction(tr("Paste from clipboard history"), this);
-  m_editpastehistory->setShortcut(tr("Ctrl+Shift+V"));
-  m_editpastehistory->setStatusTip(
+  m_edit_paste_history = new QAction(tr("Paste from clipboard history"), this);
+  m_edit_paste_history->setShortcut(tr("Ctrl+Shift+V"));
+  m_edit_paste_history->setStatusTip(
     tr("Paste from a previous clipboard selection."));
-  connect(m_editpastehistory, &QAction::triggered, this, &MainWindow::editCopy);
-
-  m_editoptions = new QAction(tr("Preferences"), this);
-  m_editoptions->setShortcut(QKeySequence::Preferences);
-  m_editoptions->setStatusTip(tr("Modify preferences."));
-  connect(m_editoptions, &QAction::triggered, this, &MainWindow::editOptions);
-
-  m_editspellcheck = new QAction(tr("Spellcheck"), this);
-  //  m_editoptions->setShortcut(QKeySequence::SelectPrevious);
-  m_editoptions->setStatusTip(tr("Spellcheck Current Document."));
   connect(
-    m_editoptions, &QAction::triggered, this, &MainWindow::editSpellcheck);
+    m_edit_paste_history, &QAction::triggered, this, &MainWindow::editCopy);
 
-  m_edithighlight_misspelled =
+  m_edit_options = new QAction(tr("Preferences"), this);
+  m_edit_options->setShortcut(QKeySequence::Preferences);
+  m_edit_options->setStatusTip(tr("Modify preferences."));
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editOptions);
+
+  m_edit_spellcheck = new QAction(tr("Spellcheck"), this);
+  //  m_editoptions->setShortcut(QKeySequence::SelectPrevious);
+  m_edit_options->setStatusTip(tr("Spellcheck Current Document."));
+  connect(
+    m_edit_options, &QAction::triggered, this, &MainWindow::editSpellcheck);
+
+  m_edit_highlight_misspelled =
     new QAction(tr("Highlight Misspelled Words"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   //  m_editoptions->setStatusTip(tr("Modify preferences."));
   connect(
-    m_editoptions, &QAction::triggered, this, &MainWindow::editHighlightWords);
+    m_edit_options, &QAction::triggered, this, &MainWindow::editHighlightWords);
 
-  m_editnextmisspelled = new QAction(tr("Next Misspelled Word"), this);
+  m_edit_next_misspelled = new QAction(tr("Next Misspelled Word"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
-  m_editoptions->setStatusTip(tr("Modify preferences."));
-  connect(m_editoptions, &QAction::triggered, this, &MainWindow::editNextWord);
+  m_edit_options->setStatusTip(tr("Modify preferences."));
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editNextWord);
 
-  m_editsendtobooklist = new QAction(tr("Send Word to Book Dictionary"), this);
+  m_edit_send_to_booklist =
+    new QAction(tr("Send Word to Book Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
-  m_editoptions->setStatusTip(
+  m_edit_options->setStatusTip(
     tr("This allows you to create a dictionary specifically for this book."));
   connect(
-    m_editoptions, &QAction::triggered, this, &MainWindow::editSendToBookList);
+    m_edit_options, &QAction::triggered, this, &MainWindow::editSendToBookList);
 
-  m_editsendtoauthorlist =
+  m_edit_send_to_authorlist =
     new QAction(tr("Send Word to Author Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
-  m_editoptions->setStatusTip(
+  m_edit_options->setStatusTip(
     tr("This allows you to create a dictionary specifically for this Author. "
        "Generally you would use this for an Authors Series where the same, "
        "possibly name or non-standard word might be used in muyltiple books."));
-  connect(m_editoptions,
+  connect(m_edit_options,
           &QAction::triggered,
           this,
           &MainWindow::editSendToAuthorList);
@@ -341,17 +351,46 @@ MainWindow::initEditorActions()
   QPixmap code_icon(":/icons/code");
   QPixmap meta_icon(":/icons/metadata");
 
-  m_openeditor = new QAction(editor_icon, tr("Open Editor"), this);
-  m_openeditor->setStatusTip(tr("Switches to the Editor Window."));
-  connect(m_openeditor, &QAction::triggered, this, &MainWindow::openWindow);
+  m_open_editor = new QAction(editor_icon, tr("Open Editor"), this);
+  m_open_editor->setStatusTip(tr("Switches to the Editor Window."));
+  connect(m_open_editor, &QAction::triggered, this, &MainWindow::openWindow);
 
-  m_opencodeeditor = new QAction(code_icon, tr("Open Code Editor"), this);
-  m_opencodeeditor->setStatusTip(tr("Switches to the Code Editor Window."));
-  connect(m_opencodeeditor, &QAction::triggered, this, &MainWindow::openWindow);
+  m_open_codeeditor = new QAction(code_icon, tr("Open Code Editor"), this);
+  m_open_codeeditor->setStatusTip(tr("Switches to the Code Editor Window."));
+  connect(
+    m_open_codeeditor, &QAction::triggered, this, &MainWindow::openWindow);
 
-  m_openmetadata = new QAction(meta_icon, tr("Open Metadata editor"), this);
-  m_openmetadata->setStatusTip(tr("Switches to the Metadata Editor Window."));
-  connect(m_openmetadata, &QAction::triggered, this, &MainWindow::openWindow);
+  m_open_metadata = new QAction(meta_icon, tr("Open Metadata editor"), this);
+  m_open_metadata->setStatusTip(tr("Switches to the Metadata Editor Window."));
+  connect(m_open_metadata, &QAction::triggered, this, &MainWindow::openWindow);
+}
+
+void
+MainWindow::initHelpActions()
+{
+  m_help_contents = new QAction(tr("Contents"), this);
+  m_help_contents->setStatusTip(tr("Access Help Contents."));
+  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpContents);
+
+  m_help_index = new QAction(tr("Index"), this);
+  m_help_index->setStatusTip(tr("Access Help Index."));
+  connect(m_help_index, &QAction::triggered, this, &MainWindow::helpIndex);
+
+  m_help_context = new QAction(tr("Context Help"), this);
+  m_help_context->setStatusTip(tr("Context Sensitive help."));
+  connect(m_help_context, &QAction::triggered, this, &MainWindow::helpContext);
+
+  m_help_about_ebookeditor = new QAction(tr("About EBookEditor"), this);
+  m_help_about_ebookeditor->setStatusTip(tr("Information about EBookEditor."));
+  connect(m_help_about_ebookeditor, &QAction::triggered, this, &MainWindow::helpAboutEbookEditor);
+
+  m_help_about_plugins = new QAction(tr("About Plugins"), this);
+  m_help_about_plugins->setStatusTip(tr("Information about available Plugins."));
+  connect(m_help_about_plugins, &QAction::triggered, this, &MainWindow::helpAboutPlugins);
+
+  m_help_check_updates = new QAction(tr("Check for Updates"), this);
+  m_help_contents->setStatusTip(tr("Access Help Contents."));
+  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpCheckUpdates);
 }
 
 void
@@ -361,6 +400,7 @@ MainWindow::initActions()
   initEditActions();
   initWindowActions();
   initEditorActions();
+  initHelpActions();
 }
 
 void
@@ -381,9 +421,10 @@ void
 MainWindow::initToolbar()
 {
   QToolBar* toolbar = addToolBar("main toolbar");
-  toolbar->addAction(m_openeditor);
-  toolbar->addAction(m_opencodeeditor);
-  toolbar->addAction(m_openmetadata);
+  toolbar->addAction(m_open_editor);
+  toolbar->addAction(m_open_codeeditor);
+  toolbar->addAction(m_open_metadata);
+  toolbar->setIconSize(QSize(64, 64));
 }
 
 void
@@ -538,7 +579,8 @@ MainWindow::saveOptions()
   m_prefchanged = false;
 }
 
-void MainWindow::loadLibraryFiles()
+void
+MainWindow::loadLibraryFiles()
 {
   if (!m_options->current_lib_files.empty()) {
     foreach (QString filename, m_options->current_lib_files) {
@@ -557,7 +599,8 @@ void MainWindow::loadLibraryFiles()
   }
 }
 
-void MainWindow::loadNonLibraryFiles()
+void
+MainWindow::loadNonLibraryFiles()
 {
   if (!m_options->current_files.empty()) {
     foreach (QString filename, m_options->current_files) {
@@ -713,7 +756,6 @@ MainWindow::loadOptions()
     m_options->bookcount = 0;
     m_prefchanged = true;
   }
-
 }
 
 void
@@ -729,46 +771,53 @@ MainWindow::copyBookToStore(QString path, QString authors)
 {
   QString newpath = m_data_directory + QDir::separator();
   QDir dir;
-  dir.mkpath(newpath + authors);
-
+  QString filename;
   QFile in_file(path);
   QFileInfo fileInfo(in_file);
-  QString filename = authors + QDir::separator() + fileInfo.fileName();
+
+  if (authors.isEmpty()) {
+    QString temp("temp");
+    dir.mkpath(newpath + temp);
+    filename = temp + QDir::separator() + fileInfo.fileName();
+  } else {
+    dir.mkpath(newpath + authors);
+    filename = authors + QDir::separator() + fileInfo.fileName();
+  }
 
   QFile out_file(newpath + filename);
   if (in_file.exists() && !out_file.exists()) {
     in_file.copy(out_file.fileName());
     m_options->current_files.removeOne(path);
     m_options->current_lib_files.append(filename);
-//    if (m_options->delete_old_book) {
-//      if (!m_options->never_confirm_delete) {
-//        QCheckBox* neverAskBox =
-//          new QCheckBox(tr("Never ask this again"), this);
-//        neverAskBox->setToolTip(
-//          tr("If this is checked then this dialog will not be "
-//             "shown again. This can be reset in the Options->Editor "
-//             "dialog."));
+    //    if (m_options->delete_old_book) {
+    //      if (!m_options->never_confirm_delete) {
+    //        QCheckBox* neverAskBox =
+    //          new QCheckBox(tr("Never ask this again"), this);
+    //        neverAskBox->setToolTip(
+    //          tr("If this is checked then this dialog will not be "
+    //             "shown again. This can be reset in the Options->Editor "
+    //             "dialog."));
 
-//        QMessageBox* msgBox = new QMessageBox(
-//          QMessageBox::Warning,
-//          tr("Delete Old Book"),
-//          tr("You are about to delete the old book, Are you sure?"),
-//          QMessageBox::Ok | QMessageBox::Cancel,
-//          this);
-//        msgBox->setCheckBox(neverAskBox);
+    //        QMessageBox* msgBox = new QMessageBox(
+    //          QMessageBox::Warning,
+    //          tr("Delete Old Book"),
+    //          tr("You are about to delete the old book, Are you sure?"),
+    //          QMessageBox::Ok | QMessageBox::Cancel,
+    //          this);
+    //        msgBox->setCheckBox(neverAskBox);
 
-//        if (msgBox->exec() == QMessageBox::Accepted) {
-//          in_file.remove();
-//        }
+    //        if (msgBox->exec() == QMessageBox::Accepted) {
+    //          in_file.remove();
+    //        }
 
-//        if (neverAskBox->isChecked()) {
-//          m_options->never_confirm_delete = true;
-//        }
+    //        if (neverAskBox->isChecked()) {
+    //          m_options->never_confirm_delete = true;
+    //        }
 
-//      } else {
-//        in_file.remove();
-//      }
-//    }
+    //      } else {
+    //        in_file.remove();
+    //      }
+    //    }
   }
 }
 
@@ -782,12 +831,14 @@ MainWindow::selectAuthorNames(QString filename, EBookData* data)
   QStringList names = attemptToExtractAuthorFromFilename(filename, data);
   if (!names.isEmpty()) {
     authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::FromTitle, data->title, names) == QDialog::Accepted) {
+    if (authorDlg->exec(AuthorDialog::FromTitle, data->title, names) ==
+        QDialog::Accepted) {
       authors = authorDlg->authors();
     }
   } else {
     authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::NoNames, data->title) == QDialog::Accepted) {
+    if (authorDlg->exec(AuthorDialog::NoNames, data->title) ==
+        QDialog::Accepted) {
       authors = authorDlg->authors();
     }
   }
@@ -797,9 +848,9 @@ MainWindow::selectAuthorNames(QString filename, EBookData* data)
 void
 MainWindow::loadDocument(QString filename)
 {
-//  if (!m_options->current_files.contains(filename)) {
-//    m_options->current_files.append(filename);
-//  }
+  //  if (!m_options->current_files.contains(filename)) {
+  //    m_options->current_files.append(filename);
+  //  }
 
   EBookWrapper* wrapper = new EBookWrapper(m_options, this);
 
@@ -807,7 +858,7 @@ MainWindow::loadDocument(QString filename)
   EBookDocument* codeDocument = createDocument(htmldocument);
   wrapper->editor()->setDocument(htmldocument);
   wrapper->codeEditor()->setDocument(codeDocument);
-//  wrapper->startWordReader();
+  //  wrapper->startWordReader();
   connect(
     this, &MainWindow::codeChanged, wrapper, &EBookWrapper::optionsHaveChanged);
   EBookData* data = htmldocument->data();
@@ -883,12 +934,15 @@ MainWindow::concatenateAuthorNames(QStringList authors)
   return names.join(", ");
 }
 
-QStringList MainWindow::removeEmpty(QStringList values)
+QStringList
+MainWindow::removeEmpty(QStringList values)
 {
   QStringList result;
-  foreach(QString s, values) {
-    if (s.isEmpty()) continue;
-    else result << s;
+  foreach (QString s, values) {
+    if (s.isEmpty())
+      continue;
+    else
+      result << s;
   }
   return result;
 }
@@ -1138,6 +1192,47 @@ MainWindow::winCentre()
 }
 
 void
+MainWindow::helpContents()
+{
+  // TODO
+}
+
+void
+MainWindow::helpIndex()
+{
+  // TODO
+}
+
+void
+MainWindow::helpContext()
+{
+  // TODO
+}
+
+void
+MainWindow::helpAboutEbookEditor()
+{
+  // TODO
+}
+
+void
+MainWindow::helpAboutPlugins()
+{
+  PluginDialog *dlg = new PluginDialog(this);
+  foreach (EBookInterface *interface, m_plugins) {
+    BaseEBookInterfaceClass *base = dynamic_cast<BaseEBookInterfaceClass*>(interface);
+    dlg->addPlugin(base);
+  }
+  dlg->open();
+}
+
+void
+MainWindow::helpCheckUpdates()
+{
+  // TODO
+}
+
+void
 MainWindow::clearDocuments()
 {
   m_mobi_doc = Q_NULLPTR;
@@ -1181,11 +1276,11 @@ MainWindow::openWindow()
   QAction* act = qobject_cast<QAction*>(obj);
   EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
   if (wrapper) {
-    if (act == m_openeditor) {
+    if (act == m_open_editor) {
       wrapper->setToEditor();
-    } else if (act == m_opencodeeditor) {
+    } else if (act == m_open_codeeditor) {
       wrapper->setToCode();
-    } else if (act == m_openmetadata) {
+    } else if (act == m_open_metadata) {
       wrapper->setToMetadata();
     }
   }
@@ -1261,7 +1356,8 @@ MainWindow::createDocument(EBookDocument* doc)
   return Q_NULLPTR;
 }
 
-EBookDocument *MainWindow::createEPubDocument(QString path)
+EBookDocument*
+MainWindow::createEPubDocument(QString path)
 {
   EPubDocument* document = new EPubDocument(this);
   clearDocuments();
@@ -1269,7 +1365,8 @@ EBookDocument *MainWindow::createEPubDocument(QString path)
   return document;
 }
 
-EBookDocument *MainWindow::createMobiDocument(QString path)
+EBookDocument*
+MainWindow::createMobiDocument(QString path)
 {
   MobiDocument* document = new MobiDocument(this);
   clearDocuments();
@@ -1291,9 +1388,14 @@ MainWindow::loadPlugins()
     if (plugin) {
       EBookInterface* interface = qobject_cast<EBookInterface*>(plugin);
       interface->buildMenu();
+      // Add plugin to list of ALL plugins.
+      m_plugins.append(interface);
 
+      SpellInterface* spellchecker = qobject_cast<SpellInterface*>(plugin);
+      // Add spellcheckers to list of spellcheckers;
+      m_spellchecker_plugins.insert(interface->name(), spellchecker);
       // TODO handle more than one spellchecker plugin.
-      m_current_spell_checker = m_spellcheckers["NuSpell"];
+      m_current_spell_checker = m_spellchecker_plugins["HunSpell"];
 
       m_languages = m_current_spell_checker->languageCodes();
       foreach (QString lang, m_languages) {

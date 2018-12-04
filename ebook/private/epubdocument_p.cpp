@@ -55,8 +55,8 @@ void
 EPubDocumentPrivate::loadDocument()
 {
   Q_Q(EPubDocument);
-  QElapsedTimer timer;
-  timer.start();
+//  QElapsedTimer timer;
+//  timer.start();
   m_container = new EPubContainer(q_ptr);
   q_ptr->connect(m_container,
                  &EPubContainer::errorHappened,
@@ -114,7 +114,7 @@ EPubDocumentPrivate::loadDocument()
   m_loaded = true;
 
   emit q->loadCompleted();
-  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+//  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
 void
@@ -262,8 +262,8 @@ EPubDocumentPrivate::setClonedData(EBookContents* clone)
 {
   Q_Q(EPubDocument);
 
-  QElapsedTimer timer;
-  timer.start();
+//  QElapsedTimer timer;
+//  timer.start();
 
   m_container = clone->m_container;
   m_svgs = clone->m_svgs;
@@ -319,4 +319,5 @@ EPubDocumentPrivate::setClonedData(EBookContents* clone)
   m_loaded = true;
 
   emit q->loadCompleted();
-  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))}
+//  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+}

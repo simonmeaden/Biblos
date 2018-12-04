@@ -2,6 +2,7 @@
 
 EBookDocumentPrivate::EBookDocumentPrivate(EBookDocument* parent)
   : q_ptr(parent)
+  , m_modified(false)
 {
   m_data = new EBookData();
 }
@@ -103,11 +104,13 @@ EBookDocumentPrivate::setModified(bool modified)
 {
   m_modified = modified;
 }
+
 bool
 EBookDocumentPrivate::readonly() const
 {
   return m_readonly;
 }
+
 void
 EBookDocumentPrivate::setReadonly(bool readonly)
 {

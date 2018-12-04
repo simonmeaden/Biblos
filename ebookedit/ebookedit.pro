@@ -28,6 +28,16 @@ CONFIG += c++14
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)
 #CONFIG += shared_and_static # Build both static and shared libraries
 
+VERSION_MAJOR = 0
+VERSION_MINOR = 1
+VERSION_BUILD = 0
+
+DEFINES += \
+       "VERSION_MAJOR=$$VERSION_MAJOR" \
+       "VERSION_MINOR=$$VERSION_MINOR" \
+       "HUNSPELL_VERSION_BUILD=$$VERSION_BUILD"
+
+DESTDIR = $$PWD/../../../build/ebookedit/ebookedit
 
 SOURCES += \
     main.cpp \
@@ -42,7 +52,8 @@ SOURCES += \
     authordialog.cpp \
     metadataeditor.cpp \
     dbmanager.cpp \
-    ebookwordreader.cpp
+    ebookwordreader.cpp \
+    plugindialog.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -56,7 +67,8 @@ HEADERS += \
     authordialog.h \
     metadataeditor.h \
     dbmanager.h \
-    ebookwordreader.h
+    ebookwordreader.h \
+    plugindialog.h
 
 FORMS += \
         mainwindow.ui
@@ -88,3 +100,4 @@ unix|win32: LIBS += -lstringutil
 
 RESOURCES += \
     icons.qrc
+

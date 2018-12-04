@@ -14,11 +14,11 @@ EBookWordReader::EBookWordReader(EBookEditor* editor, QObject* parent)
   , m_document(Q_NULLPTR)
 {}
 
-EBookWordReader::~EBookWordReader()
-{
-//  m_editor = Q_NULLPTR;
-//  m_document = Q_NULLPTR;
-}
+// EBookWordReader::~EBookWordReader()
+//{
+//  //  m_editor = Q_NULLPTR;
+//  //  m_document = Q_NULLPTR;
+//}
 
 void
 EBookWordReader::stopRunning()
@@ -36,39 +36,56 @@ EBookWordReader::documentIsLoaded()
 void
 EBookWordReader::run()
 {
-  QString word;
-//  QTextDocumentFragment fragment;
-//  while (m_running) {
-//    int end, start;
+  //  QTextDocumentFragment fragment;
+  while (m_running) {
 
-//    if (m_document_loaded) {
-//      start = 0;
-//      // we are checking the entire document so set end at end of document.
-//      QTextCursor tmpCursor(m_editor->textCursor());
+    if (m_document_loaded) {
+      QString word;
+      int end = 0, start = 0, pos = 0;
+      start = 0;
+      // we are checking the entire document so set end at end of
+//      EBookTextCursor tmpCursor(m_editor->textCursor());
 //      tmpCursor.movePosition(QTextCursor::End);
 //      end = tmpCursor.position();
 
-//      // block signals during check
+//      //      // block signals during check
 //      m_editor->document()->blockSignals(true);
 
 //      EBookTextCursor cursor(m_editor->textCursor());
 //      cursor.beginEditBlock();
 //      cursor.setPosition(start);
-//      while (cursor.position() < end) {
-//        cursor.moveToWordEnd(QTextCursor::KeepAnchor);
+//      pos = cursor.position();
+//      while (pos < end) {
+//        word = getNextWord(&pos);
+//        //        pos = cursor.position();
 //      }
 
-//      while (cursor.position() < end &&
-//             !cursor.isWordChar(cursor.nextCharacter())) {
-//        cursor.movePosition(QTextCursor::NextCharacter);
-//      }
-//      cursor.endEditBlock();
-//      // clear signal block
-//      m_editor->document()->blockSignals(false);
+      //      while (cursor.position() < end &&
+      //             !cursor.isWordChar(cursor.nextCharacter())) {
+      //        cursor.movePosition(QTextCursor::NextCharacter);
+      //      }
+      //      cursor.endEditBlock();
+      //      // clear signal block
+      //      m_editor->document()->blockSignals(false);
 
-//      thread()->msleep(100);
-//    }
-//  }
+      thread()->msleep(100);
+    }
+  }
+}
+
+QString
+EBookWordReader::getNextWord(int* pos)
+{
+  QString word;
+  if (pos) {
+    EBookTextCursor cursor(m_editor->textCursor());
+    cursor.setPosition(*pos);
+    cursor.movePosition(QTextCursor::StartOfWord);
+    cursor.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor);
+    word = cursor.selectedText();
+    *pos = cursor.position() + 1; // move past word end.
+  }
+  return word;
 }
 
 EBookTextCursor::EBookTextCursor()
@@ -140,22 +157,22 @@ EBookTextCursor::moveToWordStart(QTextCursor::MoveMode moveMode)
                .arg(prevCharacter())
                .arg(nextCharacter()));
 
-  // If we are in front of a quote...
-  if (nextCharacter() == "'") {
-    // If the previous char is alphanumeric, move left one word, otherwise
-    // move right one char
-    if (prevCharacter().contains(m_regex)) {
+//  // If we are in front of a quote...
+//  if (nextCharacter() == "'") {
+//    // If the previous char is alphanumeric, move left one word, otherwise
+//    // move right one char
+//    if (prevCharacter().contains(m_regex)) {
       movePosition(WordLeft, moveMode);
-    } else {
-      movePosition(NextCharacter, moveMode);
-    }
-  }
-  // If the previous char is a quote, and the char before that is
-  // alphanumeric, move left one word
-  else if (prevCharacter() == "'" && prevCharacter(2).contains(m_regex)) {
-    movePosition(
-      WordLeft, moveMode, 2); // 2: because quote counts as a word boundary
-  }
+//    } else {
+//      movePosition(NextCharacter, moveMode);
+//    }
+//  }
+//  // If the previous char is a quote, and the char before that is
+//  // alphanumeric, move left one word
+//  else if (prevCharacter() == "'" && prevCharacter(2).contains(m_regex)) {
+//    movePosition(
+//      WordLeft, moveMode, 2); // 2: because quote counts as a word boundary
+//  }
 }
 
 /*! /brief Move the cursor to the end of the current word. Cursor must be
