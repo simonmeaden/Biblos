@@ -12,20 +12,18 @@
 #include <stringutil/stringutil.h>
 #include <yaml-cpp/yaml.h>
 
-#include "authordialog.h"
-#include "dbmanager.h"
-#include "ebookcodeeditor.h"
 #include "ebookcommon.h"
-#include "ebookdocument.h"
-#include "ebookeditor.h"
-#include "ebookwrapper.h"
-#include "epubdocument.h"
-#include "mobidocument.h"
-#include "optionsdialog.h"
 
-#include "interface.h"
+//class Library;
+class EBookDocument;
+class EPubDocument;
+class MobiDocument;
+class ISpellInterface;
+class IEBookInterface;
+class CountryData;
+class DbManager;
 
-class Library;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -51,15 +49,15 @@ protected:
   MobiDocument* m_mobi_doc = Q_NULLPTR;
   //  HoverTabWidget* m_tabs;
   QTabWidget* m_tabs;
-  QMap<QString, SpellInterface*> m_spellchecker_plugins;
-  QMap<QString, EBookInterface*> m_ebookplugins;
-  QList<EBookInterface*> m_plugins;
+  QMap<QString, ISpellInterface*> m_spellchecker_plugins;
+  QMap<QString, IEBookInterface*> m_ebookplugins;
+  QList<IEBookInterface*> m_plugins;
   QStringList m_languages;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
   QString m_home_directiory, m_data_directory, m_config_directory,
     m_config_file;
-  QSharedPointer<Library> m_library;
+//  QSharedPointer<Library> m_library;
   DbManager* m_database;
 
   void resizeEvent(QResizeEvent* e);
@@ -82,7 +80,7 @@ protected:
   //  QTimer* m_popuptimer;
   int m_popupindex;
   EBookDocument* m_current_document;
-  SpellInterface* m_current_spell_checker;
+  ISpellInterface* m_current_spell_checker;
 
   void initBuild();
   void initGui();
@@ -215,7 +213,7 @@ protected: // Menu/StatusBar stuff
   static const QString NO_FILE;
   static const QString NOT_MODIFIED;
   static const QString MODIFIED;
-  static const int DEF_POPUP_TIMEOUT = 10000; // 10 seconds
+  static const int DEF_POPUP_TIMEOUT = 10000;
 
   static const QString DB_NAME;
 

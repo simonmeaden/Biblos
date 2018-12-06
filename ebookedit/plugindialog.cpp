@@ -1,6 +1,6 @@
 #include "plugindialog.h"
 
-#include "interface.h"
+#include "basespellclass.h"
 
 PluginDialog::PluginDialog(QWidget* parent)
   : QDialog(parent)
@@ -19,7 +19,7 @@ PluginDialog::PluginDialog(QWidget* parent)
 }
 
 void
-PluginDialog::addPlugin(EBookInterface* plugin)
+PluginDialog::addPlugin(IEBookInterface* plugin)
 {
   QString plugin_group = plugin->pluginGroup();
   QString name = plugin->name();

@@ -37,7 +37,7 @@ class EBookWordReader : public QThread
   Q_OBJECT
 public:
   explicit EBookWordReader(EBookEditor* editor, QObject* parent = Q_NULLPTR);
-  //  ~EBookWordReader();
+    ~EBookWordReader();
 
   void stopRunning();
   void documentIsLoaded();

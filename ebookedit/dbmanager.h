@@ -9,7 +9,7 @@
 
 #include <qlogger/qlogger.h>
 
-#include "library.h"
+#include "ebookcommon.h"
 
 class DbManager : public QObject
 {

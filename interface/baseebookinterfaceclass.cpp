@@ -1,8 +1,6 @@
-#include "interface.h"
+#include "baseebookinterfaceclass.h"
 
-BaseEBookInterfaceClass::BaseEBookInterfaceClass(QObject* parent)
-  : QObject(parent)
-{}
+BaseEBookInterfaceClass::BaseEBookInterfaceClass() {}
 
 BaseEBookInterfaceClass::~BaseEBookInterfaceClass() {}
 
@@ -58,25 +56,4 @@ void
 BaseEBookInterfaceClass::buildMenu()
 {
   // Empty method -override for your own menus.
-}
-
-BaseSpellClass::BaseSpellClass(QObject* parent)
-  : BaseEBookInterfaceClass(parent)
-{}
-
-BaseSpellClass::BaseSpellClass(Options* options, QObject* parent)
-  : BaseEBookInterfaceClass(parent)
-  , m_options(options)
-{}
-
-void
-BaseSpellClass::setLocale(QLocale locale)
-{
-  m_locale = locale;
-}
-
-QMap<QString, SpellInterface*>*
-BaseSpellClass::spellcheckers()
-{
-  return m_spellcheckers;
 }

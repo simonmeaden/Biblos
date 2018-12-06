@@ -37,7 +37,7 @@ DEFINES += \
        "VERSION_MINOR=$$VERSION_MINOR" \
        "HUNSPELL_VERSION_BUILD=$$VERSION_BUILD"
 
-DESTDIR = $$PWD/../../../build/ebookedit/ebookedit
+DESTDIR = $$PWD/../../build/ebookedit/ebookedit
 
 SOURCES += \
     main.cpp \
@@ -73,6 +73,8 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
+RESOURCES += \
+    icons.qrc
 
 # EBOOK library
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
@@ -81,9 +83,14 @@ else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
 
 INCLUDEPATH += $$PWD/../ebook
 DEPENDPATH += $$PWD/../ebook
-# SpellInterface
-INCLUDEPATH += ../plugins
 
+# interface - this was separated for use by plugins.
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
+else:unix: LIBS += -L$$OUT_PWD/../interface/ -linterface
+
+INCLUDEPATH += $$PWD/../interface
+DEPENDPATH += $$PWD/../interface
 
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
@@ -98,6 +105,4 @@ unix|win32: LIBS += -lqloggerlib
 # STRINGUTIL
 unix|win32: LIBS += -lstringutil
 
-RESOURCES += \
-    icons.qrc
 

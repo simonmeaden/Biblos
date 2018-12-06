@@ -199,4 +199,97 @@ struct EBookContents
   bool m_loaded;
 };
 
+class Author;
+class Book : public QObject
+{
+  Q_OBJECT
+public:
+  explicit Book(QObject* parent = nullptr);
+  Book(const Book& book);
+
+  QString title() const;
+  void setTitle(const QString& title);
+
+  QString isbn() const;
+  void setIsbn(const QString& isbn);
+
+  QString filename() const;
+  void setFilename(const QString &filename);
+
+signals:
+
+public slots:
+
+protected:
+  QString m_filename;
+  QString m_title;
+  QString m_isbn;
+
+  QList<QSharedPointer<Author>>* m_authors;
+};
+typedef QSharedPointer<Book> SharedBook;
+typedef QList<SharedBook> SharedBookList;
+Q_DECLARE_METATYPE(Book)
+Q_DECLARE_METATYPE(SharedBook)
+Q_DECLARE_METATYPE(SharedBookList)
+
+class Author : public QObject
+{
+  Q_OBJECT
+public:
+  enum Comparison {
+    SURNAME_MATCH,
+    FORE_AND_SURNAME_MATCH,
+    FORENAME_MATCH,
+    ALL_MATCH,
+    PARTIAL_MATCH,
+    NO_MATCH,
+  };
+  explicit Author(QObject* parent = Q_NULLPTR);
+  Author(const Author& author);
+
+  QString name();
+  bool setName(QString author);
+  bool surnameMatch(QString author);
+
+  Author& operator=(const Author&);
+  bool operator==(const Author&);
+
+  QString forename() const;
+  void setForename(const QString& forename);
+  bool compareForename(QString value);
+
+  QString surname() const;
+  void setSurname(const QString& surname);
+  bool compareSurname(QString value);
+
+  QString middlenames() const;
+  void setMiddlenames(const QString& middlenames);
+  bool compareMiddlenames(QString value);
+
+  void appendBook(SharedBook book) const;
+  SharedBookList* books() const;
+
+  Comparison compare(QString forename, QString middlenames, QString surname);
+  QStringList compareAndDiscard(QStringList names);
+  bool isEmpty();
+
+signals:
+
+public slots:
+
+protected:
+  QString m_forename, m_surname, m_middlenames;
+  QString m_lforename, m_lsurname, m_lmiddlenames;
+
+  SharedBookList* m_books;
+};
+typedef QSharedPointer<Author> SharedAuthor;
+typedef QList<SharedAuthor> SharedAuthorList;
+Q_DECLARE_METATYPE(Author)
+Q_DECLARE_METATYPE(SharedAuthor)
+Q_DECLARE_METATYPE(SharedAuthorList)
+
+
+
 #endif // COMMON_H

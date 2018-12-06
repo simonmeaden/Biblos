@@ -3,9 +3,18 @@
 #include <qlogger/qlogger.h>
 
 #include "authordialog.h"
+#include "dbmanager.h"
+#include "ebookcodeeditor.h"
 #include "ebookdocument.h"
+#include "ebookeditor.h"
 #include "ebookwordreader.h"
-#include "library.h"
+#include "ebookwrapper.h"
+#include "epubdocument.h"
+#include "mobidocument.h"
+//#include "library.h"
+#include "basespellclass.h"
+
+#include "optionsdialog.h"
 #include "plugindialog.h"
 
 using namespace qlogger;
@@ -45,7 +54,7 @@ QString MainWindow::DELETE_OLD_BOOK = "delete old book";
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-  , m_library(QSharedPointer<Library>(new Library()))
+  //  , m_library(QSharedPointer<Library>(new Library()))
   , m_initialising(true)
   , m_options(new Options())
   , m_bookcount(0)
@@ -186,8 +195,10 @@ MainWindow::initHelpMenu()
   m_helpmenu->addAction(m_help_contents);
   m_helpmenu->addAction(m_help_index);
   m_helpmenu->addAction(m_help_context);
+  m_helpmenu->addSeparator();
   m_helpmenu->addAction(m_help_about_ebookeditor);
   m_helpmenu->addAction(m_help_about_plugins);
+  m_helpmenu->addSeparator();
   m_helpmenu->addAction(m_help_check_updates);
 }
 
@@ -370,7 +381,8 @@ MainWindow::initHelpActions()
 {
   m_help_contents = new QAction(tr("Contents"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpContents);
+  connect(
+    m_help_contents, &QAction::triggered, this, &MainWindow::helpContents);
 
   m_help_index = new QAction(tr("Index"), this);
   m_help_index->setStatusTip(tr("Access Help Index."));
@@ -382,15 +394,23 @@ MainWindow::initHelpActions()
 
   m_help_about_ebookeditor = new QAction(tr("About EBookEditor"), this);
   m_help_about_ebookeditor->setStatusTip(tr("Information about EBookEditor."));
-  connect(m_help_about_ebookeditor, &QAction::triggered, this, &MainWindow::helpAboutEbookEditor);
+  connect(m_help_about_ebookeditor,
+          &QAction::triggered,
+          this,
+          &MainWindow::helpAboutEbookEditor);
 
   m_help_about_plugins = new QAction(tr("About Plugins"), this);
-  m_help_about_plugins->setStatusTip(tr("Information about available Plugins."));
-  connect(m_help_about_plugins, &QAction::triggered, this, &MainWindow::helpAboutPlugins);
+  m_help_about_plugins->setStatusTip(
+    tr("Information about available Plugins."));
+  connect(m_help_about_plugins,
+          &QAction::triggered,
+          this,
+          &MainWindow::helpAboutPlugins);
 
   m_help_check_updates = new QAction(tr("Check for Updates"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpCheckUpdates);
+  connect(
+    m_help_contents, &QAction::triggered, this, &MainWindow::helpCheckUpdates);
 }
 
 void
@@ -848,56 +868,59 @@ MainWindow::selectAuthorNames(QString filename, EBookData* data)
 void
 MainWindow::loadDocument(QString filename)
 {
-  //  if (!m_options->current_files.contains(filename)) {
-  //    m_options->current_files.append(filename);
-  //  }
+  if (!m_options->current_files.contains(filename)) {
+    m_options->current_files.append(filename);
 
-  EBookWrapper* wrapper = new EBookWrapper(m_options, this);
+    EBookWrapper* wrapper = new EBookWrapper(m_options, this);
 
-  EBookDocument* htmldocument = createDocument(filename);
-  EBookDocument* codeDocument = createDocument(htmldocument);
-  wrapper->editor()->setDocument(htmldocument);
-  wrapper->codeEditor()->setDocument(codeDocument);
-  //  wrapper->startWordReader();
-  connect(
-    this, &MainWindow::codeChanged, wrapper, &EBookWrapper::optionsHaveChanged);
-  EBookData* data = htmldocument->data();
-  SharedAuthorList authors;
-  QString authors_name;
+    EBookDocument* htmldocument = createDocument(filename);
+    EBookDocument* codeDocument = createDocument(htmldocument);
+    wrapper->editor()->setDocument(htmldocument);
+    wrapper->codeEditor()->setDocument(codeDocument);
+    //  wrapper->startWordReader();
+    connect(this,
+            &MainWindow::codeChanged,
+            wrapper,
+            &EBookWrapper::optionsHaveChanged);
+    EBookData* data = htmldocument->data();
+    SharedAuthorList authors;
+    QString authors_name;
 
-  if (m_options->copy_books_to_store) {
-    QStringList authorlist = data->authors;
-    if (authorlist.isEmpty()) {
-      authors = selectAuthorNames(filename, data);
-      wrapper->metaEditor()->addAuthors(authors);
-      authors_name = concatenateAuthorNames(authors);
-      copyBookToStore(filename, authors_name);
-    } else {
-      authors_name = concatenateAuthorNames(authorlist);
-      copyBookToStore(filename, authors_name);
-    }
-  }
-
-  if (!htmldocument->title().isEmpty()) {
-  }
-
-  CountryData* country_data = m_dict_data[data->language];
-  if (!country_data) {
-    if (m_current_spell_checker) {
-      QStringList codes =
-        m_current_spell_checker->compatibleLanguageCodes(data->language);
-      foreach (QString code, codes) {
-        // TODO
+    if (m_options->copy_books_to_store) {
+      QStringList authorlist = data->authors;
+      if (authorlist.isEmpty()) {
+        authors = selectAuthorNames(filename, data);
+        wrapper->metaEditor()->addAuthors(authors);
+        authors_name = concatenateAuthorNames(authors);
+        copyBookToStore(filename, authors_name);
+      } else {
+        authors_name = concatenateAuthorNames(authorlist);
+        copyBookToStore(filename, authors_name);
       }
     }
-  }
-  //    country_data = m_dict_data;
 
-  QString tabname = QString(
-    tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->authorNames()));
-  m_tabs->addTab(wrapper, tabname);
-  m_current_document =
-    qobject_cast<EBookDocument*>(wrapper->editor()->document());
+    if (!htmldocument->title().isEmpty()) {
+    }
+
+    CountryData* country_data = m_dict_data[data->language];
+    if (!country_data) {
+      if (m_current_spell_checker) {
+        QStringList codes =
+          m_current_spell_checker->compatibleLanguageCodes(data->language);
+        foreach (QString code, codes) {
+          // TODO
+        }
+      }
+    }
+    //    country_data = m_dict_data;
+
+    QString tabname = QString(tr("%1, (%2)")
+                                .arg(htmldocument->title())
+                                .arg(htmldocument->authorNames()));
+    m_tabs->addTab(wrapper, tabname);
+    m_current_document =
+      qobject_cast<EBookDocument*>(wrapper->editor()->document());
+  }
 }
 
 QString
@@ -1218,9 +1241,10 @@ MainWindow::helpAboutEbookEditor()
 void
 MainWindow::helpAboutPlugins()
 {
-  PluginDialog *dlg = new PluginDialog(this);
-  foreach (EBookInterface *interface, m_plugins) {
-    BaseEBookInterfaceClass *base = dynamic_cast<BaseEBookInterfaceClass*>(interface);
+  PluginDialog* dlg = new PluginDialog(this);
+  foreach (IEBookInterface* interface, m_plugins) {
+    BaseEBookInterfaceClass* base =
+      dynamic_cast<BaseEBookInterfaceClass*>(interface);
     dlg->addPlugin(base);
   }
   dlg->open();
@@ -1386,23 +1410,25 @@ MainWindow::loadPlugins()
     QObject* plugin = loader.instance();
 
     if (plugin) {
-      EBookInterface* interface = qobject_cast<EBookInterface*>(plugin);
-      interface->buildMenu();
-      // Add plugin to list of ALL plugins.
-      m_plugins.append(interface);
+      IEBookInterface* interface = qobject_cast<IEBookInterface*>(plugin);
+      if (interface) {
+        interface->buildMenu();
+        // Add plugin to list of ALL plugins.
+        m_plugins.append(interface);
 
-      SpellInterface* spellchecker = qobject_cast<SpellInterface*>(plugin);
-      // Add spellcheckers to list of spellcheckers;
-      m_spellchecker_plugins.insert(interface->name(), spellchecker);
-      // TODO handle more than one spellchecker plugin.
-      m_current_spell_checker = m_spellchecker_plugins["HunSpell"];
+        ISpellInterface* spellchecker = qobject_cast<ISpellInterface*>(plugin);
+        // Add spellcheckers to list of spellcheckers;
+        m_spellchecker_plugins.insert(interface->name(), spellchecker);
 
-      m_languages = m_current_spell_checker->languageCodes();
-      foreach (QString lang, m_languages) {
-        CountryData* data = m_current_spell_checker->dictionary(lang);
-        m_dict_data.insert(lang, data);
-        m_dict_paths.insert(lang, data->path);
+        //      m_languages = m_current_spell_checker->languageCodes();
+        //      foreach (QString lang, m_languages) {
+        //        CountryData* data = m_current_spell_checker->dictionary(lang);
+        //        m_dict_data.insert(lang, data);
+        //        m_dict_paths.insert(lang, data->path);
+        //      }
       }
     }
   }
+  // TODO handle more than one spellchecker plugin.
+  m_current_spell_checker = m_spellchecker_plugins["HunSpell"];
 }

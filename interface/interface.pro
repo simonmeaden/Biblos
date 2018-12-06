@@ -12,6 +12,7 @@ TEMPLATE = lib
 DEFINES += INTERFACE_LIBRARY
 
 CONFIG += staticlib
+CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -27,9 +28,19 @@ DESTDIR = $$PWD/../../build/ebookedit/interface
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        interface.cpp
+    baseebookinterfaceclass.cpp \
+    basespellinterfaceclass.cpp \
+    basespellclass.cpp
 
 HEADERS += \
-        interface.h \
-        interface_global.h 
+    interface_global.h \
+    ebookinterface.h \
+    baseebookinterfaceclass.h \
+    spellinterface.h \
+    basespellinterfaceclass.h \
+    basespellclass.h
+
+DISTFILES += \
+    spellinterface.json \
+    ebookinterface.json
 

@@ -6,7 +6,7 @@
 #include <QAbstractItemModel>
 
 
-class EBookInterface;
+class IEBookInterface;
 
 typedef QList<QVariant> QVariantList;
 
@@ -69,7 +69,7 @@ class PluginDialog : public QDialog
 public:
   explicit PluginDialog(QWidget *parent = nullptr);
 
-  void addPlugin(EBookInterface*);
+  void addPlugin(IEBookInterface*);
 
 protected:
   QTreeView *m_plugin_view;

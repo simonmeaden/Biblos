@@ -14,6 +14,11 @@ EBookWordReader::EBookWordReader(EBookEditor* editor, QObject* parent)
   , m_document(Q_NULLPTR)
 {}
 
+EBookWordReader::~EBookWordReader()
+{
+
+}
+
 // EBookWordReader::~EBookWordReader()
 //{
 //  //  m_editor = Q_NULLPTR;

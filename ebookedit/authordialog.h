@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 
-#include "library.h"
+#include "ebookcommon.h"
 
 class Library;
 class DbManager;

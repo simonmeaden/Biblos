@@ -2,6 +2,7 @@
 TEMPLATE        = lib
 CONFIG         += plugin
 QT             += widgets
+CONFIG += c++14
 
 TARGET          = hunspellplugin
 DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
@@ -17,24 +18,22 @@ DEFINES += \
        "HUNSPELL_VERSION_BUILD=$$VERSION_BUILD"
 
 HEADERS         = \
-    hunspellplugin.h
+    hunspellplugin.h \
+    hunspellchecker.h
 
 SOURCES         = \
-    hunspellplugin.cpp
+    hunspellplugin.cpp \
+    hunspellchecker.cpp
 #! [0]
 
 # install
 #target.path = $$DESTDIR/../../ebookedit/plugins
 #INSTALLS += target
 
-CONFIG += c++14
-
 DISTFILES += \
     hunspell.json
 
-unix|win32: LIBS += -lhunspell-1.7
-
-
-unix|win32: LIBS += -L$$OUT_PWD/../../interface/ -linterface
-
+unix|win32: LIBS += -L$$DESTDIR/../../interface/ -linterface
 INCLUDEPATH += $$PWD/../../interface
+
+unix|win32: LIBS += -lhunspell-1.7
