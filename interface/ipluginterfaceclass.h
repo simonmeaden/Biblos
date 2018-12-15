@@ -27,13 +27,13 @@ public:
 
 
 protected:
-    static QString m_plugin_group;
-    static QString m_plugin_name;
-    static QString m_vendor;
-    static QString m_version;
-    static int m_major_version;
-    static int m_minor_version;
-    static int m_build_version;
+    static const QString m_plugin_group;
+    static const QString m_plugin_name;
+    static const QString m_vendor;
+    static const QString m_version;
+    static const int m_major_version;
+    static const int m_minor_version;
+    static const int m_build_version;
     static bool m_loaded;
 
     //  void setName(const QString &name);

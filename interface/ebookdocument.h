@@ -4,8 +4,8 @@
 #include <QDateTime>
 #include <QTextDocument>
 
-#include "interface_global.h"
 #include "ebookcommon.h"
+#include "interface_global.h"
 #include "private/ebookdocument_p.h"
 
 class INTERFACESHARED_EXPORT EBookDocument : public QTextDocument
@@ -13,9 +13,9 @@ class INTERFACESHARED_EXPORT EBookDocument : public QTextDocument
     Q_OBJECT
 
 public:
-    EBookDocument(QObject* parent = Q_NULLPTR);
-    EBookDocument(EBookDocumentPrivate *doc, QObject* parent = Q_NULLPTR);
-    EBookDocument(const EBookDocument& doc);
+    EBookDocument(QObject *parent = Q_NULLPTR);
+    EBookDocument(EBookDocumentPrivate *doc, QObject *parent = Q_NULLPTR);
+    EBookDocument(const EBookDocument &doc);
     ~EBookDocument();
 
     bool isModified();
@@ -27,34 +27,31 @@ signals:
     void loadCompleted();
 
 public:
-    EBookData* data();
+    EBookData *data();
 
     QString title() const;
-    void setTitle(const QString& title);
+    void setTitle(const QString &title);
     QString subject() const;
-    void setSubject(const QString& subject);
+    void setSubject(const QString &subject);
     QString language() const;
-    void setLanguage(const QString& language);
+    void setLanguage(const QString &language);
     QDateTime date() const;
-    void setDate(const QDateTime& date);
+    void setDate(const QDateTime &date);
     QStringList authors() const;
-    void setAuthors(const QStringList& authors);
+    void setAuthors(const QStringList &authors);
     QString authorNames() const;
     QString publisher() const;
-    void setPublisher(const QString& publisher);
+    void setPublisher(const QString &publisher);
 
     QString documentPath() const;
-    virtual EBookContents* cloneData()
-    {
-        return new EBookContents();
-    }
-    virtual void setClonedData(EBookContents* /*cloneData*/) {}
+    virtual EBookContents *cloneData();
+    virtual void setClonedData(EBookContents * /*cloneData*/);
 
 protected:
     EBookDocumentPrivate *d_ptr;
-    EBookDocument(EBookDocumentPrivate& d);
+    EBookDocument(EBookDocumentPrivate &d);
 
-    void setDocumentPath(const QString& path);
+    void setDocumentPath(const QString &path);
 
 private:
     Q_DECLARE_PRIVATE(EBookDocument)

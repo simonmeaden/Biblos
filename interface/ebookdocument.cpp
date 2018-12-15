@@ -1,148 +1,134 @@
 #include "ebookdocument.h"
 
-EBookDocument::EBookDocument(EBookDocumentPrivate *doc, QObject* parent)
-  : QTextDocument(parent)
-  , d_ptr(doc)
-{}
+#include <qlogger/qlogger.h>
+using namespace qlogger;
 
-EBookDocument::EBookDocument(QObject* parent)
-  : QTextDocument(parent)
-  , d_ptr(new EBookDocumentPrivate(this))
-{}
+EBookDocument::EBookDocument(EBookDocumentPrivate *doc, QObject *parent)
+    : QTextDocument(parent), d_ptr(doc) {}
+
+EBookDocument::EBookDocument(QObject *parent)
+    : QTextDocument(parent), d_ptr(new EBookDocumentPrivate(this)) {}
 
 EBookDocument::EBookDocument(const EBookDocument &doc)
-  : QTextDocument(doc.parent())
-  , d_ptr(doc.d_ptr)
-{}
+    : QTextDocument(doc.parent()), d_ptr(doc.d_ptr) {}
 
-EBookDocument::EBookDocument(EBookDocumentPrivate& d)
-  : d_ptr(&d)
-{}
+EBookDocument::EBookDocument(EBookDocumentPrivate &d) : d_ptr(&d) {}
 
 EBookDocument::~EBookDocument() {}
 
-bool
-EBookDocument::isModified()
+bool EBookDocument::isModified()
 {
-  return d_ptr->isModified();
+    return d_ptr->isModified();
 }
 
-void
-EBookDocument::setModified(bool modified)
+void EBookDocument::setModified(bool modified)
 {
-  d_ptr->setModified(modified);
+    d_ptr->setModified(modified);
 }
 
-QString
-EBookDocument::documentPath() const
+QString EBookDocument::documentPath() const
 {
-  return d_ptr->documentPath();
+    return d_ptr->documentPath();
 }
 
-void
-EBookDocument::setDocumentPath(const QString& path)
+EBookContents *EBookDocument::cloneData()
 {
-  d_ptr->setDocumentPath(path);
+    QLOG_WARN("EBookDocument::cloneData() using blank default method.")
+    return Q_NULLPTR;
 }
 
-bool
-EBookDocument::readonly() const
+void EBookDocument::setClonedData(EBookContents *)
 {
-  return d_ptr->readonly();
+    QLOG_WARN("EBookDocument::setClonedData() using blank default method.")
 }
 
-void
-EBookDocument::setReadonly(bool readonly)
+void EBookDocument::setDocumentPath(const QString &path)
 {
-  d_ptr->setReadonly(readonly);
+    d_ptr->setDocumentPath(path);
 }
 
-EBookData*
-EBookDocument::data()
+bool EBookDocument::readonly() const
 {
-  return d_ptr->data();
+    return d_ptr->readonly();
 }
 
-QString
-EBookDocument::title() const
+void EBookDocument::setReadonly(bool readonly)
 {
-  return d_ptr->title();
+    d_ptr->setReadonly(readonly);
 }
 
-void
-EBookDocument::setTitle(const QString& title)
+EBookData *EBookDocument::data()
 {
-  Q_D(EBookDocument);
-  d->setTitle(title);
+    return d_ptr->data();
 }
 
-QString
-EBookDocument::subject() const
+QString EBookDocument::title() const
 {
-  return d_ptr->subject();
+    return d_ptr->title();
 }
 
-void
-EBookDocument::setSubject(const QString& subject)
+void EBookDocument::setTitle(const QString &title)
 {
-  Q_D(EBookDocument);
-  d->setSubject(subject);
+    Q_D(EBookDocument);
+    d->setTitle(title);
 }
 
-QString
-EBookDocument::language() const
+QString EBookDocument::subject() const
 {
-  return d_ptr->language();
+    return d_ptr->subject();
 }
 
-void
-EBookDocument::setLanguage(const QString& language)
+void EBookDocument::setSubject(const QString &subject)
 {
-  Q_D(EBookDocument);
-  d->setLanguage(language);
+    Q_D(EBookDocument);
+    d->setSubject(subject);
 }
 
-QDateTime
-EBookDocument::date() const
+QString EBookDocument::language() const
 {
-  return d_ptr->date();
+    return d_ptr->language();
 }
 
-void
-EBookDocument::setDate(const QDateTime& date)
+void EBookDocument::setLanguage(const QString &language)
 {
-  Q_D(EBookDocument);
-  d->setDate(date);
+    Q_D(EBookDocument);
+    d->setLanguage(language);
 }
 
-QStringList
-EBookDocument::authors() const
+QDateTime EBookDocument::date() const
 {
-  return d_ptr->authors();
+    return d_ptr->date();
 }
 
-void
-EBookDocument::setAuthors(const QStringList& authors)
+void EBookDocument::setDate(const QDateTime &date)
 {
-  Q_D(EBookDocument);
-  d->setAuthors(authors);
+    Q_D(EBookDocument);
+    d->setDate(date);
 }
 
-QString
-EBookDocument::authorNames() const
+QStringList EBookDocument::authors() const
 {
-  return d_ptr->authorNames();
+    return d_ptr->authors();
 }
 
-QString
-EBookDocument::publisher() const
+void EBookDocument::setAuthors(const QStringList &authors)
 {
-  return d_ptr->publisher();
+    Q_D(EBookDocument);
+    d->setAuthors(authors);
 }
 
-void
-EBookDocument::setPublisher(const QString& publisher)
+QString EBookDocument::authorNames() const
 {
-  Q_D(EBookDocument);
-  d->setPublisher(publisher);
+    return d_ptr->authorNames();
+}
+
+QString EBookDocument::publisher() const
+{
+    return d_ptr->publisher();
+}
+
+void EBookDocument::setPublisher(const QString &publisher)
+{
+    Q_D(EBookDocument);
+    d->setPublisher(publisher);
 }

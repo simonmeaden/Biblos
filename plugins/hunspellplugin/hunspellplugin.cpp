@@ -3,41 +3,35 @@
 #include "hunspellchecker.h"
 #include "ipluginterfaceclass.h"
 
-QString IPluginInterfaceClass::m_plugin_name = "Hunspell";
-QString IPluginInterfaceClass::m_plugin_group = "Spellchecker";
-QString IPluginInterfaceClass::m_vendor = "SM Electronic Components";
-int IPluginInterfaceClass::m_major_version = HUNSPELL_VERSION_MAJOR;
-int IPluginInterfaceClass::m_minor_version = HUNSPELL_VERSION_MINOR;
-int IPluginInterfaceClass::m_build_version = HUNSPELL_VERSION_BUILD;
-QString IPluginInterfaceClass::m_version =
+const QString IPluginInterfaceClass::m_plugin_name = "Hunspell";
+const QString IPluginInterfaceClass::m_plugin_group = "Spellchecker";
+const QString IPluginInterfaceClass::m_vendor = "SM Electronic Components";
+const int IPluginInterfaceClass::m_major_version = HUNSPELL_VERSION_MAJOR;
+const int IPluginInterfaceClass::m_minor_version = HUNSPELL_VERSION_MINOR;
+const int IPluginInterfaceClass::m_build_version = HUNSPELL_VERSION_BUILD;
+const QString IPluginInterfaceClass::m_version =
     QString("%1.%2.%3")
     .arg(IPluginInterfaceClass::m_major_version)
     .arg(IPluginInterfaceClass::m_minor_version)
     .arg(IPluginInterfaceClass::m_build_version);
 bool IPluginInterfaceClass::m_loaded = false;
 
-HunspellPlugin::HunspellPlugin(Options* options,
-                               QString dict_path,
-                               QObject* parent)
-    : ISpellInterfaceClass(options, parent) {
+HunspellPlugin::HunspellPlugin(Options *options, QString dict_path,
+                               QObject *parent)
+    : ISpellInterfaceClass(options, parent)
+{
 
     // create spell checker thread.
     m_checker = new HunspellChecker(dict_path, this);
 
     // pass correct words to correct word handler.
-    connect(m_checker,
-            &HunspellChecker::wordCorrect,
-            this,
+    connect(m_checker, &HunspellChecker::wordCorrect, this,
             &HunspellPlugin::receivedWordCorrect);
     // pass unknown words straight through.
-    connect(m_checker,
-            &HunspellChecker::wordUnknown,
-            this,
+    connect(m_checker, &HunspellChecker::wordUnknown, this,
             &HunspellPlugin::wordUnknown);
     // pass suggestions straight through
-    connect(m_checker,
-            &HunspellChecker::wordSuggestions,
-            this,
+    connect(m_checker, &HunspellChecker::wordSuggestions, this,
             &HunspellPlugin::wordSuggestions);
 
     // start thread
@@ -54,8 +48,8 @@ HunspellPlugin::HunspellPlugin(Options* options,
  *
  * \param word - a QString containing the word to check.
  */
-void
-HunspellPlugin::checkWord(QString word) {
+void HunspellPlugin::checkWord(QString word)
+{
     if (m_book_list.contains(word) || m_author_list.contains(word) ||
             m_good_words.contains(word)) {
         emit wordCorrect(word);
@@ -81,8 +75,8 @@ HunspellPlugin::checkWord(QString word) {
  *
  * \param words - a QStringList containing a number of words to check.
  */
-void
-HunspellPlugin::checkWords(QStringList words) {
+void HunspellPlugin::checkWords(QStringList words)
+{
     foreach (QString word, words) {
         checkWord(word);
     }
@@ -139,16 +133,16 @@ HunspellPlugin::checkWords(QStringList words) {
 //  m_words_matched[word] = match;
 //}
 
-void
-HunspellPlugin::suggestions(QString word) {
+void HunspellPlugin::suggestions(QString word)
+{
     m_checker->suggestions(word);
 }
 
 /*
  * Handles a word is correct signal from the spell checker.
  */
-void
-HunspellPlugin::receivedWordCorrect(QString word) {
+void HunspellPlugin::receivedWordCorrect(QString word)
+{
     if (!m_good_words.contains(word)) {
         m_good_words.append(word);
     }

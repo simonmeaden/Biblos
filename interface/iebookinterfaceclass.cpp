@@ -5,7 +5,16 @@
 IEBookInterfaceClass::IEBookInterfaceClass(Options *options, QObject *parent)
     : QObject(parent), m_options(options) {}
 
-EBookDocument *IEBookInterfaceClass::createDocument(QString filename) {}
+QString IEBookInterfaceClass::fileFilter() { return m_file_filter; }
 
-void IEBookInterfaceClass::saveDocument(QString filename,
-                                        EBookDocument *document) {}
+EBookDocument *IEBookInterfaceClass::createDocument(QString /*filename*/) {
+  return Q_NULLPTR;
+}
+
+EBookDocument *
+IEBookInterfaceClass::createCodeDocument(EBookDocument * /*document*/) {
+  return Q_NULLPTR;
+}
+
+void IEBookInterfaceClass::saveDocument(QString /*filename*/,
+                                        EBookDocument * /* document */) {}

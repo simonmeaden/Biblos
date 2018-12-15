@@ -23,10 +23,11 @@ class CountryData;
 class DbManager;
 
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
-  public:
+public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
@@ -36,10 +37,10 @@ class MainWindow : public QMainWindow {
 
     void loadNonLibraryFiles();
 
-  signals:
+signals:
     void codeChanged();
 
-  protected:
+protected:
     // main document pointer.
     EBookDocument* m_document = Q_NULLPTR;
     // pointer when cast to epub/mobi.
@@ -97,14 +98,14 @@ class MainWindow : public QMainWindow {
     void initWindowMenu();
     //  void initSpellingMenu();
     void initHelpMenu();
-    EBookDocument* createDocument(QString path);
-    EBookDocument* createDocument(EBookDocument*);
-    EBookDocument* createEPubDocument(QString path);
-    EBookDocument* createMobiDocument(QString path);
+//    EBookDocument* createDocument(QString path);
+//    EBookDocument* createDocument(EBookDocument*);
+//    EBookDocument* createEPubDocument(QString path);
+//    EBookDocument* createMobiDocument(QString path);
     void loadPlugins();
     void loadDocument(QString filename);
     void saveDocument(EBookDocument* document);
-    void clearDocuments();
+//    void clearDocuments();
     void copyBookToStore(QString filename, QString authors);
     QString concatenateAuthorNames(SharedAuthorList names);
     QString concatenateAuthorNames(QStringList names);
@@ -121,7 +122,7 @@ class MainWindow : public QMainWindow {
     void tabExited(int);
     void openWindow();
 
-  protected: // Menu/StatusBar stuff
+protected: // Menu/StatusBar stuff
     QMenuBar* m_menubar;
     QMenu* m_filemenu;
     QMenu* m_editmenu;

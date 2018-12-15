@@ -1,6 +1,9 @@
 #ifndef EPUBPLUGIN_H
 #define EPUBPLUGIN_H
 
+#include <QTextDocument>
+#include <QPlainTextDocumentLayout>
+
 #include "iebookinterfaceclass.h"
 #include "interface_global.h"
 
@@ -13,8 +16,12 @@ public:
     EpubPlugin(Options *options,
                QObject* parent = Q_NULLPTR);
 
+    EBookDocument *createDocument(QString path) override;
+    EBookDocument *createCodeDocument(EBookDocument *doc) override;
+    void saveDocument(QString, EBookDocument *) override;
+
 protected:
-    Options *m_options;
+
 };
 
 #endif // EPUBPLUGIN_H

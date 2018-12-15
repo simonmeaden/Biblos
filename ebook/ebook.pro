@@ -27,59 +27,10 @@ CONFIG += staticlib
 DESTDIR = $$PWD/../../build/ebookedit/ebook
 
 SOURCES += \
-    epub.cpp \
-#    buffer.c \
-#    compression.c \
-#    debug.c \
-#    encryption.c \
-#    index.c \
-#    memory.c \
-#    meta.c \
-#    miniz.c \
-#    opf.c \
-#    parse_rawml.c \
-#    read.c \
-#    sha1.c \
-#    structure.c \
-#    util.c \
-#    write.c \
-#    xmlwriter.c \
-    ebookcommon.cpp \
-    epubcontainer.cpp \
-    epubdocument.cpp \
-    private/epubdocument_p.cpp \
-    private/ebookdocument_p.cpp \
-    ebookdocument.cpp \
-    mobidocument.cpp
+    ebookcommon.cpp
 
 HEADERS += \
-    ebook_global.h \
-#    buffer.h \
-#    compression.h \
-#    config.h \
-#    debug.h \
-#    encryption.h \
-#    epub.h \
-#    index.h \
-#    memory.h \
-#    meta.h \
-#    miniz.h \
-#    mobi.h \
-#    opf.h \
-#    parse_rawml.h \
-#    read.h \
-#    sha1.h \
-#    structure.h \
-#    util.h \
-#    write.h \
-#    xmlwriter.h \
-    ebookcommon.h \
-    epubcontainer.h \
-    epubdocument.h \
-    private/epubdocument_p.h \
-    private/ebookdocument_p.h \
-    ebookdocument.h \
-    mobidocument.h
+    ebookcommon.h
 
 #unix {
 #    target.path = /usr/lib

@@ -24,7 +24,7 @@ public:
     virtual int buildVersion() const = 0;
     virtual void buildMenu() = 0;
 };
-#define IPluginInterface_iid "uk.org.smelecomp.IPluginInterface/1.0"
+#define IPluginInterface_iid "uk.org.smelecomp.IPluginInterface/0.1.0"
 Q_DECLARE_INTERFACE(IPluginInterface, IPluginInterface_iid)
 
 #endif // IPLUGININTERFACE_H

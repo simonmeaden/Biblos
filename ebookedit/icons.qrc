@@ -8,5 +8,11 @@
         <file alias="up">go-up.png</file>
         <file alias="add">list-add.png</file>
         <file alias="remove">list-remove.png</file>
+        <file alias="open-recent">document-open-recent.png</file>
+        <file alias="print">document-print.png</file>
+        <file alias="open">document-open.png</file>
+        <file alias="print-preview">document-print-preview.png</file>
+        <file alias="save">document-save.png</file>
+        <file alias="save-as">document-save-as.png</file>
     </qresource>
 </RCC>

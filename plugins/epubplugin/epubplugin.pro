@@ -18,15 +18,12 @@ VERSION_MINOR = 1
 VERSION_BUILD = 0
 
 DEFINES += \
-       "EBOOK_VERSION_MAJOR=$$VERSION_MAJOR" \
-       "EBOOK_VERSION_MINOR=$$VERSION_MINOR" \
-       "EBOOK_VERSION_BUILD=$$VERSION_BUILD"
+       "EPUB_VERSION_MAJOR=$$VERSION_MAJOR" \
+       "EPUB_VERSION_MINOR=$$VERSION_MINOR" \
+       "EPUB_VERSION_BUILD=$$VERSION_BUILD"
 
 SOURCES += \
     epubplugin.cpp \
-    epubcontainer.cpp \
-    epubdocument.cpp \
-    private/epubdocument_p.cpp \
     epubcontainer.cpp \
     epubdocument.cpp \
     private/epubdocument_p.cpp
@@ -36,11 +33,7 @@ HEADERS += \
     epubplugin_global.h \
     epubcontainer.h \
     epubdocument.h \
-    private/epubdocument_p.h \
-    epubcontainer.h \
-    epubdocument.h \
-    private/epubdocument_p.h \
-    private/ebookdocument_p.h
+    private/epubdocument_p.h
 
 DISTFILES += \
     hunspell.json
