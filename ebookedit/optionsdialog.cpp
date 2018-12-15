@@ -77,7 +77,7 @@ OptionsDialog::initMiscTab()
   QSpinBox* popupTimeoutBox = new QSpinBox(this);
   popupTimeoutBox->setValue(m_options->popuptimeout / 1000);
   connect(popupTimeoutBox,
-          qOverload<int>(&QSpinBox::valueChanged),
+          QOverload<int>::of(&QSpinBox::valueChanged),
           this,
           &OptionsDialog::changePopupTimeout);
   l->addRow(tr("Information popup timeout (Secs)"), popupTimeoutBox);
@@ -314,42 +314,42 @@ OptionsDialog::setWeightConnection(Options::CodeOptions options)
   switch (options) {
     case Options::NORMAL: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setNormalWeight);
       break;
     }
     case Options::TAG: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setAttributeWeight);
       break;
     }
     case Options::ATTRIBUTE: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setTagWeight);
       break;
     }
     case Options::ERROR: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setErrorWeight);
       break;
     }
     case Options::STRING: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setStringWeight);
       break;
     }
     case Options::SCRIPT: {
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setScriptWeight);
       break;
@@ -357,7 +357,7 @@ OptionsDialog::setWeightConnection(Options::CodeOptions options)
     case Options::STYLE: {
     }
       connect(this->getWeightBox(options),
-              qOverload<int>(&QComboBox::currentIndexChanged),
+              QOverload<int>::of(&QComboBox::currentIndexChanged),
               this,
               &OptionsDialog::setStyleWeight);
       break;

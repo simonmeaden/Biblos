@@ -1,49 +1,48 @@
-syntax: glob
-*.pro.user*
-*.autosave
-*.app
-*.moc
-*.prl
-Makefile*
-doc/html/
-*.framework/
-*.xcodeproj/
-debug/
-release/
-qtc-gdbmacros/
-*.rej
-*.orig
-*.obj
-*.swp
-*.dll
-*.exp
-*.ilk
-*.pdb
-*.lib
-Thumbs.db
-moc_*.cpp
-qrc_*.cpp
+# C++ objects and libs
+*.slo
+*.lo
 *.o
-*.so.*
+*.a
+*.la
+*.lai
 *.so
-*.pdb
+*.dll
+*.dylib
+
+# Qt-es
+object_script.*.Release
+object_script.*.Debug
+*_plugin_import.cpp
+/.qmake.cache
+/.qmake.stash
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
 ui_*.h
-*~
-.qmake.cache
-lib/*
-*.orig
-*.exe
-*.vcproj
-*.vcproj.*.user
-*_resource.rc
-*.sln
-*.idb
-*.ncb
-*.suo
+*.qmlc
+*.jsc
+Makefile*
+*build-*
 
-*.zip
-*.xlsx
+# Qt unit tests
+target_wrapper.*
 
+# QtCreator
+*.autosave
+
+# QtCreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
+
+# QtCreator CMake
+CMakeLists.txt.user*
+
+# EBooks
 *.epub
 *.mobi
-*.original_epub
+*.pdf

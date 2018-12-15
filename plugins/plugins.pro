@@ -2,5 +2,6 @@
 TEMPLATE        = subdirs
 
 SUBDIRS += \
-    googlespellplugin \
-    hunspellplugin
+#    googlespellplugin \
+    hunspellplugin \
+    epubplugin

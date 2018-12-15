@@ -8,7 +8,7 @@
 
 #include <list>
 
-#include <qyaml-cpp/node.h>
+#include <qyaml-cpp/QYamlCpp>
 #include <yaml-cpp/yaml.h>
 
 

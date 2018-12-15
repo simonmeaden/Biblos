@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT       += core gui xml svg sql
-
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
@@ -22,7 +21,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++14
+CONFIG += c++11
 #CONFIG += debug_and_release # prepared to build in debug and release forms
 #CONFIG -= debug_and_release_target # but NOT in debug and release directories
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)
@@ -76,13 +75,13 @@ FORMS += \
 RESOURCES += \
     icons.qrc
 
-# EBOOK library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebookd
-else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
+## EBOOK library
+#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebookd
+#else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
 
-INCLUDEPATH += $$PWD/../ebook
-DEPENDPATH += $$PWD/../ebook
+#INCLUDEPATH += $$PWD/../ebook
+#DEPENDPATH += $$PWD/../ebook
 
 # interface - this was separated for use by plugins.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
@@ -99,10 +98,10 @@ unix|win32: LIBS += -lqyaml-cpp
 # YAML-CPP library
 unix|win32: LIBS += -lyaml-cpp
 # QUAZIP
-unix|win32: LIBS += -lquazip
+unix|win32: LIBS += -lquazip5
 # QLOGGER library
 unix|win32: LIBS += -lqloggerlib
-# STRINGUTIL
-unix|win32: LIBS += -lstringutil
+## STRINGUTIL
+#unix|win32: LIBS += -lstringutil
 
 
