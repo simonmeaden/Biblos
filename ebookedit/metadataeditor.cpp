@@ -1,17 +1,13 @@
 #include "metadataeditor.h"
 
-MetadataEditor::MetadataEditor(Options* options, QWidget* parent)
-  : QWidget(parent)
-  , m_options(options)
-{
+MetadataEditor::MetadataEditor(Options *options, QWidget *parent)
+    : QWidget(parent), m_options(options) {
   initGui();
 }
 
-void
-MetadataEditor::addAuthors(SharedAuthorList authorlist)
-{
+void MetadataEditor::addAuthors(SharedAuthorList authorlist) {
   SharedAuthor author;
-  QLineEdit* author_edit;
+  QLineEdit *author_edit;
   for (int i = 0; i < authorlist.size(); i++) {
     author = authorlist.at(i);
     if (i >= m_authors.size()) {
@@ -40,13 +36,11 @@ MetadataEditor::addAuthors(SharedAuthorList authorlist)
   }
 }
 
-void
-MetadataEditor::initGui()
-{
-  QGridLayout* mainLayout = new QGridLayout;
+void MetadataEditor::initGui() {
+  QGridLayout *mainLayout = new QGridLayout;
   setLayout(mainLayout);
 
-  QLabel* lbl = new QLabel(tr("Title : "), this);
+  QLabel *lbl = new QLabel(tr("Title : "), this);
   mainLayout->addWidget(lbl, 0, 0);
 
   m_title = new QLineEdit(this);
@@ -55,12 +49,12 @@ MetadataEditor::initGui()
   lbl = new QLabel(tr("Authors(s) :"), this);
   mainLayout->addWidget(lbl, 1, 0);
 
-  QFrame* authorFrame = new QFrame(this);
+  QFrame *authorFrame = new QFrame(this);
   authorLayout = new QVBoxLayout;
   authorFrame->setLayout(authorLayout);
   mainLayout->addWidget(authorFrame, 1, 1);
 
-  QLineEdit* author = new QLineEdit(this);
+  QLineEdit *author = new QLineEdit(this);
   m_authors.append(author);
   authorLayout->addWidget(author);
 }

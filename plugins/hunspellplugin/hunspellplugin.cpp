@@ -1,41 +1,59 @@
 #include "hunspellplugin.h"
 
+#include "ebookcommon.h"
 #include "hunspellchecker.h"
-#include "ipluginterfaceclass.h"
+#include "ispellinterface.h"
 
-const QString IPluginInterfaceClass::m_plugin_name = "Hunspell";
-const QString IPluginInterfaceClass::m_plugin_group = "Spellchecker";
-const QString IPluginInterfaceClass::m_vendor = "SM Electronic Components";
-const int IPluginInterfaceClass::m_major_version = HUNSPELL_VERSION_MAJOR;
-const int IPluginInterfaceClass::m_minor_version = HUNSPELL_VERSION_MINOR;
-const int IPluginInterfaceClass::m_build_version = HUNSPELL_VERSION_BUILD;
-const QString IPluginInterfaceClass::m_version =
+const QString HunspellPlugin::m_plugin_name = "Hunspell";
+const QString HunspellPlugin::m_plugin_group = "Spellchecker";
+const QString HunspellPlugin::m_vendor = "SM Electronic Components";
+const int HunspellPlugin::m_major_version = HUNSPELL_VERSION_MAJOR;
+const int HunspellPlugin::m_minor_version = HUNSPELL_VERSION_MINOR;
+const int HunspellPlugin::m_build_version = HUNSPELL_VERSION_BUILD;
+const QString HunspellPlugin::m_version =
     QString("%1.%2.%3")
-    .arg(IPluginInterfaceClass::m_major_version)
-    .arg(IPluginInterfaceClass::m_minor_version)
-    .arg(IPluginInterfaceClass::m_build_version);
-bool IPluginInterfaceClass::m_loaded = false;
+        .arg(HunspellPlugin::m_major_version)
+        .arg(HunspellPlugin::m_minor_version)
+        .arg(HunspellPlugin::m_build_version);
+bool HunspellPlugin::m_loaded = false;
+
+HunspellPlugin::HunspellPlugin(QObject *parent) : QObject(parent) {
+
+  m_checker = new HunspellChecker(this);
+
+  // pass correct words to correct word handler.
+  connect(m_checker, &HunspellChecker::wordCorrect, this,
+          &HunspellPlugin::receivedWordCorrect);
+  // pass unknown words straight through.
+  connect(m_checker, &HunspellChecker::wordUnknown, this,
+          &HunspellPlugin::wordUnknown);
+  // pass suggestions straight through
+  connect(m_checker, &HunspellChecker::wordSuggestions, this,
+          &HunspellPlugin::wordSuggestions);
+
+  // start thread
+  //  m_checker->start();
+}
 
 HunspellPlugin::HunspellPlugin(Options *options, QString dict_path,
                                QObject *parent)
-    : ISpellInterfaceClass(options, parent)
-{
+    : QObject(parent), m_options(options) {
 
-    // create spell checker thread.
-    m_checker = new HunspellChecker(dict_path, this);
+  // create spell checker thread.
+  m_checker = new HunspellChecker(dict_path, this);
 
-    // pass correct words to correct word handler.
-    connect(m_checker, &HunspellChecker::wordCorrect, this,
-            &HunspellPlugin::receivedWordCorrect);
-    // pass unknown words straight through.
-    connect(m_checker, &HunspellChecker::wordUnknown, this,
-            &HunspellPlugin::wordUnknown);
-    // pass suggestions straight through
-    connect(m_checker, &HunspellChecker::wordSuggestions, this,
-            &HunspellPlugin::wordSuggestions);
+  // pass correct words to correct word handler.
+  connect(m_checker, &HunspellChecker::wordCorrect, this,
+          &HunspellPlugin::receivedWordCorrect);
+  // pass unknown words straight through.
+  connect(m_checker, &HunspellChecker::wordUnknown, this,
+          &HunspellPlugin::wordUnknown);
+  // pass suggestions straight through
+  connect(m_checker, &HunspellChecker::wordSuggestions, this,
+          &HunspellPlugin::wordSuggestions);
 
-    // start thread
-    m_checker->start();
+  // start thread
+  m_checker->start();
 }
 
 /*!
@@ -48,18 +66,17 @@ HunspellPlugin::HunspellPlugin(Options *options, QString dict_path,
  *
  * \param word - a QString containing the word to check.
  */
-void HunspellPlugin::checkWord(QString word)
-{
-    if (m_book_list.contains(word) || m_author_list.contains(word) ||
-            m_good_words.contains(word)) {
-        emit wordCorrect(word);
-    } else {
-        QString word_match = m_words_matched[word];
-        if (word_match.isEmpty())
-            m_checker->checkWord(word);
-        else
-            emit wordMatched(word, word_match);
-    }
+void HunspellPlugin::checkWord(QString word) {
+  if (m_book_list.contains(word) || m_author_list.contains(word) ||
+      m_good_words.contains(word)) {
+    emit wordCorrect(word);
+  } else {
+    QString word_match = m_words_matched[word];
+    if (word_match.isEmpty())
+      m_checker->checkWord(word);
+    else
+      emit wordMatched(word, word_match);
+  }
 }
 
 /*!
@@ -75,11 +92,8 @@ void HunspellPlugin::checkWord(QString word)
  *
  * \param words - a QStringList containing a number of words to check.
  */
-void HunspellPlugin::checkWords(QStringList words)
-{
-    foreach (QString word, words) {
-        checkWord(word);
-    }
+void HunspellPlugin::checkWords(QStringList words) {
+  foreach (QString word, words) { checkWord(word); }
 }
 
 ///*!
@@ -133,20 +147,72 @@ void HunspellPlugin::checkWords(QStringList words)
 //  m_words_matched[word] = match;
 //}
 
-void HunspellPlugin::suggestions(QString word)
-{
-    m_checker->suggestions(word);
-}
+void HunspellPlugin::suggestions(QString word) { m_checker->suggestions(word); }
 
 /*
  * Handles a word is correct signal from the spell checker.
  */
-void HunspellPlugin::receivedWordCorrect(QString word)
-{
-    if (!m_good_words.contains(word)) {
-        m_good_words.append(word);
-    }
-    emit wordCorrect(word);
+void HunspellPlugin::receivedWordCorrect(QString word) {
+  if (!m_good_words.contains(word)) {
+    m_good_words.append(word);
+  }
+  emit wordCorrect(word);
+}
+
+QString HunspellPlugin::pluginGroup() const { return m_plugin_group; }
+
+QString HunspellPlugin::pluginName() const { return m_plugin_name; }
+
+QString HunspellPlugin::vendor() const { return m_vendor; }
+
+bool HunspellPlugin::loaded() const { return m_loaded; }
+
+void HunspellPlugin::setLoaded(bool loaded) { m_loaded = loaded; }
+
+QString HunspellPlugin::version() const { return m_version; }
+
+int HunspellPlugin::majorVersion() const { return m_major_version; }
+
+int HunspellPlugin::minorVersion() const { return m_minor_version; }
+
+int HunspellPlugin::buildVersion() const { return m_build_version; }
+
+void HunspellPlugin::buildMenu() {
+  // TODO.
+}
+
+CountryData *HunspellPlugin::dictionary(QString language_code) {
+  return m_data;
+}
+
+QStringList HunspellPlugin::languageCodes(QString language_code) {
+  // TODO just a placeholder.
+  return QStringList();
+}
+
+QStringList HunspellPlugin::compatibleLanguageCodes(QString language_code) {
+  // TODO just a placeholder.
+  return QStringList();
+}
+
+QString HunspellPlugin::language() { return m_data->language_name; }
+
+QString HunspellPlugin::country() { return m_data->country_name; }
+
+QString HunspellPlugin::path() { return m_data->path; }
+
+QString HunspellPlugin::bcp47() { return m_data->bcp47; }
+
+void HunspellPlugin::addWordToBookList(QString word) {
+  m_book_list.append(word);
+}
+
+void HunspellPlugin::addWordToAuthorList(QString word) {
+  m_author_list.append(word);
+}
+
+void HunspellPlugin::addWordMatch(QString word, QString match) {
+  m_words_matched[word] = match;
 }
 
 //== HunspellChecker ==========================================================

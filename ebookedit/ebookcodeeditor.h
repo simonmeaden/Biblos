@@ -4,49 +4,47 @@
 #include <QPainter>
 #include <QPlainTextEdit>
 
-#include "ebookdocument.h"
+#include "iebookdocument.h"
 #include "xhtmlhighlighter.h"
 
-class EBookCodeEditor : public QPlainTextEdit
-{
-public:
-    EBookCodeEditor(QWidget* parent = Q_NULLPTR);
-    EBookCodeEditor(Options *options, QWidget* parent = Q_NULLPTR);
-    EBookCodeEditor(const EBookCodeEditor& editor);
-    ~EBookCodeEditor() override;
+class EBookCodeEditor : public QPlainTextEdit {
+ public:
+  EBookCodeEditor(QWidget* parent = Q_NULLPTR);
+  EBookCodeEditor(Options* options, QWidget* parent = Q_NULLPTR);
+  EBookCodeEditor(const EBookCodeEditor& editor);
+  ~EBookCodeEditor() override;
 
-    void lineNumberAreaPaintEvent(QPaintEvent* event);
-    int lineNumberAreaWidth();
+  void lineNumberAreaPaintEvent(QPaintEvent* event);
+  int lineNumberAreaWidth();
 
-    void setDocument(EBookDocument *document);
-    void rehighlight();
+  void setDocument(IEBookDocument* document);
+  void rehighlight();
 
-protected:
-    QWidget* lineNumberArea;
-    XhtmlHighlighter* m_highlighter;
-    Options *m_options;
+ protected:
+  QWidget* lineNumberArea;
+  XhtmlHighlighter* m_highlighter;
+  Options* m_options;
 
-    void resizeEvent(QResizeEvent* event) override;
-    void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
-    void updateLineNumberArea(const QRect&, int);
-    void init();
+  void resizeEvent(QResizeEvent* event) override;
+  void updateLineNumberAreaWidth(int newBlockCount);
+  void highlightCurrentLine();
+  void updateLineNumberArea(const QRect&, int);
+  void init();
 };
 
-class LineNumberArea : public QWidget
-{
-public:
-    LineNumberArea(EBookCodeEditor* editor);
+class LineNumberArea : public QWidget {
+ public:
+  LineNumberArea(EBookCodeEditor* editor);
 
-    QSize sizeHint() const override;
+  QSize sizeHint() const override;
 
-protected:
-    void paintEvent(QPaintEvent* event) override;
+ protected:
+  void paintEvent(QPaintEvent* event) override;
 
-private:
-    EBookCodeEditor* codeEditor;
+ private:
+  EBookCodeEditor* codeEditor;
 };
 
 Q_DECLARE_METATYPE(EBookCodeEditor)
 
-#endif // EBOOKCODEEDITOR_H
+#endif  // EBOOKCODEEDITOR_H

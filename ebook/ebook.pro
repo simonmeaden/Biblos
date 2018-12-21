@@ -53,6 +53,3 @@ unix|win32: LIBS += -lyaml-cpp
 unix|win32: LIBS += -lqloggerlib
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
-
-#INCLUDEPATH += $$PWD/../../common/csvsplitter
-#DEPENDPATH += $$PWD/../../common/csvsplitter

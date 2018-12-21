@@ -14,11 +14,9 @@
 
 class EPubContainer;
 
-class Options
-{
-public:
-  enum CodeOptions
-  {
+class Options {
+ public:
+  enum CodeOptions {
     NORMAL,
     TAG,
     STRING,
@@ -95,73 +93,9 @@ public:
   bool never_confirm_delete;
 };
 
-struct EPubItem
-{
-  QString path;
-  QByteArray mimetype;
-};
-
-struct EPubPageReference
-{
-  enum StandardType
-  {
-    CoverPage,
-    TitlePage,
-    TableOfContents,
-    Index,
-    Glossary,
-    Acknowledgements,
-    Bibliography,
-    Colophon,
-    CopyrightPage,
-    Dedication,
-    Epigraph,
-    Foreword,
-    ListOfIllustrations,
-    ListOfTables,
-    Notes,
-    Preface,
-    Text,
-    Other
-  };
-
-  static StandardType typeFromString(const QString& name);
-
-  QString target;
-  QString title;
-};
-
-struct EPubNavPoint
-{
-  EPubNavPoint(QString classname, QString id, QString label, QString src)
-  {
-    this->classname = classname;
-    this->id = id;
-    this->label = label;
-    this->src = src;
-  }
-  QString classname;
-  QString id;
-  QString label;
-  QString src;
-};
-typedef QSharedPointer<EPubNavPoint> navpoint_t;
-
-struct EPubToc
-{
-  QString version;
-  QString xml_lang;
-  QString xmlns;
-  QString title;
-  QMap<QString, QString> metadata;
-  QMap<int, navpoint_t> navmap;
-};
-typedef QSharedPointer<EPubToc> ebooktoc_t;
-
-struct EBookData
-{
+struct EBookData {
   EBookData()
-    : toc(Q_NULLPTR)
+  //        : toc(Q_NULLPTR)
   {
     title = "";
     subject = "";
@@ -178,32 +112,26 @@ struct EBookData
   QStringList authors;
   QDateTime date;
   QString publisher;
-  ebooktoc_t toc;
+  //    ebooktoc_t toc;
   QString dict_path;
   QString country;
 };
 Q_DECLARE_METATYPE(EBookData);
 
-enum DocumentType
-{
-  PLAINTEXT,
-  HTML
-};
+enum DocumentType { PLAINTEXT, HTML };
 
-struct EBookContents
-{
-  QHash<QString, QByteArray> m_svgs;
-  QHash<QString, QImage> m_renderedSvgs;
-  EPubContainer *m_container;
-  EPubItem m_currentItem;
-  bool m_loaded;
-};
+// struct EBookContents {
+//    QHash<QString, QByteArray> m_svgs;
+//    QHash<QString, QImage> m_renderedSvgs;
+//    EPubContainer *m_container;
+//    EBookItem m_currentItem;
+//    bool m_loaded;
+//};
 
 class Author;
-class Book : public QObject
-{
+class Book : public QObject {
   Q_OBJECT
-public:
+ public:
   explicit Book(QObject* parent = nullptr);
   Book(const Book& book);
 
@@ -214,13 +142,13 @@ public:
   void setIsbn(const QString& isbn);
 
   QString filename() const;
-  void setFilename(const QString &filename);
+  void setFilename(const QString& filename);
 
-signals:
+ signals:
 
-public slots:
+ public slots:
 
-protected:
+ protected:
   QString m_filename;
   QString m_title;
   QString m_isbn;
@@ -233,10 +161,9 @@ Q_DECLARE_METATYPE(Book)
 Q_DECLARE_METATYPE(SharedBook)
 Q_DECLARE_METATYPE(SharedBookList)
 
-class Author : public QObject
-{
+class Author : public QObject {
   Q_OBJECT
-public:
+ public:
   enum Comparison {
     SURNAME_MATCH,
     FORE_AND_SURNAME_MATCH,
@@ -274,11 +201,11 @@ public:
   QStringList compareAndDiscard(QStringList names);
   bool isEmpty();
 
-signals:
+ signals:
 
-public slots:
+ public slots:
 
-protected:
+ protected:
   QString m_forename, m_surname, m_middlenames;
   QString m_lforename, m_lsurname, m_lmiddlenames;
 
@@ -290,6 +217,4 @@ Q_DECLARE_METATYPE(Author)
 Q_DECLARE_METATYPE(SharedAuthor)
 Q_DECLARE_METATYPE(SharedAuthorList)
 
-
-
-#endif // COMMON_H
+#endif  // COMMON_H

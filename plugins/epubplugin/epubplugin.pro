@@ -41,10 +41,5 @@ DISTFILES += \
 unix|win32: LIBS += -L$$DESTDIR/../../interface/ -linterface
 INCLUDEPATH += $$PWD/../../interface
 
-## EBOOK library
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebookd
-#else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
-
-#INCLUDEPATH += $$PWD/../ebook
-#DEPENDPATH += $$PWD/../ebook
+# CVSSplitter library
+unix|win32: LIBS += -lcsvsplitter

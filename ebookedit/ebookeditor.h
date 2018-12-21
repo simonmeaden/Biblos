@@ -1,30 +1,30 @@
 #ifndef EBOOKEDITOR_H
 #define EBOOKEDITOR_H
 
+#include <QTextDocument>
 #include <QTextEdit>
 
-#include "ebookdocument.h"
+#include "iebookdocument.h"
 
-class EBookEditor : public QTextEdit
-{
+class EBookEditor : public QTextEdit {
   Q_OBJECT
 
-public:
+ public:
   EBookEditor(QWidget* parent = Q_NULLPTR);
   EBookEditor(const EBookEditor& editor);
   ~EBookEditor();
 
-  void setDocument(EBookDocument *document);
+  void setDocument(IEBookDocument* document);
   QVariant data();
 
-signals:
+ signals:
   void documentLoaded();
 
-protected:
+ protected:
   QVariant m_data;
-  EBookDocument* m_document;
+  IEBookDocument* m_document;
 };
 
 Q_DECLARE_METATYPE(EBookEditor)
 
-#endif // EBOOKEDITOR_H
+#endif  // EBOOKEDITOR_H
