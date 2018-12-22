@@ -887,57 +887,58 @@ void MainWindow::loadDocument(QString filename)
   if (ebook_plugin) {
     m_loading = true;
     IEBookDocument* htmldocument = ebook_plugin->createDocument(filename);
-    htmldocument->setPlugin(ebook_plugin);
-    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    wrapper->editor()->setDocument(htmldocument);
-    wrapper->codeEditor()->setDocument(codeDocument);
-    //  wrapper->startWordReader();
-    connect(this, &MainWindow::codeChanged, wrapper,
-            &EBookWrapper::optionsHaveChanged);
-    //    EBookData* data = htmldocument->data();
-    SharedAuthorList authors;
-    QString authors_name;
-    QString filename;
+    //    htmldocument->setPlugin(ebook_plugin);
+    //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
+    //    wrapper->editor()->setDocument(htmldocument);
+    //    wrapper->codeEditor()->setDocument(codeDocument);
+    //    //  wrapper->startWordReader();
+    //    connect(this, &MainWindow::codeChanged, wrapper,
+    //            &EBookWrapper::optionsHaveChanged);
+    //    //    EBookData* data = htmldocument->data();
+    //    SharedAuthorList authors;
+    //    QString authors_name;
+    //    QString filename;
 
-    if (m_options->copy_books_to_store) {
-      //      QStringList authorlist = data->authors;
-      //      if (authorlist.isEmpty()) {
-      //        authors = selectAuthorNames(filename, data);
-      //        setModifiedAuthors(htmldocument, authors);
-      //        wrapper->metaEditor()->addAuthors(authors);
-      //        authors_name = concatenateAuthorNames(authors);
-      //        filename = copyBookToStore(filename, authors_name);
-      //      } else {
-      //        authors_name = concatenateAuthorNames(authorlist);
-      //        setModifiedAuthors(htmldocument, authors);
-      //        filename = copyBookToStore(filename, authors_name);
-      //      }
-    }
+    //    if (m_options->copy_books_to_store) {
+    //      //      QStringList authorlist = data->authors;
+    //      //      if (authorlist.isEmpty()) {
+    //      //        authors = selectAuthorNames(filename, data);
+    //      //        setModifiedAuthors(htmldocument, authors);
+    //      //        wrapper->metaEditor()->addAuthors(authors);
+    //      //        authors_name = concatenateAuthorNames(authors);
+    //      //        filename = copyBookToStore(filename, authors_name);
+    //      //      } else {
+    //      //        authors_name = concatenateAuthorNames(authorlist);
+    //      //        setModifiedAuthors(htmldocument, authors);
+    //      //        filename = copyBookToStore(filename, authors_name);
+    //      //      }
+    //    }
 
-    htmldocument->setFilename(filename);
+    //    htmldocument->setFilename(filename);
 
-    //      if (!htmldocument->title().isEmpty()) {
-    //      }
+    //    //      if (!htmldocument->title().isEmpty()) {
+    //    //      }
 
-    //            CountryData *country_data = m_dict_data[data->language];
-    //            if (!country_data) {
-    //                if (m_current_spell_checker) {
-    //                    //                QStringList codes =
-    //                    //
-    //                    m_current_spell_checker->compatibleLanguageCodes(data->language);
-    //                    //                foreach (QString code, codes) {
-    //                    //                    // TODO
-    //                    //                }
-    //                }
-    //            }
-    //            country_data = m_dict_data;
+    //    //            CountryData *country_data = m_dict_data[data->language];
+    //    //            if (!country_data) {
+    //    //                if (m_current_spell_checker) {
+    //    //                    //                QStringList codes =
+    //    //                    //
+    //    // m_current_spell_checker->compatibleLanguageCodes(data->language);
+    //    //                    //                foreach (QString code, codes)
+    //    {
+    //    //                    //                    // TODO
+    //    //                    //                }
+    //    //                }
+    //    //            }
+    //    //            country_data = m_dict_data;
 
-    QString tabname = QString(tr("%1, (%2)")
-                                  .arg(htmldocument->title())
-                                  .arg(htmldocument->authorNames()));
-    m_tabs->addTab(wrapper, tabname);
-    m_current_document =
-        dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+    //    QString tabname = QString(tr("%1, (%2)")
+    //                                  .arg(htmldocument->title())
+    //                                  .arg(htmldocument->authorNames()));
+    //    m_tabs->addTab(wrapper, tabname);
+    //    m_current_document =
+    //        dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
     m_loading = false;
   }
 }

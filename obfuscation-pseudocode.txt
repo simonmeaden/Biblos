@@ -1,0 +1,23 @@
+set ocf to OCF container file
+set source to file
+set destination to obfuscated file
+set keyData to key for file
+set outer to 0
+while outer < 52 and not (source at EOF)
+    set inner to 0
+    while inner < 20 and not (source at EOF)
+        read 1 byte from source     //Assumes read advances file position
+        set sourceByte to result of read
+        set keyByte to byte inner of keyData
+        set obfuscatedByte to (sourceByte XOR keyByte)
+        write obfuscatedByte to destination
+        increment inner
+    end while
+    increment outer
+end while
+if not (source at EOF) then
+    read source to EOF
+    write result of read to destination
+end if
+Deflate destination
+store destination as source in ocf

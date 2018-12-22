@@ -94,26 +94,39 @@ typedef QMap<QString, SharedTitle> SharedTitleMap;
 class EPubIdentifier
 {
 public:
+  QString name;
   QString uid;
-  //  SharedIdentifier next;
 };
 typedef QSharedPointer<EPubIdentifier> SharedIdentifier;
 typedef QMap<QString, SharedIdentifier> SharedIdentifierMap;
 
-class EPubLanguage;
-typedef QSharedPointer<EPubLanguage> SharedLanguage;
-typedef QMap<QString, SharedLanguage> SharedLanguageMap;
 class EPubLanguage
 {
 public:
+  QString id;
   QString language;
 };
+typedef QSharedPointer<EPubLanguage> SharedLanguage;
+typedef QMap<QString, SharedLanguage> SharedLanguageMap;
+
+class EPubSubject
+{
+public:
+  QString id;
+  QString subject;
+};
+typedef QSharedPointer<EPubSubject> SharedSubject;
+typedef QMap<QString, SharedSubject> SharedSubjectMap;
 
 class EPubCreator : public EPubBaseMetadata
 {
 public:
   enum CreatorType {
     author,
+    illustrator,
+    editor,
+    annotator,
+    markup_editor,
     string_creator_type,
   };
   enum SchemeType {
@@ -139,6 +152,14 @@ public:
   {
     if (type == "aut") {
       return CreatorType::author;
+    } else if (type == "ill") {
+      return CreatorType::illustrator;
+    } else if (type == "edt") {
+      return CreatorType::editor;
+    } else if (type == "ann") {
+      return CreatorType::annotator;
+    } else if (type == "mrk") {
+      return CreatorType::markup_editor;
     } else {
       return CreatorType::string_creator_type;
     }
@@ -160,15 +181,23 @@ public:
     }
   }
 
-  //  static QString toString(CreatorType type)
-  //  {
-  //    switch (type) {
-  //    case author:
-  //      return "aut";
-  //    default:
-  //      return QString();
-  //    }
-  //  }
+  static QString toCreatorString(CreatorType type)
+  {
+    switch (type) {
+    case author:
+      return "aut";
+    case illustrator:
+      return "ill";
+    case annotator:
+      return "ann";
+    case markup_editor:
+      return "mrk";
+    case editor:
+      return "edt";
+    default:
+      return QString();
+    }
+  }
 };
 typedef QSharedPointer<EPubCreator> SharedCreator;
 typedef QMap<QString, SharedCreator> SharedCreatorMap;
@@ -180,6 +209,7 @@ public:
   SharedTitleMap titles;
   SharedCreatorMap creators;
   SharedLanguageMap languages;
+  SharedLanguageMap subjects;
   EPubModified modified;
   QDateTime date;
   QString source;
@@ -188,6 +218,62 @@ public:
   QString rights;
 };
 typedef QSharedPointer<EPubMetadata> SharedMetadata;
+
+class EPubManifestItem
+{
+public:
+  QString href;
+  QString id;
+  QString media_type;
+  QStringList properties;
+  QString fallback;
+  QString media_overlay;
+  QMap<QString, QString> non_standard_properties;
+};
+typedef QSharedPointer<EPubManifestItem> SharedManifestItem;
+typedef QMap<QString, SharedManifestItem> SharedManifestItemMap;
+
+class EPubManifest
+{
+public:
+  QString id;
+  SharedManifestItem cover_image; // 0 or 1
+  SharedManifestItem nav;         // 1
+  SharedManifestItemMap items;    // all items
+  SharedManifestItemMap mathml;   // subset of items for math markup
+  SharedManifestItemMap svg;      // subset of items for images
+  SharedManifestItemMap images;   // subset of items for images
+  SharedManifestItemMap remotes;
+  SharedManifestItemMap scripted;
+  SharedManifestItemMap switches;
+};
+
+class EPubSpineItem
+{
+public:
+  EPubSpineItem()
+  {
+    linear = false;
+    page_spread_left = false;
+    page_spread_right = false;
+  }
+  QString id;
+  QString idref;
+  bool linear;
+  bool page_spread_left;
+  bool page_spread_right;
+};
+typedef QSharedPointer<EPubSpineItem> SharedSpineItem;
+typedef QMap<QString, SharedSpineItem> SharedSpineItemMap;
+
+class EPubSpine
+{
+public:
+  QString id;
+  QString toc;
+  QString page_progression_dir;
+  SharedSpineItemMap items;
+};
 
 class EPubContainer : public QObject
 {
@@ -204,15 +290,8 @@ public:
   QImage image(const QString& id);
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
-  QStringList metadata(const QString& key);
-  int removeMetadata(const QString& key);
-  void setMetadata(const QString& key, const QString& value);
-  QList<QMap<QString, QString>> metadataAttributes(const QString& key);
-  void setMetadataAttributes(const QString& key, QMap<QString, QString> values);
-  int removeMetadataAttributes(const QString& key);
   QStringList items();
   QString standardPage(EPubPageReference::StandardType type);
-  ebooktoc_t toc();
 
 signals:
   void errorHappened(const QString& error);
@@ -234,12 +313,16 @@ protected:
   bool saveContainer();
   bool parsePackageFile(QString& full_path);
   bool savePackageFile(QString& full_path);
-  bool parseMetadataItem(const QDomNode& metadataNode);
-  bool parseManifestItem(const QDomNode& manifestNodes,
-                         const QString currentFolder);
-  bool parseSpineItem(const QDomNode& spineNode);
+  bool parseMetadataItem(const QDomNode& metadata_node);
+  bool parseManifestItem(const QDomNode& manifest_node,
+                         const QString current_folder);
+  bool parseSpineItem(const QDomNode& metadata_element);
+  bool saveSpineItem();
   bool parseGuideItem(const QDomNode& guideItem);
+  bool parseLandmarksItem(const QDomNode& guideItem);
+  bool saveLandmarksItem();
   bool parseBindingsItem(const QDomNode& bindingsItem);
+  bool saveBindingsItem();
 
   const QuaZip* getFile(const QString& path);
 
@@ -248,6 +331,9 @@ protected:
   QStringList m_files;
 
   SharedMetadata m_metadata;
+  EPubManifest m_manifest;
+  EPubSpine m_spine;
+
   // only one container per epub.
   SharedDomDocument m_container_document;
   // might be more than one root content file.
@@ -270,10 +356,11 @@ protected:
   //      m_standardReferences;
   //  QHash<QString, EPubPageReference> m_otherReferences;
   QMimeDatabase m_mimeDatabase;
-  void extractTitleMetadata(QDomElement metadata_element);
-  void extractCreatorMetadata(QDomElement metadata_element);
-  void extractIdentifierMetadata(QDomElement metadata_element);
-  void extractLanguageMetadata(QDomElement metadata_element);
+  void parseTitleMetadata(QDomElement metadata_element);
+  void parseCreatorMetadata(QDomElement metadata_element);
+  void parseIdentifierMetadata(QDomElement metadata_element);
+  void parseLanguageMetadata(QDomElement metadata_element);
+  void parseSubjectMetadata(QDomElement metadata_element);
 
   static const QString MIMETYPE_FILE;
   static const QByteArray MIMETYPE;
@@ -285,8 +372,10 @@ protected:
   static const QString CREATOR;
   static const QString IDENTIFIER;
   static const QString LANGUAGE;
-  void extractDateModified(QDomNamedNodeMap node_map, QString text);
+  void parseDateModified(QDomNamedNodeMap node_map, QString text);
   void saveTitles(QDomElement metadata_element);
+  void saveCreator(QDomElement metadata_element);
+  void saveIdentifier(QDomElement metadata_element);
 };
 
 #endif // EPUBCONTAINER_H

@@ -40,53 +40,53 @@ void EPubDocumentPrivate::loadDocument()
     return;
   }
 
-  QTextCursor cursor(q_ptr);
-  cursor.movePosition(QTextCursor::End);
+  //  QTextCursor cursor(q_ptr);
+  //  cursor.movePosition(QTextCursor::End);
 
-  QStringList items = m_container->items();
+  //  QStringList items = m_container->items();
 
-  QString cover = m_container->standardPage(EPubPageReference::CoverPage);
-  if (cover.isEmpty()) {
-    items.prepend(cover);
-    QLOG_DEBUG(QString("Cover is empty %1").arg(cover))
-  }
+  //  QString cover = m_container->standardPage(EPubPageReference::CoverPage);
+  //  if (cover.isEmpty()) {
+  //    items.prepend(cover);
+  //    QLOG_DEBUG(QString("Cover is empty %1").arg(cover))
+  //  }
 
-  QTextBlockFormat pageBreak;
-  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  for (const QString& chapter : items) {
-    m_currentItem = m_container->epubItem(chapter);
-    if (m_currentItem.path.isEmpty()) {
-      continue;
-    }
+  //  QTextBlockFormat pageBreak;
+  //  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  //  for (const QString& chapter : items) {
+  //    m_currentItem = m_container->epubItem(chapter);
+  //    if (m_currentItem.path.isEmpty()) {
+  //      continue;
+  //    }
 
-    QSharedPointer<QuaZipFile> zipFile =
-        m_container->zipFile(m_currentItem.path);
-    if (!zipFile) {
-      QLOG_WARN(QString("Unable to get zipped file for chapter %1")
-                    .arg(m_currentItem.path))
-      continue;
-    }
+  //    QSharedPointer<QuaZipFile> zipFile =
+  //        m_container->zipFile(m_currentItem.path);
+  //    if (!zipFile) {
+  //      QLOG_WARN(QString("Unable to get zipped file for chapter %1")
+  //                    .arg(m_currentItem.path))
+  //      continue;
+  //    }
 
-    QByteArray itemdata = zipFile->readAll();
-    if (itemdata.isEmpty()) {
-      QLOG_WARN(QString("Got an empty document"))
-      continue;
-    }
-    q->setBaseUrl(QUrl(m_currentItem.path));
-    QDomDocument newDocument;
-    newDocument.setContent(itemdata);
-    // TOD extract text for processing
-    fixImages(newDocument);
+  //    QByteArray itemdata = zipFile->readAll();
+  //    if (itemdata.isEmpty()) {
+  //      QLOG_WARN(QString("Got an empty document"))
+  //      continue;
+  //    }
+  //    q->setBaseUrl(QUrl(m_currentItem.path));
+  //    QDomDocument newDocument;
+  //    newDocument.setContent(itemdata);
+  //    // TOD extract text for processing
+  //    fixImages(newDocument);
 
-    cursor.insertHtml(newDocument.toString());
-    cursor.insertBlock(pageBreak);
-  }
+  //    cursor.insertHtml(newDocument.toString());
+  //    cursor.insertBlock(pageBreak);
+  //  }
 
-  q->setBaseUrl(QUrl());
-  m_loaded = true;
+  //  q->setBaseUrl(QUrl());
+  //  m_loaded = true;
 
-  emit q->loadCompleted();
-  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+  //  emit q->loadCompleted();
+  //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
 void EPubDocumentPrivate::fixImages(QDomDocument& newDocument)
