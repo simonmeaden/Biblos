@@ -26,8 +26,7 @@ struct EPubContents {
 
 class EPubDocumentPrivate;
 
-class INTERFACESHARED_EXPORT EPubDocument : public QTextDocument,
-                                            public IEBookDocument
+class INTERFACESHARED_EXPORT EPubDocument : public ITextDocument
 {
   Q_OBJECT
   Q_DECLARE_PRIVATE(EPubDocument)
@@ -67,9 +66,6 @@ public:
   QString authorNames() override;
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
-
-signals:
-  void loadCompleted();
 
 protected:
   EPubDocumentPrivate* d_ptr;

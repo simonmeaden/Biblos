@@ -3,9 +3,9 @@
 
 #include <QStackedWidget>
 
-#include "ebookeditor.h"
 #include "ebookcodeeditor.h"
 #include "ebookcommon.h"
+#include "ebookeditor.h"
 #include "metadataeditor.h"
 
 class EBookWordReader;
@@ -15,7 +15,7 @@ class EBookWrapper : public QStackedWidget
   Q_OBJECT
 
 public:
-  EBookWrapper(Options *options, QWidget* parent = Q_NULLPTR);
+  EBookWrapper(Options* options, QWidget* parent = Q_NULLPTR);
   ~EBookWrapper();
 
   void setToEditor();
@@ -27,15 +27,15 @@ public:
   void optionsHaveChanged();
   void startWordReader();
 
+  void update();
+
 protected:
   EBookEditor* m_editor;
   EBookCodeEditor* m_codeeditor;
-  MetadataEditor *m_metaeditor;
-  EBookWordReader *m_word_reader;
+  MetadataEditor* m_metaeditor;
+  EBookWordReader* m_word_reader;
   int m_editorindex, m_codeindex, m_metaindex;
-  Options *m_options;
-
+  Options* m_options;
 };
-
 
 #endif // EBOOKWRAPPER_H

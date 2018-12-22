@@ -22,24 +22,19 @@ using namespace qlogger;
 #include <private/qcssparser_p.h>
 #endif
 
-EPubDocument::EPubDocument(QObject* parent) :
-    QTextDocument(parent), d_ptr(new EPubDocumentPrivate(this))
+EPubDocument::EPubDocument(QObject* parent) : ITextDocument(parent), d_ptr(new EPubDocumentPrivate(this))
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent) :
-    QTextDocument(parent), d_ptr(doc)
+EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent) : ITextDocument(parent), d_ptr(doc)
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(const EPubDocument& doc) :
-    QTextDocument(doc.parent()), d_ptr(doc.d_ptr)
-{
-}
+EPubDocument::EPubDocument(const EPubDocument& doc) : ITextDocument(doc.parent()), d_ptr(doc.d_ptr) {}
 
-EPubDocument::EPubDocument(EPubDocumentPrivate& d) : QTextDocument(d.q_ptr) {}
+EPubDocument::EPubDocument(EPubDocumentPrivate& d) : ITextDocument(d.q_ptr) {}
 
 EPubDocument::~EPubDocument() {}
 
@@ -69,10 +64,7 @@ void EPubDocument::setClonedData(EPubContents* cloneData)
 
 QString EPubDocument::filename() const { return m_filename; }
 
-void EPubDocument::setFilename(const QString& filename)
-{
-  m_filename = filename;
-}
+void EPubDocument::setFilename(const QString& filename) { m_filename = filename; }
 
 IEBookInterface* EPubDocument::plugin() const { return m_plugin; }
 

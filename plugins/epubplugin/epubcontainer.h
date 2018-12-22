@@ -209,7 +209,7 @@ public:
   SharedTitleMap titles;
   SharedCreatorMap creators;
   SharedLanguageMap languages;
-  SharedLanguageMap subjects;
+  SharedSubjectMap subjects;
   EPubModified modified;
   QDateTime date;
   QString source;
@@ -223,8 +223,9 @@ class EPubManifestItem
 {
 public:
   QString href;
+  QString path;
   QString id;
-  QString media_type;
+  QByteArray media_type;
   QStringList properties;
   QString fallback;
   QString media_overlay;
@@ -246,6 +247,11 @@ public:
   SharedManifestItemMap remotes;
   SharedManifestItemMap scripted;
   SharedManifestItemMap switches;
+  SharedManifestItemMap xhtml;         // all items
+  SharedManifestItemMap css;           // all items
+  SharedManifestItemMap javascript;    // all items
+  SharedManifestItemMap fonts;         // all items
+  SharedManifestItemMap media_overlay; // all items
 };
 
 class EPubSpineItem
@@ -265,6 +271,7 @@ public:
 };
 typedef QSharedPointer<EPubSpineItem> SharedSpineItem;
 typedef QMap<QString, SharedSpineItem> SharedSpineItemMap;
+typedef QStringList SpineItemList;
 
 class EPubSpine
 {
@@ -273,6 +280,7 @@ public:
   QString toc;
   QString page_progression_dir;
   SharedSpineItemMap items;
+  SpineItemList ordered_items;
 };
 
 class EPubContainer : public QObject
@@ -285,12 +293,13 @@ public:
   bool loadFile(const QString path);
   bool saveFile(const QString path);
   bool closeFile();
-  EBookItem epubItem(const QString& id) const;
+  QByteArray epubItem(const QString& id) const;
   QSharedPointer<QuaZipFile> zipFile(const QString& path);
   QImage image(const QString& id);
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
   QStringList items();
+  QStringList orderedItems();
   QString standardPage(EPubPageReference::StandardType type);
 
 signals:
@@ -299,6 +308,7 @@ signals:
 public slots:
 
 protected:
+  // Base epub data
   int m_version;
   QString m_unique_identifier_name;
   QString m_unique_identifier;
@@ -314,8 +324,7 @@ protected:
   bool parsePackageFile(QString& full_path);
   bool savePackageFile(QString& full_path);
   bool parseMetadataItem(const QDomNode& metadata_node);
-  bool parseManifestItem(const QDomNode& manifest_node,
-                         const QString current_folder);
+  bool parseManifestItem(const QDomNode& manifest_node, const QString current_folder);
   bool parseSpineItem(const QDomNode& metadata_element);
   bool saveSpineItem();
   bool parseGuideItem(const QDomNode& guideItem);
@@ -330,6 +339,8 @@ protected:
   QString m_filename;
   QStringList m_files;
 
+  // metadata/manifest/spine etc.
+  QByteArray m_mimetype;
   SharedMetadata m_metadata;
   EPubManifest m_manifest;
   EPubSpine m_spine;
@@ -355,7 +366,6 @@ protected:
   //  QHash<EPubPageReference::StandardType, EPubPageReference>
   //      m_standardReferences;
   //  QHash<QString, EPubPageReference> m_otherReferences;
-  QMimeDatabase m_mimeDatabase;
   void parseTitleMetadata(QDomElement metadata_element);
   void parseCreatorMetadata(QDomElement metadata_element);
   void parseIdentifierMetadata(QDomElement metadata_element);

@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QString>
+#include <QTextDocument>
 
 class IEBookInterface;
 
@@ -34,6 +35,19 @@ public:
   virtual QString authorNames() = 0;
   virtual QString publisher() = 0;
   virtual void setPublisher(const QString& publisher) = 0;
+};
+
+/*!
+ * \brief Adds a signal for completion of load. Not possible in the interface.
+ */
+class ITextDocument : public QTextDocument, public IEBookDocument
+{
+  Q_OBJECT
+public:
+  ITextDocument(QObject* parent = Q_NULLPTR) : QTextDocument(parent) {}
+
+signals:
+  void loadCompleted();
 };
 
 #endif // IEBOOKDOCUMENT_H

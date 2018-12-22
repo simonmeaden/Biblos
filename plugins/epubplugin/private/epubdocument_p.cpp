@@ -4,10 +4,7 @@
 #include <qlogger/qlogger.h>
 using namespace qlogger;
 
-EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) :
-    q_ptr(parent), m_container(nullptr), m_loaded(false)
-{
-}
+EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) : q_ptr(parent), m_container(nullptr), m_loaded(false) {}
 
 EPubDocumentPrivate::~EPubDocumentPrivate() {}
 
@@ -24,10 +21,7 @@ void EPubDocumentPrivate::openDocument(const QString& path)
 
 void EPubDocumentPrivate::clearCache() { m_renderedSvgs.clear(); }
 
-void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
-{
-  m_documentPath = documentPath;
-}
+void EPubDocumentPrivate::setDocumentPath(const QString& documentPath) { m_documentPath = documentPath; }
 
 void EPubDocumentPrivate::loadDocument()
 {
@@ -40,53 +34,34 @@ void EPubDocumentPrivate::loadDocument()
     return;
   }
 
-  //  QTextCursor cursor(q_ptr);
-  //  cursor.movePosition(QTextCursor::End);
+  QTextCursor cursor(q_ptr);
+  cursor.movePosition(QTextCursor::End);
 
-  //  QStringList items = m_container->items();
+  QStringList items = m_container->orderedItems();
 
-  //  QString cover = m_container->standardPage(EPubPageReference::CoverPage);
-  //  if (cover.isEmpty()) {
-  //    items.prepend(cover);
-  //    QLOG_DEBUG(QString("Cover is empty %1").arg(cover))
-  //  }
+  QTextBlockFormat pageBreak;
+  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  for (const QString& chapter : items) {
+    QByteArray item_data = m_container->epubItem(chapter);
+    if (item_data.isEmpty()) {
+      QLOG_WARN(QString("Got an empty document"))
+      continue;
+    }
+    q->setBaseUrl(QUrl(m_currentItem.path));
+    QDomDocument newDocument;
+    newDocument.setContent(item_data);
+    // TODO extract text for processing
+    fixImages(newDocument);
 
-  //  QTextBlockFormat pageBreak;
-  //  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  //  for (const QString& chapter : items) {
-  //    m_currentItem = m_container->epubItem(chapter);
-  //    if (m_currentItem.path.isEmpty()) {
-  //      continue;
-  //    }
+    cursor.insertHtml(newDocument.toString());
+    cursor.insertBlock(pageBreak);
+  }
 
-  //    QSharedPointer<QuaZipFile> zipFile =
-  //        m_container->zipFile(m_currentItem.path);
-  //    if (!zipFile) {
-  //      QLOG_WARN(QString("Unable to get zipped file for chapter %1")
-  //                    .arg(m_currentItem.path))
-  //      continue;
-  //    }
+  q->setBaseUrl(QUrl());
+  m_loaded = true;
 
-  //    QByteArray itemdata = zipFile->readAll();
-  //    if (itemdata.isEmpty()) {
-  //      QLOG_WARN(QString("Got an empty document"))
-  //      continue;
-  //    }
-  //    q->setBaseUrl(QUrl(m_currentItem.path));
-  //    QDomDocument newDocument;
-  //    newDocument.setContent(itemdata);
-  //    // TOD extract text for processing
-  //    fixImages(newDocument);
-
-  //    cursor.insertHtml(newDocument.toString());
-  //    cursor.insertBlock(pageBreak);
-  //  }
-
-  //  q->setBaseUrl(QUrl());
-  //  m_loaded = true;
-
-  //  emit q->loadCompleted();
-  //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+  emit q->loadCompleted();
+  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
 void EPubDocumentPrivate::fixImages(QDomDocument& newDocument)
@@ -110,8 +85,7 @@ void EPubDocumentPrivate::fixImages(QDomDocument& newDocument)
   {
     // QImage which QtSvg uses isn't able to read files from inside the archive,
     // so embed image data inline
-    QDomNodeList imageNodes =
-        newDocument.elementsByTagName("image"); // SVG images
+    QDomNodeList imageNodes = newDocument.elementsByTagName("image"); // SVG images
     for (int i = 0; i < imageNodes.count(); i++) {
       QDomElement image = imageNodes.at(i).toElement();
       if (!image.hasAttribute("xlink:href")) {
@@ -234,59 +208,59 @@ void EPubDocumentPrivate::setClonedData(EPubContents* clone)
   //  QElapsedTimer timer;
   //  timer.start();
 
-  m_container = clone->m_container;
-  m_svgs = clone->m_svgs;
-  m_renderedSvgs = clone->m_renderedSvgs;
-  m_currentItem = clone->m_currentItem;
-  m_loaded = clone->m_loaded;
+  //  m_container = clone->m_container;
+  //  m_svgs = clone->m_svgs;
+  //  m_renderedSvgs = clone->m_renderedSvgs;
+  //  m_currentItem = clone->m_currentItem;
+  //  m_loaded = clone->m_loaded;
 
-  QTextCursor cursor(q_ptr);
-  cursor.movePosition(QTextCursor::End);
+  //  QTextCursor cursor(q_ptr);
+  //  cursor.movePosition(QTextCursor::End);
 
-  QStringList items = m_container->items();
+  //  QStringList items = m_container->items();
 
-  QString cover = m_container->standardPage(EPubPageReference::CoverPage);
-  if (cover.isEmpty()) {
-    items.prepend(cover);
-    QLOG_DEBUG(QString("Cover is empty %1").arg(cover))
-  }
+  //  QString cover = m_container->standardPage(EPubPageReference::CoverPage);
+  //  if (cover.isEmpty()) {
+  //    items.prepend(cover);
+  //    QLOG_DEBUG(QString("Cover is empty %1").arg(cover))
+  //  }
 
-  QTextBlockFormat pageBreak;
-  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  for (const QString& chapter : items) {
-    m_currentItem = m_container->epubItem(chapter);
-    if (m_currentItem.path.isEmpty()) {
-      continue;
-    }
+  //  QTextBlockFormat pageBreak;
+  //  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  //  for (const QString& chapter : items) {
+  //    m_currentItem = m_container->epubItem(chapter);
+  //    if (m_currentItem.path.isEmpty()) {
+  //      continue;
+  //    }
 
-    QSharedPointer<QuaZipFile> zipFile =
-        m_container->zipFile(m_currentItem.path);
-    if (!zipFile) {
-      QLOG_WARN(QString("Unable to get zipped file for chapter %1")
-                    .arg(m_currentItem.path))
-      continue;
-    }
+  //    QSharedPointer<QuaZipFile> zipFile =
+  //        m_container->zipFile(m_currentItem.path);
+  //    if (!zipFile) {
+  //      QLOG_WARN(QString("Unable to get zipped file for chapter %1")
+  //                    .arg(m_currentItem.path))
+  //      continue;
+  //    }
 
-    QByteArray itemdata = zipFile->readAll();
-    if (itemdata.isEmpty()) {
-      QLOG_WARN(QString("Got an empty document"))
-      continue;
-    }
-    q->setBaseUrl(QUrl(m_currentItem.path));
-    QDomDocument newDocument;
-    newDocument.setContent(itemdata);
-    // TOD extract text for processing
-    fixImages(newDocument);
+  //    QByteArray itemdata = zipFile->readAll();
+  //    if (itemdata.isEmpty()) {
+  //      QLOG_WARN(QString("Got an empty document"))
+  //      continue;
+  //    }
+  //    q->setBaseUrl(QUrl(m_currentItem.path));
+  //    QDomDocument newDocument;
+  //    newDocument.setContent(itemdata);
+  //    // TOD extract text for processing
+  //    fixImages(newDocument);
 
-    cursor.insertText(newDocument.toString());
-    cursor.insertBlock(pageBreak);
-  }
+  //    cursor.insertText(newDocument.toString());
+  //    cursor.insertBlock(pageBreak);
+  //  }
 
-  q->setBaseUrl(QUrl());
-  m_loaded = true;
+  //  q->setBaseUrl(QUrl());
+  //  m_loaded = true;
 
-  emit q->loadCompleted();
-  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+  //  emit q->loadCompleted();
+  //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
 QString EPubDocumentPrivate::title() const
@@ -312,39 +286,36 @@ QStringList EPubDocumentPrivate::authors() const
 
 QString EPubDocumentPrivate::concatenateAuthors(QStringList authors)
 {
-  QString author_list;
-  foreach (QString author, authors) {
-    if (!author_list.isEmpty())
-      author_list += " & ";
-    author_list += author;
-  }
-  m_concatenated_authors = author_list;
-  return author_list;
+  //  QString author_list;
+  //  foreach (QString author, authors) {
+  //    if (!author_list.isEmpty())
+  //      author_list += " & ";
+  //    author_list += author;
+  //  }
+  //  m_concatenated_authors = author_list;
+  //  return author_list;
 }
 
 void EPubDocumentPrivate::insertAuthors(const QStringList& authors)
 {
-  if (authors.isEmpty())
-    return;
-  // remove existing author names.
-  m_container->removeMetadata(QString("creator"));
-  m_container->removeMetadata(QString("creator"));
-  if (authors.count() > 1) {
-    QMap<QString, QString> list;
-    for (int i = 0; i < authors.count(); i++) {
-      list.insert("opf:role", "aut");
-      if (i == 0) {
-        list.insert("opf:file-as", concatenateAuthors(authors));
-      }
-      m_container->setMetadata("creator", authors.at(i));
-      m_container->setMetadataAttributes("creator", list);
-    }
-  } else {
-    m_container->setMetadata("creator", authors.at(0));
-  }
+  //  if (authors.isEmpty())
+  //    return;
+  //  // remove existing author names.
+  //  m_container->removeMetadata(QString("creator"));
+  //  m_container->removeMetadata(QString("creator"));
+  //  if (authors.count() > 1) {
+  //    QMap<QString, QString> list;
+  //    for (int i = 0; i < authors.count(); i++) {
+  //      list.insert("opf:role", "aut");
+  //      if (i == 0) {
+  //        list.insert("opf:file-as", concatenateAuthors(authors));
+  //      }
+  //      m_container->setMetadata("creator", authors.at(i));
+  //      m_container->setMetadataAttributes("creator", list);
+  //    }
+  //  } else {
+  //    m_container->setMetadata("creator", authors.at(0));
+  //  }
 }
 
-QString EPubDocumentPrivate::authorNames() const
-{
-  return m_concatenated_authors;
-}
+QString EPubDocumentPrivate::authorNames() const { return m_concatenated_authors; }
