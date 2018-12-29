@@ -1,0 +1,12 @@
+#ifndef MOBIPLUGIN_GLOBAL_H
+#define MOBIPLUGIN_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(MOBIPLUGIN_LIBRARY)
+#  define MOBIPLUGINSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define MOBIPLUGINSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // MOBIPLUGIN_GLOBAL_H

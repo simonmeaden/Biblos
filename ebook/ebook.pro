@@ -43,13 +43,16 @@ DISTFILES += #\
 SUBDIRS += #\
 #    mobi.pro
 
-# QYAML-CPP library
-unix|win32: LIBS += -lqyaml-cpp
-# QUAZIP
-unix|win32: LIBS += -lquazip
-# YAML-CPP library
-unix|win32: LIBS += -lyaml-cpp
-# QLOGGER library
-unix|win32: LIBS += -lqloggerlib
+INCLUDEPATH += /home/simonmeaden/workspace/include
 # CVSSplitter library
-unix|win32: LIBS += -lcsvsplitter
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lcsvsplitter
+# QYAML-CPP library
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lqyaml-cpp
+# QUAZIP
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lquazip
+# YAML-CPP library
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lyaml-cpp
+# QLOGGER library
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lqloggerlib
+# CVSSplitter library
+unix|win32: LIBS += -L$$PWD/../../../lib/ -lcsvsplitter

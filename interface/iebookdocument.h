@@ -12,14 +12,15 @@ class IEBookDocument
 public:
   virtual ~IEBookDocument() {}
 
-  virtual QString filename() const = 0;
+  virtual QString filename() = 0;
   virtual void setFilename(const QString& filename) = 0;
   virtual void openDocument(const QString& path) = 0;
-  virtual IEBookInterface* plugin() const = 0;
+  virtual void saveDocument() = 0;
+  virtual IEBookInterface* plugin() = 0;
   virtual void setPlugin(IEBookInterface* plugin) = 0;
 
-  virtual bool isModified() const = 0;
-  virtual bool readOnly() const = 0;
+  virtual bool isModified() = 0;
+  virtual bool readOnly() = 0;
   virtual void setReadOnly(const bool readonly) = 0;
 
   virtual QString title() = 0;
@@ -30,11 +31,13 @@ public:
   virtual void setLanguage(const QString& language) = 0;
   virtual QDateTime date() = 0;
   virtual void setDate(const QDateTime& date) = 0;
-  virtual QStringList authors() = 0;
-  virtual void setAuthors(const QStringList& authors) = 0;
-  virtual QString authorNames() = 0;
+  virtual QStringList creators() = 0;
+  virtual void setCreators(const QStringList& creators) = 0;
+  virtual QString creatorNames() = 0;
   virtual QString publisher() = 0;
   virtual void setPublisher(const QString& publisher) = 0;
+  virtual QDate published() = 0;
+  virtual void setPublished(const QDate& published) = 0;
 };
 
 /*!
@@ -48,6 +51,66 @@ public:
 
 signals:
   void loadCompleted();
+
+protected:
+};
+
+/*!
+ * \brief Variables common to all EBook types.
+ */
+class ITextDocumentPrivate
+{
+public:
+  QString filename() { return m_filename; }
+  void setFilename(QString filename) { m_filename = filename; }
+  bool isModified() { return m_modified; }
+  void setModified(bool modified) { m_modified = modified; }
+  bool readonly() { return m_readonly; }
+  void setReadonly(bool readonly) { m_readonly = readonly; }
+  QString title() { return m_title; }
+  QString title(QString name) { return m_titles.value(name); }
+  void setTitle(QString title) { m_title = title; }
+  void setTitle(QString name, QString title) { m_titles.insert(name, title); }
+  QStringList creators() { return m_creators; }
+  QString creator(int i) { return m_creators.at(i); }
+  void addCreator(QString creator) { m_creators.append(creator); }
+  void addCreators(QStringList creators) { m_creators.append(creators); }
+  void setCreators(QStringList creators) { m_creators = creators; }
+  void removeCreator(QString creator) { m_creators.removeOne(creator); }
+  /*!
+   * \brief Creates a comma separated list of creators.
+   * \return the list as a QString.
+   */
+  QString creatorNames()
+  {
+    QString names;
+    foreach (QString name, m_creators) {
+      if (names.isEmpty()) {
+        names = name;
+      } else {
+        names += ", ";
+        names += name;
+      }
+    }
+    return names;
+  }
+  QString subject() { return m_subject; }
+  void setSubject(QString subject) { m_subject = subject; }
+  QString publisher() { return m_publisher; }
+  void setPublisher(QString publisher) { m_publisher = publisher; }
+  QDate published() { return m_published; }
+  void setPublished(QDate date) { m_published = date; }
+
+protected:
+  IEBookInterface* m_plugin;
+  QString m_filename;
+  bool m_modified, m_readonly;
+  QStringList m_creators;
+  QString m_publisher;
+  QDate m_published;
+  QString m_subject;
+  QString m_title;
+  QMap<QString, QString> m_titles;
 };
 
 #endif // IEBOOKDOCUMENT_H

@@ -11,7 +11,7 @@
 #include "epubcontainer.h"
 #include "epubdocument.h"
 
-class EPubDocumentPrivate
+class EPubDocumentPrivate : public ITextDocumentPrivate
 {
 public:
   EPubDocumentPrivate(EPubDocument* parent);
@@ -21,30 +21,25 @@ public:
 
   bool loaded();
   void openDocument(const QString& path);
+  void saveDocument();
   void clearCache();
   EPubContents* cloneData();
   void setClonedData(EPubContents* cloneData);
 
-  QString title() const;
-  void setTitle(const QString& title);
-  QString subject() const {}
-  void setSubject(const QString& subject) {}
+  IEBookInterface* plugin() { return m_plugin; }
+  void setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
+
   QString language() const {}
   void setLanguage(const QString& language) {}
   QDateTime date() const {}
   void setDate(const QDateTime& date) {}
-  QStringList authors() const;
-  void insertAuthors(const QStringList& authors);
-  QString authorNames() const;
-  QString publisher() const {}
-  void setPublisher(const QString& publisher) {}
   void setDocumentPath(const QString& documentPath);
 
 protected:
   QList<EPubCreator*> m_creators;
 
-  QHash<QString, QByteArray> m_svgs;
-  QHash<QString, QImage> m_renderedSvgs;
+  //  QHash<QString, QByteArray> m_svgs;
+  //  QHash<QString, QImage> m_renderedSvgs;
   EPubContainer* m_container;
   EBookItem m_currentItem;
   QString m_documentPath;
@@ -53,11 +48,9 @@ protected:
 
   EPubDocumentPrivate(EPubDocumentPrivate& d);
   void loadDocument();
-  virtual QVariant loadResource(int, const QUrl&);
-  void fixImages(QDomDocument& newDocument);
-  const QImage& getSvgImage(const QString& id);
-
-  QString concatenateAuthors(QStringList authors);
+  //  virtual QVariant loadResource(int, const QUrl&);
+  //  void fixImages(SharedDomDocument newDocument);
+  //  const QImage& getSvgImage(const QString& id);
 
 private:
   Q_DECLARE_PUBLIC(EPubDocument)

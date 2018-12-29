@@ -91,6 +91,7 @@ else:unix: LIBS += -L$$OUT_PWD/../interface/ -linterface
 INCLUDEPATH += $$PWD/../interface
 DEPENDPATH += $$PWD/../interface
 
+INCLUDEPATH += /home/simonmeaden/workspace/include
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
 # QYAML-CPP library

@@ -130,6 +130,7 @@ protected: // Menu/StatusBar stuff
   QLabel* m_readonlylbl;
   QLabel* m_filelbl;
 
+  QAction* m_file_new;
   QAction* m_file_open;
   QAction* m_file_save;
   QAction* m_file_save_as;
@@ -166,6 +167,7 @@ protected: // Menu/StatusBar stuff
   QAction* m_winminimise;
   QAction* m_wincentre;
 
+  void fileNew();
   void fileOpen();
   void fileSave();
   void fileSaveAs();

@@ -1,38 +1,27 @@
 #include "epubdocument.h"
 
-#include <QDebug>
-#include <QDir>
-#include <QDomDocument>
-#include <QElapsedTimer>
-#include <QIODevice>
-#include <QPainter>
-#include <QSvgRenderer>
-#include <QTextBlock>
-#include <QTextCursor>
-#include <QTextDocument>
-#include <QThread>
-
 #include <qlogger/qlogger.h>
 
 #include "private/epubdocument_p.h"
 
 using namespace qlogger;
 
-#ifdef DEBUG_CSS
-#include <private/qcssparser_p.h>
-#endif
-
-EPubDocument::EPubDocument(QObject* parent) : ITextDocument(parent), d_ptr(new EPubDocumentPrivate(this))
+EPubDocument::EPubDocument(QObject* parent) :
+    ITextDocument(parent), d_ptr(new EPubDocumentPrivate(this))
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent) : ITextDocument(parent), d_ptr(doc)
+EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent) :
+    ITextDocument(parent), d_ptr(doc)
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(const EPubDocument& doc) : ITextDocument(doc.parent()), d_ptr(doc.d_ptr) {}
+EPubDocument::EPubDocument(const EPubDocument& doc) :
+    ITextDocument(doc.parent()), d_ptr(doc.d_ptr)
+{
+}
 
 EPubDocument::EPubDocument(EPubDocumentPrivate& d) : ITextDocument(d.q_ptr) {}
 
@@ -50,6 +39,12 @@ void EPubDocument::openDocument(const QString& path)
   d->openDocument(path);
 }
 
+void EPubDocument::saveDocument()
+{
+  Q_D(EPubDocument);
+  d->saveDocument();
+}
+
 EPubContents* EPubDocument::cloneData()
 {
   Q_D(EPubDocument);
@@ -62,19 +57,17 @@ void EPubDocument::setClonedData(EPubContents* cloneData)
   d->setClonedData(cloneData);
 }
 
-QString EPubDocument::filename() const { return m_filename; }
+QString EPubDocument::filename()
+{
+  Q_D(EPubDocument);
+  return d->filename();
+}
 
-void EPubDocument::setFilename(const QString& filename) { m_filename = filename; }
-
-IEBookInterface* EPubDocument::plugin() const { return m_plugin; }
-
-void EPubDocument::setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
-
-bool EPubDocument::isModified() const { return m_modified; }
-
-bool EPubDocument::readOnly() const { return m_readonly; }
-
-void EPubDocument::setReadOnly(const bool readonly) { m_readonly = readonly; }
+void EPubDocument::setFilename(const QString& filename)
+{
+  Q_D(EPubDocument);
+  d->setFilename(filename);
+}
 
 QString EPubDocument::title()
 {
@@ -91,13 +84,13 @@ void EPubDocument::setTitle(const QString& title)
 QString EPubDocument::subject()
 {
   Q_D(EPubDocument);
-  // TODO
+  return d->subject();
 }
 
 void EPubDocument::setSubject(const QString& subject)
 {
   Q_D(EPubDocument);
-  // TODO
+  d->setSubject(subject);
 }
 
 QString EPubDocument::language()
@@ -124,34 +117,80 @@ void EPubDocument::setDate(const QDateTime& date)
   // TODO
 }
 
-QStringList EPubDocument::authors()
+QStringList EPubDocument::creators()
 {
   Q_D(EPubDocument);
-  return d->authors();
+  return d->creators();
 }
 
-void EPubDocument::setAuthors(const QStringList& authors)
+void EPubDocument::setCreators(const QStringList& authors)
 {
   Q_D(EPubDocument);
-  d->insertAuthors(authors);
+  d->addCreators(authors);
 }
 
-QString EPubDocument::authorNames() { Q_D(EPubDocument); }
+QString EPubDocument::creatorNames()
+{
+  Q_D(EPubDocument);
+  return d->creatorNames();
+}
 
 QString EPubDocument::publisher()
 {
   Q_D(EPubDocument);
-  // TODO
+  return d->publisher();
 }
 
 void EPubDocument::setPublisher(const QString& publisher)
 {
   Q_D(EPubDocument);
-  // TODO
+  d->setPublisher(publisher);
 }
 
 void EPubDocument::clearCache()
 {
   Q_D(EPubDocument);
   d->clearCache();
+}
+
+IEBookInterface* EPubDocument::plugin()
+{
+  Q_D(EPubDocument);
+  return d->plugin();
+}
+
+void EPubDocument::setPlugin(IEBookInterface* plugin)
+{
+  Q_D(EPubDocument);
+  d->setPlugin(plugin);
+}
+
+bool EPubDocument::isModified()
+{
+  Q_D(EPubDocument);
+  return d->isModified();
+}
+
+bool EPubDocument::readOnly()
+{
+  Q_D(EPubDocument);
+  return d->readonly();
+}
+
+void EPubDocument::setReadOnly(const bool readonly)
+{
+  Q_D(EPubDocument);
+  d->setReadonly(readonly);
+}
+
+QDate EPubDocument::published()
+{
+  Q_D(EPubDocument);
+  return d->published();
+}
+
+void EPubDocument::setPublished(const QDate& published)
+{
+  Q_D(EPubDocument);
+  return d->setPublished(published);
 }

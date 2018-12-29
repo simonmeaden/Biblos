@@ -1,10 +1,12 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2018-12-15T07:02:29
+# Project created by QtCreator 2018-12-22T21:30:46
 #
 #-------------------------------------------------
 
-TEMPLATE       = lib
+QT       += svg xml
+
+TEMPLATE = lib
 CONFIG         += plugin
 QT             += xml svg
 CONFIG         += c++11
@@ -14,33 +16,31 @@ VERSION_MINOR = 1
 VERSION_BUILD = 0
 
 DEFINES += \
-       "EPUB_VERSION_MAJOR=$$VERSION_MAJOR" \
-       "EPUB_VERSION_MINOR=$$VERSION_MINOR" \
-       "EPUB_VERSION_BUILD=$$VERSION_BUILD"
+       "MOBI_VERSION_MAJOR=$$VERSION_MAJOR" \
+       "MOBI_VERSION_MINOR=$$VERSION_MINOR" \
+       "MOBI_VERSION_BUILD=$$VERSION_BUILD"
 
-TARGET = epubplugin
+TARGET = mobiplugin
 DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
 
 SOURCES += \
-    epubplugin.cpp \
-    epubcontainer.cpp \
-    epubdocument.cpp \
-    private/epubdocument_p.cpp
+    mobiplugin.cpp \
+    mobidocument.cpp \
+    private/mobidocument_p.cpp
 
 HEADERS += \
-    epubplugin.h \
-    epubplugin_global.h \
-    epubcontainer.h \
-    epubdocument.h \
-    private/epubdocument_p.h
+    mobiplugin.h \
+    mobiplugin_global.h \
+    mobidocument.h \
+    private/mobidocument_p.h
 
 DISTFILES += \
-    epubplugin.json
+    mobiplugin.json
 
 unix|win32: LIBS += -L$$DESTDIR/../../interface/ -linterface
 INCLUDEPATH += $$PWD/../../interface
 
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
+unix|win32: LIBS += -L/usr/local/lib/ -lmobi
 
-unix|win32: LIBS += -lqloggerlib

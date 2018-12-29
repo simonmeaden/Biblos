@@ -1,29 +1,24 @@
-#ifndef EPUBPLUGIN_H
-#define EPUBPLUGIN_H
+#ifndef MOBIPLUGIN_H
+#define MOBIPLUGIN_H
 
-#include <QPlainTextDocumentLayout>
-#include <QTextDocument>
+#include <QObject>
 
 #include "iebookdocument.h"
 #include "iebookinterface.h"
 #include "interface_global.h"
 
 class Options;
-class EPubDocument;
+class MobiDocument;
 
-class INTERFACESHARED_EXPORT EPubPlugin : public QObject, public IEBookInterface
+class INTERFACESHARED_EXPORT MobiPlugin : public QObject, public IEBookInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID IEBookInterface_iid FILE "ebookinterface.json")
   Q_INTERFACES(IPluginInterface)
   Q_INTERFACES(IEBookInterface)
 public:
-  EPubPlugin(QObject* parent = Q_NULLPTR);
-  EPubPlugin(Options* options, QObject* parent = Q_NULLPTR);
-
-  IEBookDocument* createDocument(QString path) override;
-  IEBookDocument* createCodeDocument() override;
-  //  void saveDocument(IEBookDocument* m_document) override;
+  MobiPlugin(QObject* parent = Q_NULLPTR);
+  MobiPlugin(Options* options, QObject* parent = Q_NULLPTR);
 
   // IPluginInterface interface
   QString pluginGroup() const override;
@@ -36,6 +31,10 @@ public:
   int minorVersion() const override;
   int buildVersion() const override;
   void buildMenu() override;
+  // IEBookInterface interface
+  IEBookDocument* createDocument(QString path) override;
+  IEBookDocument* createCodeDocument() override;
+  //  void saveDocument(IEBookDocument* document) override;
 
   // IEBookInterface interface
   QString fileFilter() override;
@@ -54,10 +53,8 @@ protected:
   static const QString m_file_filter;
   static const QString m_file_description;
 
-  // variables for IEBookInterface;
-
   Options* m_options;
   IEBookDocument* m_document;
 };
 
-#endif // EPUBPLUGIN_H
+#endif // MOBIPLUGIN_H

@@ -12,6 +12,7 @@
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
+#include <QtSvg>
 
 #include <quazip5/quazip.h>
 #include <quazip5/quazipfile.h>
@@ -21,6 +22,8 @@
 class QXmlStreamReader;
 
 typedef QSharedPointer<QDomDocument> SharedDomDocument;
+typedef QSharedPointer<QImage> SharedImage;
+typedef QMap<QString, SharedImage> SharedImageMap;
 
 class EPubModified
 {
@@ -224,6 +227,7 @@ class EPubManifestItem
 public:
   QString href;
   QString path;
+  SharedDomDocument dom_document;
   QString id;
   QByteArray media_type;
   QStringList properties;
@@ -238,16 +242,18 @@ class EPubManifest
 {
 public:
   QString id;
-  SharedManifestItem cover_image; // 0 or 1
-  SharedManifestItem nav;         // 1
-  SharedManifestItemMap items;    // all items
-  SharedManifestItemMap mathml;   // subset of items for math markup
-  SharedManifestItemMap svg;      // subset of items for images
-  SharedManifestItemMap images;   // subset of items for images
+  SharedManifestItem cover_image;     // 0 or 1
+  SharedManifestItem nav;             // 1
+  SharedManifestItemMap items;        // all items
+  SharedManifestItemMap mathml;       // subset of items for math markup
+  SharedManifestItemMap svg_images;   // subset of items for images
+  SharedImageMap rendered_svg_images; // rendered svg images
+  SharedImageMap images;
+  //  SharedManifestItemMap images;   // subset of items for images
   SharedManifestItemMap remotes;
   SharedManifestItemMap scripted;
   SharedManifestItemMap switches;
-  SharedManifestItemMap xhtml;         // all items
+  //  SharedManifestItemMap xhtml;         // all items
   SharedManifestItemMap css;           // all items
   SharedManifestItemMap javascript;    // all items
   SharedManifestItemMap fonts;         // all items
@@ -283,6 +289,120 @@ public:
   SpineItemList ordered_items;
 };
 
+/*!
+ * \brief The EPUB guide section
+ *
+ * This is only included to support epub2.0 as it has been superceded in epub3.0
+ * by the landmarks object.
+ */
+class EPubGuide
+{
+public:
+  enum GuideType {
+    cover,
+    title_page,
+    toc,
+    index,
+    glossary,
+    acknowledgements,
+    bibliography,
+    colophon,
+    copyright_page,
+    dedication,
+    epigraph,
+    foreword,
+    loi, // ist of illustrations
+    lot, // list of tables
+    notes,
+    preface,
+    text,
+  };
+
+  GuideType type;
+  QString title;
+  QString href;
+
+  static GuideType fromString(QString type)
+  {
+    if (type == "cover") {
+      return GuideType::cover;
+    } else if (type == "title-page") {
+      return GuideType::title_page;
+    } else if (type == "toc") {
+      return GuideType::toc;
+    } else if (type == "index") {
+      return GuideType::index;
+    } else if (type == "glossary") {
+      return GuideType::glossary;
+    } else if (type == "acknowledgements") {
+      return GuideType::acknowledgements;
+    } else if (type == "bibliography") {
+      return GuideType::bibliography;
+    } else if (type == "colophon") {
+      return GuideType::colophon;
+    } else if (type == "copyright-page") {
+      return GuideType::copyright_page;
+    } else if (type == "dedication") {
+      return GuideType::dedication;
+    } else if (type == "epigraph") {
+      return GuideType::epigraph;
+    } else if (type == "foreword") {
+      return GuideType::foreword;
+    } else if (type == "loi") { // list of illustrations
+      return GuideType::loi;
+    } else if (type == "lot") { // list of tables
+      return GuideType::lot;
+    } else if (type == "notes") {
+      return GuideType::notes;
+    } else if (type == "preface") {
+      return GuideType::preface;
+    } else {
+      /*if (type == "text") { */
+      return GuideType::text;
+    }
+  }
+
+  static QString toString(GuideType type)
+  {
+    switch (type) {
+    case cover:
+      return "cover";
+    case title_page:
+      return "title-page";
+    case toc:
+      return "toc";
+    case index:
+      return "index";
+    case glossary:
+      return "glossary";
+    case acknowledgements:
+      return "acknowledgements";
+    case bibliography:
+      return "bibliography";
+    case colophon:
+      return "colophon";
+    case copyright_page:
+      return "copyright-page";
+    case dedication:
+      return "dedication";
+    case epigraph:
+      return "epigraph";
+    case foreword:
+      return "foreword";
+    case loi:
+      return "loi";
+    case lot:
+      return "lot";
+    case notes:
+      return "notes";
+    case preface:
+      return "preface";
+    case text:
+      return "text";
+    }
+  }
+};
+
 class EPubContainer : public QObject
 {
   Q_OBJECT
@@ -291,16 +411,16 @@ public:
   ~EPubContainer();
 
   bool loadFile(const QString path);
-  bool saveFile(const QString path);
+  bool saveFile();
   bool closeFile();
-  QByteArray epubItem(const QString& id) const;
-  QSharedPointer<QuaZipFile> zipFile(const QString& path);
-  QImage image(const QString& id);
+  //  QByteArray epubItem(const QString& id) const;
+  //  QSharedPointer<QuaZipFile> zipFile(const QString& path);
+  SharedImage image(const QString& id, QSize image_size = QSize());
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
-  QStringList items();
-  QStringList orderedItems();
-  QString standardPage(EPubPageReference::StandardType type);
+  QStringList itemKeys();
+  SharedDomDocument item(QString key);
+  QStringList spineKeys();
 
 signals:
   void errorHappened(const QString& error);
@@ -324,7 +444,8 @@ protected:
   bool parsePackageFile(QString& full_path);
   bool savePackageFile(QString& full_path);
   bool parseMetadataItem(const QDomNode& metadata_node);
-  bool parseManifestItem(const QDomNode& manifest_node, const QString current_folder);
+  bool parseManifestItem(const QDomNode& manifest_node,
+                         const QString current_folder);
   bool parseSpineItem(const QDomNode& metadata_element);
   bool saveSpineItem();
   bool parseGuideItem(const QDomNode& guideItem);

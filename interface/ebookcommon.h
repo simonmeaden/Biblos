@@ -12,8 +12,9 @@
 #include <QSharedPointer>
 #include <QtPlugin>
 
-class Options {
- public:
+class Options
+{
+public:
   enum CodeOptions {
     NORMAL,
     TAG,
@@ -96,36 +97,37 @@ struct EBookItem {
   QByteArray mimetype;
 };
 
-struct EPubPageReference {
-  enum StandardType {
-    CoverPage,
-    TitlePage,
-    TableOfContents,
-    Index,
-    Glossary,
-    Acknowledgements,
-    Bibliography,
-    Colophon,
-    CopyrightPage,
-    Dedication,
-    Epigraph,
-    Foreword,
-    ListOfIllustrations,
-    ListOfTables,
-    Notes,
-    Preface,
-    Text,
-    Other
-  };
+// struct EPubPageReference {
+//  enum StandardType {
+//    CoverPage,
+//    TitlePage,
+//    TableOfContents,
+//    Index,
+//    Glossary,
+//    Acknowledgements,
+//    Bibliography,
+//    Colophon,
+//    CopyrightPage,
+//    Dedication,
+//    Epigraph,
+//    Foreword,
+//    ListOfIllustrations,
+//    ListOfTables,
+//    Notes,
+//    Preface,
+//    Text,
+//    Other
+//  };
 
-  static StandardType typeFromString(const QString& name);
+//  static StandardType typeFromString(const QString& name);
 
-  QString target;
-  QString title;
-};
+//  QString target;
+//  QString title;
+//};
 
 struct EPubNavPoint {
-  EPubNavPoint(QString classname, QString id, QString label, QString src) {
+  EPubNavPoint(QString classname, QString id, QString label, QString src)
+  {
     this->classname = classname;
     this->id = id;
     this->label = label;
@@ -149,7 +151,8 @@ struct EPubToc {
 typedef QSharedPointer<EPubToc> ebooktoc_t;
 
 struct EBookData {
-  EBookData() : toc(Q_NULLPTR) {
+  EBookData() : toc(Q_NULLPTR)
+  {
     title = "";
     subject = "";
     language = "";
@@ -174,9 +177,10 @@ Q_DECLARE_METATYPE(EBookData);
 enum DocumentType { PLAINTEXT, HTML };
 
 class Author;
-class Book : public QObject {
+class Book : public QObject
+{
   Q_OBJECT
- public:
+public:
   explicit Book(QObject* parent = nullptr);
   Book(const Book& book);
 
@@ -189,11 +193,11 @@ class Book : public QObject {
   QString filename() const;
   void setFilename(const QString& filename);
 
- signals:
+signals:
 
- public slots:
+public slots:
 
- protected:
+protected:
   QString m_filename;
   QString m_title;
   QString m_isbn;
@@ -206,9 +210,10 @@ Q_DECLARE_METATYPE(Book)
 Q_DECLARE_METATYPE(SharedBook)
 Q_DECLARE_METATYPE(SharedBookList)
 
-class Author : public QObject {
+class Author : public QObject
+{
   Q_OBJECT
- public:
+public:
   enum Comparison {
     SURNAME_MATCH,
     FORE_AND_SURNAME_MATCH,
@@ -246,11 +251,11 @@ class Author : public QObject {
   QStringList compareAndDiscard(QStringList names);
   bool isEmpty();
 
- signals:
+signals:
 
- public slots:
+public slots:
 
- protected:
+protected:
   QString m_forename, m_surname, m_middlenames;
   QString m_lforename, m_lsurname, m_lmiddlenames;
 
@@ -262,4 +267,4 @@ Q_DECLARE_METATYPE(Author)
 Q_DECLARE_METATYPE(SharedAuthor)
 Q_DECLARE_METATYPE(SharedAuthorList)
 
-#endif  // COMMON_H
+#endif // COMMON_H

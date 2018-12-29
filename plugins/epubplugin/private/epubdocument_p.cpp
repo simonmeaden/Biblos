@@ -4,7 +4,10 @@
 #include <qlogger/qlogger.h>
 using namespace qlogger;
 
-EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) : q_ptr(parent), m_container(nullptr), m_loaded(false) {}
+EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) :
+    q_ptr(parent), m_container(nullptr), m_loaded(false)
+{
+}
 
 EPubDocumentPrivate::~EPubDocumentPrivate() {}
 
@@ -19,15 +22,19 @@ void EPubDocumentPrivate::openDocument(const QString& path)
   //    m_data->toc = m_container->toc();
 }
 
+void EPubDocumentPrivate::saveDocument() { m_container->saveFile(); }
+
 void EPubDocumentPrivate::clearCache() { m_renderedSvgs.clear(); }
 
-void EPubDocumentPrivate::setDocumentPath(const QString& documentPath) { m_documentPath = documentPath; }
+void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
+{
+  m_documentPath = documentPath;
+}
 
 void EPubDocumentPrivate::loadDocument()
 {
   Q_Q(EPubDocument);
-  //  QElapsedTimer timer;
-  //  timer.start();
+
   m_container = new EPubContainer(q_ptr);
 
   if (!m_container->loadFile(m_documentPath)) {
@@ -37,23 +44,19 @@ void EPubDocumentPrivate::loadDocument()
   QTextCursor cursor(q_ptr);
   cursor.movePosition(QTextCursor::End);
 
-  QStringList items = m_container->orderedItems();
+  QStringList items = m_container->spineKeys();
 
   QTextBlockFormat pageBreak;
   pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
   for (const QString& chapter : items) {
-    QByteArray item_data = m_container->epubItem(chapter);
-    if (item_data.isEmpty()) {
+    SharedDomDocument item_data = m_container->item(chapter);
+    if (item_data.isNull()) {
       QLOG_WARN(QString("Got an empty document"))
       continue;
     }
-    q->setBaseUrl(QUrl(m_currentItem.path));
-    QDomDocument newDocument;
-    newDocument.setContent(item_data);
-    // TODO extract text for processing
-    fixImages(newDocument);
+    //    fixImages(item_data);
 
-    cursor.insertHtml(newDocument.toString());
+    cursor.insertHtml(item_data->toString());
     cursor.insertBlock(pageBreak);
   }
 
@@ -64,130 +67,124 @@ void EPubDocumentPrivate::loadDocument()
   //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
-void EPubDocumentPrivate::fixImages(QDomDocument& newDocument)
-{
-  Q_Q(EPubDocument);
-  {
-    // Fix relative URLs, images are lazily loaded so the base URL might not
-    // be correct when they are loaded
-    QDomNodeList imageNodes = newDocument.elementsByTagName("img");
-    for (int i = 0; i < imageNodes.count(); i++) {
-      QDomElement image = imageNodes.at(i).toElement();
-      if (!image.hasAttribute("src")) {
-        continue;
-      }
-      QUrl href = QUrl(image.attribute("src"));
-      href = q->baseUrl().resolved(href);
-      image.setAttribute("src", href.toString());
-    }
-  }
+// void EPubDocumentPrivate::fixImages(SharedDomDocument newDocument)
+//{
+//  Q_Q(EPubDocument);
+//  {
+//    // Fix relative URLs, images are lazily loaded so the base URL might not
+//    // be correct when they are loaded
+//    QDomNodeList imageNodes = newDocument->elementsByTagName("img");
+//    for (int i = 0; i < imageNodes.count(); i++) {
+//      QDomElement image = imageNodes.at(i).toElement();
+//      if (!image.hasAttribute("src")) {
+//        continue;
+//      }
+//      QUrl href = QUrl(image.attribute("src"));
+//      href = q->baseUrl().resolved(href);
+//      image.setAttribute("src", href.toString());
+//    }
+//  }
 
-  {
-    // QImage which QtSvg uses isn't able to read files from inside the archive,
-    // so embed image data inline
-    QDomNodeList imageNodes = newDocument.elementsByTagName("image"); // SVG images
-    for (int i = 0; i < imageNodes.count(); i++) {
-      QDomElement image = imageNodes.at(i).toElement();
-      if (!image.hasAttribute("xlink:href")) {
-        continue;
-      }
-      QString path = image.attribute("xlink:href");
-      QByteArray fileData = loadResource(0, QUrl(path)).toByteArray();
-      QByteArray data = "data:image/jpeg;base64," + fileData.toBase64();
-      image.setAttribute("xlink:href", QString::fromLatin1(data));
-    }
-  }
+//  {
+//    // QImage which QtSvg uses isn't able to read files from inside the
+//    archive,
+//    // so embed image data inline
+//    QDomNodeList imageNodes =
+//        newDocument->elementsByTagName("image"); // SVG images
+//    for (int i = 0; i < imageNodes.count(); i++) {
+//      QDomElement image = imageNodes.at(i).toElement();
+//      if (!image.hasAttribute("xlink:href")) {
+//        continue;
+//      }
+//      QString path = image.attribute("xlink:href");
+//      QByteArray fileData = loadResource(0, QUrl(path)).toByteArray();
+//      QByteArray data = "data:image/jpeg;base64," + fileData.toBase64();
+//      image.setAttribute("xlink:href", QString::fromLatin1(data));
+//    }
+//  }
 
-  static int svgCounter = 0;
+//  static int svgCounter = 0;
 
-  // QTextDocument isn't fond of SVGs, so rip them out and store them
-  // separately, and give it <img> instead
-  QDomNodeList svgNodes = newDocument.elementsByTagName("svg");
-  for (int i = 0; i < svgNodes.count(); i++) {
-    QDomElement svgNode = svgNodes.at(i).toElement();
+//  // QTextDocument isn't fond of SVGs, so rip them out and store them
+//  // separately, and give it <img> instead
+//  QDomNodeList svgNodes = newDocument.elementsByTagName("svg");
+//  for (int i = 0; i < svgNodes.count(); i++) {
+//    QDomElement svgNode = svgNodes.at(i).toElement();
 
-    // Serialize out the old SVG, store it
-    QDomDocument tempDocument;
-    tempDocument.appendChild(tempDocument.importNode(svgNode, true));
-    QString svgId = QString::number(++svgCounter);
-    m_svgs.insert(svgId, tempDocument.toByteArray());
+//    // Serialize out the old SVG, store it
+//    QDomDocument tempDocument;
+//    tempDocument.appendChild(tempDocument.importNode(svgNode, true));
+//    QString svgId = QString::number(++svgCounter);
+//    m_svgs.insert(svgId, tempDocument.toByteArray());
 
-    // Create <img> node pointing to our SVG image
-    QDomElement imageElement = newDocument.createElement("img");
-    imageElement.setAttribute("src", "svgcache:" + svgId);
+//    // Create <img> node pointing to our SVG image
+//    QDomElement imageElement = newDocument.createElement("img");
+//    imageElement.setAttribute("src", "svgcache:" + svgId);
 
-    // Replace <svg> node with our <img> node
-    QDomNode parent = svgNodes.at(i).parentNode();
-    parent.replaceChild(imageElement, svgNode);
-  }
-}
+//    // Replace <svg> node with our <img> node
+//    QDomNode parent = svgNodes.at(i).parentNode();
+//    parent.replaceChild(imageElement, svgNode);
+//  }
+//}
 
-const QImage& EPubDocumentPrivate::getSvgImage(const QString& id)
-{
-  Q_Q(EPubDocument);
-  if (m_renderedSvgs.contains(id)) {
-    return m_renderedSvgs[id];
-  }
-  if (!m_svgs.contains(id)) {
-    //    qWarning() << "Couldn't find SVG" << id;
-    static QImage nullImg;
-    return nullImg;
-  }
+// const QImage& EPubDocumentPrivate::getSvgImage(const QString& id)
+//{
+//  Q_Q(EPubDocument);
+//    if (m_manifest..contains(id)) {
+//      return m_renderedSvgs[id];
+//    }
+//    if (!m_svgs.contains(id)) {
+//      //    qWarning() << "Couldn't find SVG" << id;
+//      static QImage nullImg;
+//      return nullImg;
+//    }
 
-  QSize imageSize(int(q->pageSize().width() - q->documentMargin() * 4),
-                  int(q->pageSize().height() - q->documentMargin() * 4));
+//  QSize imageSize(int(q->pageSize().width() - q->documentMargin() * 4),
+//                  int(q->pageSize().height() - q->documentMargin() * 4));
 
-  QSvgRenderer renderer(m_svgs.value(id));
-  QSize svgSize(renderer.viewBox().size());
+//  QSvgRenderer renderer(m_svgs.value(id));
+//  QSize svgSize(renderer.viewBox().size());
 
-  if (svgSize.isValid()) {
-    svgSize.scale(imageSize, Qt::KeepAspectRatio);
-  } else {
-    svgSize = imageSize;
-  }
+//  if (svgSize.isValid()) {
+//    svgSize.scale(imageSize, Qt::KeepAspectRatio);
+//  } else {
+//    svgSize = imageSize;
+//  }
 
-  QImage rendered(svgSize, QImage::Format_ARGB32);
-  QPainter painter(&rendered);
-  renderer.render(&painter);
-  painter.end();
+//  QImage rendered(svgSize, QImage::Format_ARGB32);
+//  QPainter painter(&rendered);
+//  renderer.render(&painter);
+//  painter.end();
 
-  m_renderedSvgs.insert(id, rendered);
-  return m_renderedSvgs[id];
-}
+//  m_renderedSvgs.insert(id, rendered);
+//  return m_renderedSvgs[id];
+//}
 
-QVariant EPubDocumentPrivate::loadResource(int type, const QUrl& url)
-{
-  Q_Q(EPubDocument);
+// QVariant EPubDocumentPrivate::loadResource(int type, const QUrl& url)
+//{
+//  Q_Q(EPubDocument);
 
-  if (url.scheme() == "svgcache") {
-    return getSvgImage(url.path());
-  }
+//  if (url.scheme() == "svgcache") {
+//    return getSvgImage(url.path());
+//  }
 
-  QSharedPointer<QIODevice> ioDevice = m_container->zipFile(url.path());
-  if (!ioDevice) {
-    //    qWarning() << "Unable to get io device for" << url;
-    return QVariant();
-  }
-  QByteArray data = ioDevice->readAll();
+//  QSharedPointer<QIODevice> ioDevice = m_container->zipFile(url.path());
+//  if (!ioDevice) {
+//    //    qWarning() << "Unable to get io device for" << url;
+//    return QVariant();
+//  }
+//  QByteArray data = ioDevice->readAll();
 
-  if (type == QTextDocument::StyleSheetResource) {
-    QString cssData = QString::fromLocal8Bit(data);
-    cssData.replace("@charset \"", "@charset\"");
-    data = cssData.toLocal8Bit();
+//  if (type == QTextDocument::StyleSheetResource) {
+//    QString cssData = QString::fromLocal8Bit(data);
+//    cssData.replace("@charset \"", "@charset\"");
+//    data = cssData.toLocal8Bit();
+//  }
 
-#ifdef DEBUG_CSS
-//        QCss::Parser parser(cssData);
-//        QCss::StyleSheet stylesheet;
-//        qDebug() << "Parse success?" << parser.parse(&stylesheet);
-//        qDebug().noquote() << parser.errorIndex <<
-//        parser.errorSymbol().lexem();
-#endif
-  }
+//  q->addResource(type, url, data);
 
-  q->addResource(type, url, data);
-
-  return data;
-}
+//  return data;
+//}
 
 EPubContents* EPubDocumentPrivate::cloneData()
 {
@@ -262,60 +259,3 @@ void EPubDocumentPrivate::setClonedData(EPubContents* clone)
   //  emit q->loadCompleted();
   //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
-
-QString EPubDocumentPrivate::title() const
-{
-  // normally only one title ???
-  //  QStringList values = m_container->metadata_old("title");
-  //  if (values.isEmpty())
-  //    return QString();
-  //  else
-  //    return values.at(0);
-}
-
-void EPubDocumentPrivate::setTitle(const QString& title)
-{
-  //  m_container->setMetadata("title", title);
-}
-
-QStringList EPubDocumentPrivate::authors() const
-{
-  //  QStringList authors = m_container->metadata_old("creator");
-  //  return authors;
-}
-
-QString EPubDocumentPrivate::concatenateAuthors(QStringList authors)
-{
-  //  QString author_list;
-  //  foreach (QString author, authors) {
-  //    if (!author_list.isEmpty())
-  //      author_list += " & ";
-  //    author_list += author;
-  //  }
-  //  m_concatenated_authors = author_list;
-  //  return author_list;
-}
-
-void EPubDocumentPrivate::insertAuthors(const QStringList& authors)
-{
-  //  if (authors.isEmpty())
-  //    return;
-  //  // remove existing author names.
-  //  m_container->removeMetadata(QString("creator"));
-  //  m_container->removeMetadata(QString("creator"));
-  //  if (authors.count() > 1) {
-  //    QMap<QString, QString> list;
-  //    for (int i = 0; i < authors.count(); i++) {
-  //      list.insert("opf:role", "aut");
-  //      if (i == 0) {
-  //        list.insert("opf:file-as", concatenateAuthors(authors));
-  //      }
-  //      m_container->setMetadata("creator", authors.at(i));
-  //      m_container->setMetadataAttributes("creator", list);
-  //    }
-  //  } else {
-  //    m_container->setMetadata("creator", authors.at(0));
-  //  }
-}
-
-QString EPubDocumentPrivate::authorNames() const { return m_concatenated_authors; }

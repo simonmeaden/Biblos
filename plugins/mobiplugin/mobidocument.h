@@ -1,7 +1,5 @@
-#ifndef EPUBDOCUMENT_H
-#define EPUBDOCUMENT_H
-
-#include "epubcontainer.h"
+#ifndef MOBIDOCUMENT_H
+#define MOBIDOCUMENT_H
 
 #include <QDateTime>
 #include <QDir>
@@ -15,58 +13,36 @@
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
-#include <QThread>
 
 #include <csvsplitter/csvsplitter.h>
 
+#include "ebookcommon.h"
 #include "iebookdocument.h"
 #include "interface_global.h"
-//#include "private/epubdocument_p.h"
-#include "ebookcommon.h"
-#include "epubcontainer.h"
-#include "epubplugin.h"
 
-struct EPubContents {
-  QHash<QString, QByteArray> m_svgs;
-  QHash<QString, QImage> m_renderedSvgs;
-  EPubContainer* m_container;
-  EBookItem m_currentItem;
-  bool m_loaded;
-};
+class MobiDocumentPrivate;
 
-class EPubDocumentPrivate;
-
-class INTERFACESHARED_EXPORT EPubDocument : public ITextDocument
+class INTERFACESHARED_EXPORT MobiDocument : public ITextDocument
 {
   Q_OBJECT
-  Q_DECLARE_PRIVATE(EPubDocument)
+  Q_DECLARE_PRIVATE(MobiDocument)
 
 public:
-  EPubDocument(QObject* parent = Q_NULLPTR);
-  EPubDocument(EPubDocumentPrivate* doc, QObject* parent = Q_NULLPTR);
-  EPubDocument(const EPubDocument& doc);
-  virtual ~EPubDocument() override;
-
-  bool loaded();
-  void openDocument(const QString& path) override;
-  void saveDocument() override;
-  void clearCache();
-  EPubContents* cloneData();
-  void setClonedData(EPubContents* cloneData);
+  MobiDocument(QObject* parent = Q_NULLPTR);
+  MobiDocument(MobiDocumentPrivate* doc, QObject* parent = Q_NULLPTR);
+  MobiDocument(const MobiDocument& doc);
+  virtual ~MobiDocument() override;
 
   // IEBookDocument interface
   QString filename() override;
   void setFilename(const QString& filename) override;
-
-  // IEBookDocument interface
+  void openDocument(const QString& path) override;
+  void saveDocument() override;
   IEBookInterface* plugin() override;
   void setPlugin(IEBookInterface* plugin) override;
   bool isModified() override;
   bool readOnly() override;
   void setReadOnly(const bool readonly) override;
-  QDate published() override;
-  void setPublished(const QDate& published) override;
-
   QString title() override;
   void setTitle(const QString& title) override;
   QString subject() override;
@@ -80,14 +56,25 @@ public:
   QString creatorNames() override;
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
+  QDate published() override;
+  void setPublished(const QDate& published) override;
 
 protected:
-  EPubDocumentPrivate* d_ptr;
-  EPubDocument(EPubDocumentPrivate& doc);
+  MobiDocumentPrivate* d_ptr;
+  MobiDocument(MobiDocumentPrivate& d);
 
-  bool m_modified, m_readonly;
+  // static variables for IPluginInterface.
+  static const QString m_plugin_group;
+  static const QString m_plugin_name;
+  static const QString m_vendor;
+  static const QString m_version;
+  static const int m_major_version;
+  static const int m_minor_version;
+  static const int m_build_version;
+  static bool m_loaded;
+  static const QString m_file_filter;
 };
 
-Q_DECLARE_METATYPE(EPubDocument);
+Q_DECLARE_METATYPE(MobiDocument);
 
-#endif // EPUBDOCUMENT_H
+#endif // MOBIDOCUMENT_H
