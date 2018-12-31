@@ -24,6 +24,10 @@ public:
     STYLE,
     SCRIPT,
   };
+  enum TocPosition {
+    LEFT,
+    RIGHT,
+  };
 
   Options();
   ~Options();
@@ -43,6 +47,13 @@ public:
   static QColor contrastingColor(QColor color);
   static QString codeOptionToString(CodeOptions options);
   static QString weightToString(QFont::Weight weight);
+
+  TocPosition m_toc_position = LEFT;
+  bool m_toc_visible = true;
+  TocPosition tocPosition() { return m_toc_position; }
+  void setTocPosition(TocPosition position) { m_toc_position = position; }
+  bool tocVisible() { return m_toc_visible; }
+  void setTocVisible(bool visible) { m_toc_visible = visible; }
 
   QRect rect;
   QSize options_dlg;

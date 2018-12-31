@@ -29,6 +29,11 @@ const QString EPubContainer::CREATOR = "creator";
 const QString EPubContainer::IDENTIFIER = "identifier";
 const QString EPubContainer::LANGUAGE = "language";
 
+const QString EPubContainer::TOC_TITLE = "<h2>%1</h2>";
+const QString EPubContainer::LIST_START = "<ul>";
+const QString EPubContainer::LIST_END = "</ul>";
+const QString EPubContainer::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
+
 EPubContainer::EPubContainer(QObject* parent) :
     QObject(parent), m_archive(Q_NULLPTR) /*, m_toc(new EPubToc())*/,
     m_metadata(new EPubMetadata())
@@ -117,14 +122,14 @@ bool EPubContainer::saveFile()
 //  return QSharedPointer<QuaZipFile>(file);
 //}
 
-SharedImage EPubContainer::image(const QString& id, QSize image_size)
+QImage EPubContainer::image(const QString& id, QSize image_size)
 {
-  SharedImage shared_image;
+  QImage image;
   if (m_manifest.images.contains(id)) {
-    shared_image = m_manifest.images.value(id);
+    image = m_manifest.images.value(id);
 
   } else if (m_manifest.rendered_svg_images.contains(id)) {
-    shared_image = m_manifest.rendered_svg_images.value(id);
+    image = m_manifest.rendered_svg_images.value(id);
 
   } else if (m_manifest.svg_images.contains(id)) {
     QSvgRenderer renderer(m_manifest.svg_images.value(id)->path);
@@ -136,34 +141,60 @@ SharedImage EPubContainer::image(const QString& id, QSize image_size)
       svgSize = image_size;
     }
 
-    QImage* rendered = new QImage(svgSize, QImage::Format_ARGB32);
-    QPainter painter(rendered);
+    image = QImage(svgSize, QImage::Format_ARGB32);
+    QPainter painter(&image);
     renderer.render(&painter);
     painter.end();
-    shared_image = SharedImage(rendered);
 
-    m_manifest.rendered_svg_images.insert(id, shared_image);
+    m_manifest.rendered_svg_images.insert(id, image);
 
   } else {
     QLOG_DEBUG(tr("Unable to find image file for id %1").arg(id));
-    return SharedImage(Q_NULLPTR);
+    return QImage();
   }
 
-  return shared_image;
+  return image;
 }
 
 QStringList EPubContainer::itemKeys() { return m_manifest.items.keys(); }
-SharedDomDocument EPubContainer::item(QString key)
+
+SharedManifestItem EPubContainer::item(QString key)
 {
   return m_manifest.items.value(key);
 }
 
-QStringList EPubContainer::spineKeys() { return m_spine.items.keys(); }
+QString EPubContainer::css(QString key) { return m_manifest.css.value(key); }
 
-// QString EPubContainer::standardPage(EPubPageReference::StandardType type)
-//{
-//  //  return m_standardReferences.value(type).target;
+QString EPubContainer::javascript(QString key)
+{
+  return m_manifest.javascript.value(key);
+}
+
+SharedDomDocument EPubContainer::itemDocument(QString key)
+{
+  return item(key)->dom_document;
+}
+
+// void setStartCursor(SharedTextCursor start) {
+//  m_manif
 //}
+
+QStringList EPubContainer::spineKeys() { return m_spine.ordered_items; }
+
+QStringList EPubContainer::imageKeys() { return m_manifest.images.keys(); }
+
+QStringList EPubContainer::cssKeys() { return m_manifest.css.keys(); }
+
+QStringList EPubContainer::jsKeys() { return m_manifest.javascript.keys(); }
+
+QTextDocument* EPubContainer::toc()
+{
+  QTextDocument* toc_document = new QTextDocument(this);
+  toc_document->setHtml(m_manifest.formatted_toc_string);
+  return toc_document;
+}
+
+QStringList EPubContainer::creators() { return m_metadata->creator_list; }
 
 bool EPubContainer::parseMimetype()
 {
@@ -347,30 +378,58 @@ bool EPubContainer::parsePackageFile(QString& full_path)
 
   // Parse out the document guide
   // please note that this has been superceded by landmarks in EPUB 3.0
-  QDomNodeList guide_node_list = package_document->elementsByTagName("guide");
-  for (int i = 0; i < guide_node_list.count(); i++) {
-    //    QDomElement guide_element = guide_node_list.at(i).toElement();
-    //    SharedGuideItem item = SharedSpineItem(new EPubSpineItem());
-    //    node_map = guide_element.attributes();
-    //    node = node_map.namedItem("id");
-    //    if (!node.isNull()) { // optional
-    //      m_spine.id = node.nodeValue();
-    //    }
-    //    node = node_map.namedItem("toc");
-    //    if (!node.isNull()) { // optional
-    //      m_spine.toc = node.nodeValue();
-    //    }
-    //    node = node_map.namedItem("page-progression-dir");
-    //    if (!node.isNull()) { // optional
-    //      m_spine.page_progression_dir = node.nodeValue();
-    //    }
+  QDomNodeList spine_node_list = package_document->elementsByTagName("spine");
+  for (int i = 0; i < spine_node_list.count(); i++) {
+    QDomElement spine_element = spine_node_list.at(i).toElement();
+    SharedSpineItem item = SharedSpineItem(new EPubSpineItem());
+    node_map = spine_element.attributes();
+    node = node_map.namedItem("id");
+    if (!node.isNull()) { // optional
+      m_spine.id = node.nodeValue();
+    }
+    node = node_map.namedItem("toc");
+    if (!node.isNull()) { // optional
+      m_spine.toc = node.nodeValue();
+    }
+    node = node_map.namedItem("page-progression-dir");
+    if (!node.isNull()) { // optional
+      m_spine.page_progression_dir = node.nodeValue();
+    }
 
-    //    QDomNodeList spineItemList =
-    //    guide_element.elementsByTagName("itemref"); for (int j = 0; j <
-    //    spineItemList.count(); j++) {
-    //      parseGuideItem(spineItemList.at(j));
-    //    }
+    QDomNodeList spineItemList = spine_element.elementsByTagName("itemref");
+    for (int j = 0; j < spineItemList.count(); j++) {
+      parseSpineItem(spineItemList.at(j));
+    }
+
+    if (!m_spine.toc.isEmpty()) { // EPUB2.0 toc
+      parseToc();
+    }
   }
+
+  //  QDomNodeList guide_node_list =
+  //  package_document->elementsByTagName("guide"); for (int i = 0; i <
+  //  guide_node_list.count(); i++) {
+  //    QDomElement spine_element = guide_node_list.at(i).toElement();
+  //    SharedGuideItem item = SharedGuideItem(new EPubGuideItem());
+  //    node_map = spine_element.attributes();
+  //    node = node_map.namedItem("id");
+  //    if (!node.isNull()) { // optional
+  //      m_spine.id = node.nodeValue();
+  //    }
+  //    node = node_map.namedItem("toc");
+  //    if (!node.isNull()) { // optional
+  //      m_spine.toc = node.nodeValue();
+  //    }
+  //    node = node_map.namedItem("page-progression-dir");
+  //    if (!node.isNull()) { // optional
+  //      m_spine.page_progression_dir = node.nodeValue();
+  //    }
+
+  //    QDomNodeList spineItemList = spine_element.elementsByTagName("itemref");
+  //    for (int j = 0; j < spineItemList.count(); j++) {
+  //      parseSpineItem(spineItemList.at(j));
+  //    }
+  //  }
 
   //    parseGuideItem(); // this has been superceded by landmarks.
   //  parseLandmarkItem();
@@ -705,6 +764,7 @@ void EPubContainer::parseCreatorMetadata(QDomElement metadata_element)
   }
   shared_creator->name = metadata_element.text();
   m_metadata->creators.insert(shared_creator->id, shared_creator);
+  m_metadata->creator_list.append(shared_creator->name);
 }
 
 void EPubContainer::parseIdentifierMetadata(QDomElement metadata_element)
@@ -814,7 +874,7 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
         }
 
         QByteArray data = image_file.readAll();
-        SharedImage image = SharedImage(new QImage(data));
+        QImage image = QImage::fromData(data);
         m_manifest.images.insert(item->id, image);
 
       } else if (item->media_type == "application/vnd.ms-opentype" ||
@@ -837,9 +897,33 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
         item_document->setContent(container);
         item->dom_document = item_document;
       } else if (item->media_type == "text/css") {
-        m_manifest.css.insert(item->id, item);
+        m_archive->setCurrentFile(item->path);
+        QuaZipFile itemFile(m_archive);
+        itemFile.setZip(m_archive);
+
+        if (!itemFile.open(QIODevice::ReadOnly)) {
+          int error = m_archive->getZipError();
+          QLOG_DEBUG(tr("Unable to open css file error %1").arg(error));
+          return false;
+        }
+
+        QString css_string(itemFile.readAll());
+        css_string.replace("@charset \"", "@charset\"");
+        m_manifest.css.insert(item->id, css_string);
+
       } else if (item->media_type == "text/javascript") {
-        m_manifest.javascript.insert(item->id, item);
+        m_archive->setCurrentFile(item->path);
+        QuaZipFile itemFile(m_archive);
+        itemFile.setZip(m_archive);
+
+        if (!itemFile.open(QIODevice::ReadOnly)) {
+          int error = m_archive->getZipError();
+          QLOG_DEBUG(tr("Unable to open javascript file error %1").arg(error));
+          return false;
+        }
+
+        QString js_string(itemFile.readAll());
+        m_manifest.javascript.insert(item->id, js_string);
       }
     } else {
       QLOG_DEBUG(tr("Warning invalid manifest item : no media-type value"))
@@ -857,13 +941,13 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
         if (prop == "cover-image") {
           // only one cover-image allowed.
           m_manifest.cover_image = item;
-          m_manifest.images.insert(item->id, item);
+          //          m_manifest.images.insert(item->id, item);
         } else if (prop == "nav") {
           // only one nav allowed.
           m_manifest.nav = item;
         } else if (prop == "svg") {
           m_manifest.svg_images.insert(item->id, item);
-          m_manifest.images.insert(item->id, item);
+          //          m_manifest.images.insert(item->id, item);
         } else if (prop == "switch") {
           m_manifest.switches.insert(item->id, item);
         } else if (prop == "mathml") {
@@ -953,13 +1037,128 @@ bool EPubContainer::parseSpineItem(const QDomNode& spine_node)
       }
     }
     m_spine.items.insert(item->idref, item);
-    m_spine.ordered_items.append(item->id);
+    m_spine.ordered_items.append(item->idref);
   }
 }
 
 bool EPubContainer::saveSpineItem()
 {
   // TODO save spine manfest section
+}
+
+SharedTocItem EPubContainer::parseNavPoint(QDomElement navpoint,
+                                           QString& formatted_toc_data)
+{
+  SharedTocItem toc_item = SharedTocItem(new EPubTocItem());
+  //  QDomNamedNodeMap attributes = navpoint.attributes();
+  QString value = navpoint.attribute("class");
+  if (!value.isEmpty()) {
+    toc_item->tag_class = value;
+  } else {
+    //            QLOG_DEBUG(tr("Warning invalid manifest itemref : no
+    //            idref value"))
+  }
+
+  value = navpoint.attribute("id");
+  if (!value.isEmpty()) {
+    toc_item->id = value;
+  } else {
+    //            QLOG_DEBUG(tr("Warning invalid manifest itemref : no
+    //            idref value"))
+  }
+
+  value = navpoint.attribute("playOrder");
+  if (!value.isEmpty()) {
+    toc_item->playorder = value.toInt();
+  } else {
+    //            QLOG_DEBUG(tr("Warning invalid manifest itemref : no
+    //            idref value"))
+  }
+
+  QDomElement navlabel = navpoint.firstChildElement("navLabel");
+  if (!navlabel.isNull()) {
+    QDomElement text = navlabel.firstChild().toElement();
+    if (text.tagName() == "text") {
+      toc_item->label = text.text();
+    }
+  }
+
+  QDomElement content = navpoint.firstChildElement("content");
+  value = content.attribute("src");
+  if (!value.isEmpty()) {
+    toc_item->source = value;
+  } else {
+    //            QLOG_DEBUG(tr("Warning invalid manifest itemref : no
+    //            idref value"))
+  }
+
+  formatted_toc_data += LIST_ITEM.arg(toc_item->source).arg(toc_item->label);
+
+  // parse nested navPoints.
+  QDomElement sub_navpoint = navpoint.firstChildElement("navPoint");
+  if (!sub_navpoint.isNull()) {
+    formatted_toc_data += LIST_START;
+
+    while (!sub_navpoint.isNull()) {
+      SharedTocItem sub_item = parseNavPoint(sub_navpoint, formatted_toc_data);
+
+      toc_item->sub_items.insert(sub_item->playorder, sub_item);
+      sub_navpoint = sub_navpoint.nextSiblingElement("navPoint");
+    }
+
+    formatted_toc_data += LIST_END;
+  }
+
+  return toc_item;
+}
+
+bool EPubContainer::parseToc()
+{
+  QString toc_id = m_spine.toc;
+  SharedManifestItem toc_item = m_manifest.items.value(toc_id);
+  QString toc_path = toc_item->path;
+
+  m_archive->setCurrentFile(toc_path);
+  QuaZipFile toc_file(m_archive);
+  toc_file.setZip(m_archive);
+
+  if (!toc_file.open(QIODevice::ReadOnly)) {
+    m_archive->getZipError();
+    QLOG_DEBUG(tr("Unable to open toc file %1").arg(toc_path));
+  }
+
+  QByteArray data = toc_file.readAll();
+  SharedDomDocument document = SharedDomDocument(new QDomDocument());
+  document->setContent(data);
+  QString formatted_toc_string;
+  QDomElement root = document->documentElement();
+  QDomNodeList node_list = document->elementsByTagName("docTitle");
+
+  if (!node_list.isEmpty()) {
+    QDomNode title_node = node_list.at(0);
+    QDomElement title_text = title_node.firstChild().toElement();
+    if (title_text.tagName() == "text") {
+      formatted_toc_string += TOC_TITLE.arg(title_text.text());
+    }
+  }
+  formatted_toc_string += LIST_START;
+
+  node_list = document->elementsByTagName("navMap");
+  if (!node_list.isEmpty()) {
+    QString name, value;
+    QDomNode node = node_list.at(0);
+    QDomElement elem = node.toElement();
+    QDomElement navpoint = elem.firstChildElement("navPoint");
+    while (!navpoint.isNull()) {
+      SharedTocItem toc_item = parseNavPoint(navpoint, formatted_toc_string);
+      m_manifest.toc_items.insert(toc_item->playorder, toc_item);
+      navpoint = navpoint.nextSiblingElement("navPoint");
+    }
+  }
+
+  formatted_toc_string += LIST_END;
+
+  m_manifest.formatted_toc_string = formatted_toc_string;
 }
 
 bool EPubContainer::parseGuideItem(const QDomNode& guideItem)

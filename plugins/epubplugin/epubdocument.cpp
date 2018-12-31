@@ -69,17 +69,23 @@ void EPubDocument::setFilename(const QString& filename)
   d->setFilename(filename);
 }
 
+QTextDocument* EPubDocument::toc()
+{
+  Q_D(EPubDocument);
+  return d->toc();
+}
+
 QString EPubDocument::title()
 {
   Q_D(EPubDocument);
   return d->title();
 }
 
-void EPubDocument::setTitle(const QString& title)
-{
-  Q_D(EPubDocument);
-  d->setTitle(title);
-}
+// void EPubDocument::setTitle(const QString& title)
+//{
+//  Q_D(EPubDocument);
+//  d->setTitle(title);
+//}
 
 QString EPubDocument::subject()
 {
@@ -117,22 +123,22 @@ void EPubDocument::setDate(const QDateTime& date)
   // TODO
 }
 
-QStringList EPubDocument::creators()
-{
-  Q_D(EPubDocument);
-  return d->creators();
-}
+// QStringList EPubDocument::creators()
+//{
+//  Q_D(EPubDocument);
+//  return d->creators();
+//}
 
-void EPubDocument::setCreators(const QStringList& authors)
-{
-  Q_D(EPubDocument);
-  d->addCreators(authors);
-}
+// void EPubDocument::setCreators(const QStringList& authors)
+//{
+//  Q_D(EPubDocument);
+//  d->addCreators(authors);
+//}
 
 QString EPubDocument::creatorNames()
 {
   Q_D(EPubDocument);
-  return d->creatorNames();
+  return d->creatorNames(d->creators());
 }
 
 QString EPubDocument::publisher()
@@ -147,11 +153,11 @@ void EPubDocument::setPublisher(const QString& publisher)
   d->setPublisher(publisher);
 }
 
-void EPubDocument::clearCache()
-{
-  Q_D(EPubDocument);
-  d->clearCache();
-}
+// void EPubDocument::clearCache()
+//{
+//  Q_D(EPubDocument);
+//  d->clearCache();
+//}
 
 IEBookInterface* EPubDocument::plugin()
 {

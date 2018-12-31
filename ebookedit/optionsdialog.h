@@ -21,6 +21,8 @@ public:
 
 signals:
   void codeChanged();
+  void showToc(bool);
+  void moveToc(Options::TocPosition);
 
 public slots:
 
@@ -60,6 +62,8 @@ protected:
   QCheckBox* copy_book_to_store_box;
   QCheckBox* delete_old_book_box;
   QCheckBox* never_confirm_delete_box;
+  QCheckBox* toc_visible_box;
+  QPushButton* toc_position_btn;
 
   void initGui();
   void resizeEvent(QResizeEvent* e);
@@ -101,6 +105,8 @@ protected:
   void setCopyBookToStore(bool);
   void setDeleteOldBook(bool);
   void setNeverConfirmDelete(bool);
+  void setShowTocEdit(bool);
+  void setTocPosition();
 
   QColor enactColorDialog(QColor old_color);
   void buildCodeSection();

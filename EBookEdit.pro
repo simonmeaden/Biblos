@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     interface \
-    ebook \
+#    ebook \
     plugins \
     ebookedit
 

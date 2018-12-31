@@ -43,7 +43,10 @@ signals:
 protected:
   // main document pointer.
   IEBookDocument* m_document = Q_NULLPTR;
+  QSplitter* m_splitter;
   QTabWidget* m_tabs;
+  QTextBrowser* m_toc;
+  Options::TocPosition m_toc_position;
   QMap<QString, ISpellInterface*> m_spellchecker_plugins;
   QMap<QString, IPluginInterface*> m_ebookplugins;
   QList<IPluginInterface*> m_plugins;
@@ -62,6 +65,7 @@ protected:
   void documentChanged(int index);
   void tabClosing(int);
   //  bool eventFilter(QObject *object, QEvent *event);
+  void update(Options::TocPosition position);
 
   YAML::Node m_preferences;
   bool m_initialising, m_loading;
@@ -85,13 +89,13 @@ protected:
   void initToolbar();
   void initSetup();
   void initFileActions();
-  void initWindowActions();
+  void initViewActions();
   void initEditActions();
   void initEditorActions();
   void initHelpActions();
   void initFileMenu();
   void initEditMenu();
-  void initWindowMenu();
+  void initViewMenu();
   //  void initSpellingMenu();
   void initHelpMenu();
   //    EBookDocument* createDocument(QString path);
@@ -117,12 +121,13 @@ protected:
   void tabEntered(int, QPoint pos, QVariant);
   void tabExited(int);
   void openWindow();
+  void tocAnchorClicked(QUrl url);
 
 protected: // Menu/StatusBar stuff
   QMenuBar* m_menubar;
   QMenu* m_filemenu;
   QMenu* m_editmenu;
-  QMenu* m_windowmenu;
+  QMenu* m_view_menu;
   QMenu* m_spellingmenu;
   QMenu* m_helpmenu;
 
@@ -162,10 +167,12 @@ protected: // Menu/StatusBar stuff
   QAction* m_help_check_updates;
 
   QActionGroup* m_screengrp;
-  QAction* m_winfullscreen;
-  QAction* m_winmaximise;
-  QAction* m_winminimise;
-  QAction* m_wincentre;
+  QAction* m_view_fullscreen;
+  QAction* m_view_maximise;
+  QAction* m_view_minimise;
+  QAction* m_view_centre;
+  QAction* m_view_toc;
+  QAction* m_view_toc_position;
 
   void fileNew();
   void fileOpen();
@@ -187,10 +194,12 @@ protected: // Menu/StatusBar stuff
   void editSendToBookList();
   void editSendToAuthorList();
 
-  void winFullscreen();
-  void winMaximise();
-  void winMinimise();
-  void winCentre();
+  void viewFullscreen();
+  void viewMaximise();
+  void viewMinimise();
+  void viewCentre();
+  void viewToc();
+  void viewTocPosition();
 
   void helpContents();
   void helpIndex();
@@ -238,6 +247,8 @@ protected: // Menu/StatusBar stuff
   static QString CODE_ITALIC;
   static QString COPY_BOOKS_TO_STORE;
   static QString DELETE_OLD_BOOK;
+  static QString SHOW_TOC;
+  static QString TOC_POSITION;
 
   static const QString BTN_STYLE;
   void loadLibraryFiles();

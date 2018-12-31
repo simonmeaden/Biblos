@@ -24,7 +24,7 @@ void EPubDocumentPrivate::openDocument(const QString& path)
 
 void EPubDocumentPrivate::saveDocument() { m_container->saveFile(); }
 
-void EPubDocumentPrivate::clearCache() { m_renderedSvgs.clear(); }
+// void EPubDocumentPrivate::clearCache() { /*m_renderedSvgs.clear();*/ }
 
 void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
 {
@@ -41,6 +41,31 @@ void EPubDocumentPrivate::loadDocument()
     return;
   }
 
+  // add the images as resources
+  QSize image_size(int(q->pageSize().width() - q->documentMargin() * 4),
+                   int(q->pageSize().height() - q->documentMargin() * 4));
+  foreach (QString name, m_container->imageKeys()) {
+    SharedManifestItem item = m_container->item(name);
+    QImage image = m_container->image(name, image_size);
+    q->addResource(QTextDocument::ImageResource, QUrl(item->path),
+                   QVariant(image));
+  }
+
+  foreach (QString name, m_container->cssKeys()) {
+    SharedManifestItem item = m_container->item(name);
+    QString data = m_container->css(name);
+    q->addResource(QTextDocument::StyleSheetResource, QUrl(item->path),
+                   QVariant(data));
+  }
+
+  // TODO QTextDocument doesn't seem to support javascript yet
+  //  foreach (QString name, m_container->jsKeys()) {
+  //    SharedManifestItem item = m_container->item(name);
+  //    QString data = m_container->javascript(name);
+  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(item->path),
+  //                   QVariant(data));
+  //  }
+
   QTextCursor cursor(q_ptr);
   cursor.movePosition(QTextCursor::End);
 
@@ -49,36 +74,43 @@ void EPubDocumentPrivate::loadDocument()
   QTextBlockFormat pageBreak;
   pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
   for (const QString& chapter : items) {
-    SharedDomDocument item_data = m_container->item(chapter);
-    if (item_data.isNull()) {
+    SharedDomDocument shared_domdocument = m_container->itemDocument(chapter);
+    if (shared_domdocument.isNull()) {
       QLOG_WARN(QString("Got an empty document"))
       continue;
     }
-    //    fixImages(item_data);
 
-    cursor.insertHtml(item_data->toString());
+    m_container->set QString data = shared_domdocument->toString();
+    cursor.insertHtml(data);
     cursor.insertBlock(pageBreak);
+    QTextCursor end_cursor(q_ptr);
   }
 
-  q->setBaseUrl(QUrl());
+  q->setBaseUrl(QUrl()); // base url to empty.
   m_loaded = true;
 
   emit q->loadCompleted();
   //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
+QTextDocument* EPubDocumentPrivate::toc() { return m_container->toc(); }
+
 // void EPubDocumentPrivate::fixImages(SharedDomDocument newDocument)
 //{
 //  Q_Q(EPubDocument);
 //  {
-//    // Fix relative URLs, images are lazily loaded so the base URL might not
-//    // be correct when they are loaded
-//    QDomNodeList imageNodes = newDocument->elementsByTagName("img");
-//    for (int i = 0; i < imageNodes.count(); i++) {
-//      QDomElement image = imageNodes.at(i).toElement();
+//    //    // Fix relative URLs, images are lazily loaded so the base URL might
+//    //    not
+//    //    // be correct when they are loaded
+//    QDomNodeList image_nodes = newDocument->elementsByTagName("img");
+//    for (int i = 0; i < image_nodes.count(); i++) {
+//      QDomElement image = image_nodes.at(i).toElement();
 //      if (!image.hasAttribute("src")) {
 //        continue;
 //      }
+//      QString att = image.attribute("src");
+//      QImage img = m_container->image(att);
+
 //      QUrl href = QUrl(image.attribute("src"));
 //      href = q->baseUrl().resolved(href);
 //      image.setAttribute("src", href.toString());
@@ -97,34 +129,37 @@ void EPubDocumentPrivate::loadDocument()
 //        continue;
 //      }
 //      QString path = image.attribute("xlink:href");
-//      QByteArray fileData = loadResource(0, QUrl(path)).toByteArray();
-//      QByteArray data = "data:image/jpeg;base64," + fileData.toBase64();
-//      image.setAttribute("xlink:href", QString::fromLatin1(data));
+//      path += ":";
+//      //        QByteArray fileData = loadResource(0,
+//      QUrl(path)).toByteArray();
+//      //        QByteArray data = "data:image/jpeg;base64," +
+//      //        fileData.toBase64();
+//      //      image.setAttribute("xlink:href", QString::fromLatin1(data));
 //    }
 //  }
 
-//  static int svgCounter = 0;
+//  //  static int svgCounter = 0;
 
-//  // QTextDocument isn't fond of SVGs, so rip them out and store them
-//  // separately, and give it <img> instead
-//  QDomNodeList svgNodes = newDocument.elementsByTagName("svg");
-//  for (int i = 0; i < svgNodes.count(); i++) {
-//    QDomElement svgNode = svgNodes.at(i).toElement();
+//  //  // QTextDocument isn't fond of SVGs, so rip them out and store them
+//  //  // separately, and give it <img> instead
+//  //  QDomNodeList svgNodes = newDocument.elementsByTagName("svg");
+//  //  for (int i = 0; i < svgNodes.count(); i++) {
+//  //    QDomElement svgNode = svgNodes.at(i).toElement();
 
-//    // Serialize out the old SVG, store it
-//    QDomDocument tempDocument;
-//    tempDocument.appendChild(tempDocument.importNode(svgNode, true));
-//    QString svgId = QString::number(++svgCounter);
-//    m_svgs.insert(svgId, tempDocument.toByteArray());
+//  //    // Serialize out the old SVG, store it
+//  //    QDomDocument tempDocument;
+//  //    tempDocument.appendChild(tempDocument.importNode(svgNode, true));
+//  //    QString svgId = QString::number(++svgCounter);
+//  //    m_svgs.insert(svgId, tempDocument.toByteArray());
 
-//    // Create <img> node pointing to our SVG image
-//    QDomElement imageElement = newDocument.createElement("img");
-//    imageElement.setAttribute("src", "svgcache:" + svgId);
+//  //    // Create <img> node pointing to our SVG image
+//  //    QDomElement imageElement = newDocument.createElement("img");
+//  //    imageElement.setAttribute("src", "svgcache:" + svgId);
 
-//    // Replace <svg> node with our <img> node
-//    QDomNode parent = svgNodes.at(i).parentNode();
-//    parent.replaceChild(imageElement, svgNode);
-//  }
+//  //    // Replace <svg> node with our <img> node
+//  //    QDomNode parent = svgNodes.at(i).parentNode();
+//  //    parent.replaceChild(imageElement, svgNode);
+//  //  }
 //}
 
 // const QImage& EPubDocumentPrivate::getSvgImage(const QString& id)
@@ -190,8 +225,6 @@ EPubContents* EPubDocumentPrivate::cloneData()
 {
   EPubContents* contents = new EPubContents();
   contents->m_container = m_container;
-  contents->m_svgs = m_svgs;
-  contents->m_renderedSvgs = m_renderedSvgs;
   contents->m_currentItem = m_currentItem;
   contents->m_loaded = m_loaded;
 
@@ -258,4 +291,16 @@ void EPubDocumentPrivate::setClonedData(EPubContents* clone)
 
   //  emit q->loadCompleted();
   //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
+}
+
+QStringList EPubDocumentPrivate::creators() { return m_container->creators(); }
+
+QString EPubDocumentPrivate::title()
+{
+  SharedTitle first = m_container->metadata()->titles.first();
+  if (!first.isNull())
+    return first->title;
+  else {
+    return QString();
+  }
 }

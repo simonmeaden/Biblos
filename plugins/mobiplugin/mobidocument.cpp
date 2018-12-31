@@ -82,14 +82,14 @@ void MobiDocument::setReadOnly(const bool readonly)
 QString MobiDocument::title()
 {
   Q_D(MobiDocument);
-  return d->title();
+  return QString();
 }
 
-void MobiDocument::setTitle(const QString& title)
-{
-  Q_D(MobiDocument);
-  d->setTitle(title);
-}
+// void MobiDocument::setTitle(const QString& title)
+//{
+//  Q_D(MobiDocument);
+//  d->setTitle(title);
+//}
 
 QString MobiDocument::subject()
 {
@@ -111,22 +111,22 @@ QDateTime MobiDocument::date() {}
 
 void MobiDocument::setDate(const QDateTime& date) {}
 
-QStringList MobiDocument::creators()
-{
-  Q_D(MobiDocument);
-  return d->creators();
-}
+// QStringList MobiDocument::creators()
+//{
+////  Q_D(MobiDocument);
+////  return d->creators();
+//}
 
-void MobiDocument::setCreators(const QStringList& creators)
-{
-  Q_D(MobiDocument);
-  d->setCreators(creators);
-}
+// void MobiDocument::setCreators(const QStringList& creators)
+//{
+////  Q_D(MobiDocument);
+////  d->setCreators(creators);
+//}
 
 QString MobiDocument::creatorNames()
 {
   Q_D(MobiDocument);
-  return d->creatorNames();
+  return d->creatorNames(QStringList());
 }
 
 QString MobiDocument::publisher()

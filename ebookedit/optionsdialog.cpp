@@ -1,41 +1,23 @@
 #include "optionsdialog.h"
 
 const QString OptionsDialog::BTN_STYLE =
-  "QPushButton {color: #%1%2%3; background-color: #%4%5%6}";
+    "QPushButton {color: #%1%2%3; background-color: #%4%5%6}";
 
-OptionsDialog::OptionsDialog(Options* options, QWidget* parent)
-  : QDialog(parent)
-  , m_options(options)
-  , m_oldoptions(options)
-  , m_modified(false)
-  , normal_color_btn(Q_NULLPTR)
-  , normalBackBtn(Q_NULLPTR)
-  , normalItalicBox(Q_NULLPTR)
-  , normalWeightBox(Q_NULLPTR)
-  , attColorBtn(Q_NULLPTR)
-  , attBackBtn(Q_NULLPTR)
-  , attItalicBox(Q_NULLPTR)
-  , attWeightBox(Q_NULLPTR)
-  , tagColorBtn(Q_NULLPTR)
-  , tagBackBtn(Q_NULLPTR)
-  , tagItalicBox(Q_NULLPTR)
-  , tagWeightBox(Q_NULLPTR)
-  , stringColorBtn(Q_NULLPTR)
-  , stringBackBtn(Q_NULLPTR)
-  , stringItalicBox(Q_NULLPTR)
-  , stringWeightBox(Q_NULLPTR)
-  , errorColorBtn(Q_NULLPTR)
-  , errorBackBtn(Q_NULLPTR)
-  , errorItalicBox(Q_NULLPTR)
-  , errorWeightBox(Q_NULLPTR)
-  , styleColorBtn(Q_NULLPTR)
-  , styleBackBtn(Q_NULLPTR)
-  , styleItalicBox(Q_NULLPTR)
-  , styleWeightBox(Q_NULLPTR)
-  , scriptColorBtn(Q_NULLPTR)
-  , scriptBackBtn(Q_NULLPTR)
-  , scriptItalicBox(Q_NULLPTR)
-  , scriptWeightBox(Q_NULLPTR)
+OptionsDialog::OptionsDialog(Options* options, QWidget* parent) :
+    QDialog(parent), m_options(options), m_oldoptions(options),
+    m_modified(false), normal_color_btn(Q_NULLPTR), normalBackBtn(Q_NULLPTR),
+    normalItalicBox(Q_NULLPTR), normalWeightBox(Q_NULLPTR),
+    attColorBtn(Q_NULLPTR), attBackBtn(Q_NULLPTR), attItalicBox(Q_NULLPTR),
+    attWeightBox(Q_NULLPTR), tagColorBtn(Q_NULLPTR), tagBackBtn(Q_NULLPTR),
+    tagItalicBox(Q_NULLPTR), tagWeightBox(Q_NULLPTR), stringColorBtn(Q_NULLPTR),
+    stringBackBtn(Q_NULLPTR), stringItalicBox(Q_NULLPTR),
+    stringWeightBox(Q_NULLPTR), errorColorBtn(Q_NULLPTR),
+    errorBackBtn(Q_NULLPTR), errorItalicBox(Q_NULLPTR),
+    errorWeightBox(Q_NULLPTR), styleColorBtn(Q_NULLPTR),
+    styleBackBtn(Q_NULLPTR), styleItalicBox(Q_NULLPTR),
+    styleWeightBox(Q_NULLPTR), scriptColorBtn(Q_NULLPTR),
+    scriptBackBtn(Q_NULLPTR), scriptItalicBox(Q_NULLPTR),
+    scriptWeightBox(Q_NULLPTR)
 {
   initGui();
 
@@ -44,8 +26,7 @@ OptionsDialog::OptionsDialog(Options* options, QWidget* parent)
 
 OptionsDialog::~OptionsDialog() {}
 
-Options*
-OptionsDialog::options()
+Options* OptionsDialog::options()
 {
   if (result()) // Accepted
     return m_options;
@@ -53,14 +34,9 @@ OptionsDialog::options()
     return m_oldoptions;
 }
 
-bool
-OptionsDialog::modified() const
-{
-  return m_modified;
-}
+bool OptionsDialog::modified() const { return m_modified; }
 
-QFrame*
-OptionsDialog::initMiscTab()
+QFrame* OptionsDialog::initMiscTab()
 {
   QFrame* miscFrame = new QFrame(this);
   QFormLayout* l = new QFormLayout;
@@ -68,25 +44,20 @@ OptionsDialog::initMiscTab()
 
   QCheckBox* enablePopupBox = new QCheckBox(this);
   enablePopupBox->setChecked(m_options->enablepopup);
-  connect(enablePopupBox,
-          &QCheckBox::clicked,
-          this,
+  connect(enablePopupBox, &QCheckBox::clicked, this,
           &OptionsDialog::changeEnablePopup);
   l->addRow(tr("Enable information popup's"), enablePopupBox);
 
   QSpinBox* popupTimeoutBox = new QSpinBox(this);
   popupTimeoutBox->setValue(m_options->popuptimeout / 1000);
-  connect(popupTimeoutBox,
-          QOverload<int>::of(&QSpinBox::valueChanged),
-          this,
+  connect(popupTimeoutBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
           &OptionsDialog::changePopupTimeout);
   l->addRow(tr("Information popup timeout (Secs)"), popupTimeoutBox);
 
   return miscFrame;
 }
 
-QFrame*
-OptionsDialog::initEditorTab()
+QFrame* OptionsDialog::initEditorTab()
 {
   QFrame* f = new QFrame(this);
   QFormLayout* l = new QFormLayout;
@@ -95,12 +66,10 @@ OptionsDialog::initEditorTab()
   copy_book_to_store_box = new QCheckBox(this);
   copy_book_to_store_box->setChecked(m_options->copy_books_to_store);
   copy_book_to_store_box->setToolTip(
-    tr("Copy the book to the book store before"
-       "you start to edit it. This allows the "
-       "original copy to be retained unmodified."));
-  connect(copy_book_to_store_box,
-          &QCheckBox::clicked,
-          this,
+      tr("Copy the book to the book store before"
+         "you start to edit it. This allows the "
+         "original copy to be retained unmodified."));
+  connect(copy_book_to_store_box, &QCheckBox::clicked, this,
           &OptionsDialog::setCopyBookToStore);
   l->addRow(tr("Copy Books to Book Store Before Editing"),
             copy_book_to_store_box);
@@ -114,11 +83,24 @@ OptionsDialog::initEditorTab()
   delete_old_book_box->setToolTip(tr("Delete the original copy of the book "
                                      "when the book has been copied to the "
                                      "book store."));
-  connect(delete_old_book_box,
-          &QCheckBox::clicked,
-          this,
+  connect(delete_old_book_box, &QCheckBox::clicked, this,
           &OptionsDialog::setDeleteOldBook);
   l->addRow(tr("Delete the old copy of the stored book"), delete_old_book_box);
+
+  toc_visible_box = new QCheckBox(this);
+  toc_visible_box->setChecked(m_options->m_toc_visible);
+  l->addRow(tr("Show Table of Contents"), toc_visible_box);
+  connect(toc_visible_box, &QCheckBox::clicked, this,
+          &OptionsDialog::setShowTocEdit);
+
+  toc_position_btn = new QPushButton(this);
+  if (m_options->tocPosition() == Options::LEFT) {
+    toc_position_btn->setText(tr("Move TOC to Right"));
+  } else {
+    toc_position_btn->setText(tr("Move TOC to Left"));
+  }
+  connect(toc_position_btn, &QPushButton::clicked, this,
+          &OptionsDialog::setTocPosition);
 
   never_confirm_delete_box = new QCheckBox(this);
   if (!m_options->copy_books_to_store)
@@ -127,12 +109,10 @@ OptionsDialog::initEditorTab()
     never_confirm_delete_box->setEnabled(true);
   never_confirm_delete_box->setChecked(m_options->never_confirm_delete);
   never_confirm_delete_box->setToolTip(
-    tr("Delete the original copy of the book "
-       "when the book has been copied to the "
-       "book store."));
-  connect(never_confirm_delete_box,
-          &QCheckBox::clicked,
-          this,
+      tr("Delete the original copy of the book "
+         "when the book has been copied to the "
+         "book store."));
+  connect(never_confirm_delete_box, &QCheckBox::clicked, this,
           &OptionsDialog::setNeverConfirmDelete);
   l->addRow(tr("Never Confirm Deleteion of Old Book"),
             never_confirm_delete_box);
@@ -140,432 +120,374 @@ OptionsDialog::initEditorTab()
   return f;
 }
 
-void
-OptionsDialog::setColorConnection(Options::CodeOptions options)
+void OptionsDialog::setColorConnection(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setNormalColor);
-      break;
-    }
-    case Options::TAG: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setAttributeColor);
-      break;
-    }
-    case Options::ATTRIBUTE: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setTagColor);
-      break;
-    }
-    case Options::ERROR: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setErrorColor);
-      break;
-    }
-    case Options::STRING: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStringColor);
-      break;
-    }
-    case Options::SCRIPT: {
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setScriptColor);
-      break;
-    }
-    case Options::STYLE: {
-    }
-      connect(this->getColorBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStyleColor);
-      break;
+  case Options::NORMAL: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setNormalColor);
+    break;
+  }
+  case Options::TAG: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setAttributeColor);
+    break;
+  }
+  case Options::ATTRIBUTE: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setTagColor);
+    break;
+  }
+  case Options::ERROR: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setErrorColor);
+    break;
+  }
+  case Options::STRING: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStringColor);
+    break;
+  }
+  case Options::SCRIPT: {
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setScriptColor);
+    break;
+  }
+  case Options::STYLE: {
+  }
+    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStyleColor);
+    break;
   }
 }
 
-void
-OptionsDialog::setBackgroundConnection(Options::CodeOptions options)
+void OptionsDialog::setBackgroundConnection(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setNormalBackground);
-      break;
-    }
-    case Options::TAG: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setAttributeBackground);
-      break;
-    }
-    case Options::ATTRIBUTE: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setTagBackground);
-      break;
-    }
-    case Options::ERROR: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setErrorBackground);
-      break;
-    }
-    case Options::STRING: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStringBackground);
-      break;
-    }
-    case Options::SCRIPT: {
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setScriptBackground);
-      break;
-    }
-    case Options::STYLE: {
-    }
-      connect(this->getBackgroundBtn(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStyleBackground);
-      break;
+  case Options::NORMAL: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setNormalBackground);
+    break;
+  }
+  case Options::TAG: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setAttributeBackground);
+    break;
+  }
+  case Options::ATTRIBUTE: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setTagBackground);
+    break;
+  }
+  case Options::ERROR: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setErrorBackground);
+    break;
+  }
+  case Options::STRING: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStringBackground);
+    break;
+  }
+  case Options::SCRIPT: {
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setScriptBackground);
+    break;
+  }
+  case Options::STYLE: {
+  }
+    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStyleBackground);
+    break;
   }
 }
 
-void
-OptionsDialog::setItalicConnection(Options::CodeOptions options)
+void OptionsDialog::setItalicConnection(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setNormalItalic);
-      break;
-    }
-    case Options::TAG: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setAttributeItalic);
-      break;
-    }
-    case Options::ATTRIBUTE: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setTagItalic);
-      break;
-    }
-    case Options::ERROR: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setErrorItalic);
-      break;
-    }
-    case Options::STRING: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStringItalic);
-      break;
-    }
-    case Options::SCRIPT: {
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setScriptItalic);
-      break;
-    }
-    case Options::STYLE: {
-    }
-      connect(this->getItalicBox(options),
-              &QAbstractButton::clicked,
-              this,
-              &OptionsDialog::setStyleItalic);
-      break;
+  case Options::NORMAL: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setNormalItalic);
+    break;
+  }
+  case Options::TAG: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setAttributeItalic);
+    break;
+  }
+  case Options::ATTRIBUTE: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setTagItalic);
+    break;
+  }
+  case Options::ERROR: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setErrorItalic);
+    break;
+  }
+  case Options::STRING: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStringItalic);
+    break;
+  }
+  case Options::SCRIPT: {
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setScriptItalic);
+    break;
+  }
+  case Options::STYLE: {
+  }
+    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+            &OptionsDialog::setStyleItalic);
+    break;
   }
 }
 
-void
-OptionsDialog::setWeightConnection(Options::CodeOptions options)
+void OptionsDialog::setWeightConnection(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setNormalWeight);
-      break;
-    }
-    case Options::TAG: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setAttributeWeight);
-      break;
-    }
-    case Options::ATTRIBUTE: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setTagWeight);
-      break;
-    }
-    case Options::ERROR: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setErrorWeight);
-      break;
-    }
-    case Options::STRING: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setStringWeight);
-      break;
-    }
-    case Options::SCRIPT: {
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setScriptWeight);
-      break;
-    }
-    case Options::STYLE: {
-    }
-      connect(this->getWeightBox(options),
-              QOverload<int>::of(&QComboBox::currentIndexChanged),
-              this,
-              &OptionsDialog::setStyleWeight);
-      break;
+  case Options::NORMAL: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setNormalWeight);
+    break;
+  }
+  case Options::TAG: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setAttributeWeight);
+    break;
+  }
+  case Options::ATTRIBUTE: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setTagWeight);
+    break;
+  }
+  case Options::ERROR: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setErrorWeight);
+    break;
+  }
+  case Options::STRING: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setStringWeight);
+    break;
+  }
+  case Options::SCRIPT: {
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setScriptWeight);
+    break;
+  }
+  case Options::STYLE: {
+  }
+    connect(this->getWeightBox(options),
+            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OptionsDialog::setStyleWeight);
+    break;
   }
 }
 
-QPushButton*
-OptionsDialog::getColorBtn(Options::CodeOptions options)
+QPushButton* OptionsDialog::getColorBtn(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      if (!normal_color_btn) {
-        normal_color_btn = new QPushButton(this);
-      }
-      return normal_color_btn;
+  case Options::NORMAL: {
+    if (!normal_color_btn) {
+      normal_color_btn = new QPushButton(this);
     }
-    case Options::TAG: {
-      if (!tagColorBtn) {
-        tagColorBtn = new QPushButton(this);
-      }
-      return tagColorBtn;
+    return normal_color_btn;
+  }
+  case Options::TAG: {
+    if (!tagColorBtn) {
+      tagColorBtn = new QPushButton(this);
     }
-    case Options::ATTRIBUTE: {
-      if (!attColorBtn) {
-        attColorBtn = new QPushButton(this);
-      }
-      return attColorBtn;
+    return tagColorBtn;
+  }
+  case Options::ATTRIBUTE: {
+    if (!attColorBtn) {
+      attColorBtn = new QPushButton(this);
     }
-    case Options::ERROR: {
-      if (!errorColorBtn) {
-        errorColorBtn = new QPushButton(this);
-      }
-      return errorColorBtn;
+    return attColorBtn;
+  }
+  case Options::ERROR: {
+    if (!errorColorBtn) {
+      errorColorBtn = new QPushButton(this);
     }
-    case Options::STRING: {
-      if (!stringColorBtn) {
-        stringColorBtn = new QPushButton(this);
-      }
-      return stringColorBtn;
+    return errorColorBtn;
+  }
+  case Options::STRING: {
+    if (!stringColorBtn) {
+      stringColorBtn = new QPushButton(this);
     }
-    case Options::SCRIPT: {
-      if (!scriptColorBtn) {
-        scriptColorBtn = new QPushButton(this);
-      }
-      return scriptColorBtn;
+    return stringColorBtn;
+  }
+  case Options::SCRIPT: {
+    if (!scriptColorBtn) {
+      scriptColorBtn = new QPushButton(this);
     }
-    case Options::STYLE: {
-      if (!styleColorBtn) {
-        styleColorBtn = new QPushButton(this);
-      }
-      return styleColorBtn;
+    return scriptColorBtn;
+  }
+  case Options::STYLE: {
+    if (!styleColorBtn) {
+      styleColorBtn = new QPushButton(this);
     }
+    return styleColorBtn;
+  }
   }
   return Q_NULLPTR;
 }
 
-QPushButton*
-OptionsDialog::getBackgroundBtn(Options::CodeOptions options)
+QPushButton* OptionsDialog::getBackgroundBtn(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      if (!normalBackBtn) {
-        normalBackBtn = new QPushButton(this);
-      }
-      return normalBackBtn;
+  case Options::NORMAL: {
+    if (!normalBackBtn) {
+      normalBackBtn = new QPushButton(this);
     }
-    case Options::TAG: {
-      if (!tagBackBtn) {
-        tagBackBtn = new QPushButton(this);
-      }
-      return tagBackBtn;
+    return normalBackBtn;
+  }
+  case Options::TAG: {
+    if (!tagBackBtn) {
+      tagBackBtn = new QPushButton(this);
     }
-    case Options::ATTRIBUTE: {
-      if (!attBackBtn) {
-        attBackBtn = new QPushButton(this);
-      }
-      return attBackBtn;
+    return tagBackBtn;
+  }
+  case Options::ATTRIBUTE: {
+    if (!attBackBtn) {
+      attBackBtn = new QPushButton(this);
     }
-    case Options::ERROR: {
-      if (!errorBackBtn) {
-        errorBackBtn = new QPushButton(this);
-      }
-      return errorBackBtn;
+    return attBackBtn;
+  }
+  case Options::ERROR: {
+    if (!errorBackBtn) {
+      errorBackBtn = new QPushButton(this);
     }
-    case Options::STRING: {
-      if (!stringBackBtn) {
-        stringBackBtn = new QPushButton(this);
-      }
-      return stringBackBtn;
+    return errorBackBtn;
+  }
+  case Options::STRING: {
+    if (!stringBackBtn) {
+      stringBackBtn = new QPushButton(this);
     }
-    case Options::SCRIPT: {
-      if (!scriptBackBtn) {
-        scriptBackBtn = new QPushButton(this);
-      }
-      return scriptBackBtn;
+    return stringBackBtn;
+  }
+  case Options::SCRIPT: {
+    if (!scriptBackBtn) {
+      scriptBackBtn = new QPushButton(this);
     }
-    case Options::STYLE: {
-      if (!styleBackBtn) {
-        styleBackBtn = new QPushButton(this);
-      }
-      return styleBackBtn;
+    return scriptBackBtn;
+  }
+  case Options::STYLE: {
+    if (!styleBackBtn) {
+      styleBackBtn = new QPushButton(this);
     }
+    return styleBackBtn;
+  }
   }
   return Q_NULLPTR;
 }
 
-QCheckBox*
-OptionsDialog::getItalicBox(Options::CodeOptions options)
+QCheckBox* OptionsDialog::getItalicBox(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      if (!normalItalicBox) {
-        normalItalicBox = new QCheckBox(this);
-      }
-      return normalItalicBox;
+  case Options::NORMAL: {
+    if (!normalItalicBox) {
+      normalItalicBox = new QCheckBox(this);
     }
-    case Options::TAG: {
-      if (!tagItalicBox) {
-        tagItalicBox = new QCheckBox(this);
-      }
-      return tagItalicBox;
+    return normalItalicBox;
+  }
+  case Options::TAG: {
+    if (!tagItalicBox) {
+      tagItalicBox = new QCheckBox(this);
     }
-    case Options::ATTRIBUTE: {
-      if (!attItalicBox) {
-        attItalicBox = new QCheckBox(this);
-      }
-      return attItalicBox;
+    return tagItalicBox;
+  }
+  case Options::ATTRIBUTE: {
+    if (!attItalicBox) {
+      attItalicBox = new QCheckBox(this);
     }
-    case Options::ERROR: {
-      if (!errorItalicBox) {
-        errorItalicBox = new QCheckBox(this);
-      }
-      return errorItalicBox;
+    return attItalicBox;
+  }
+  case Options::ERROR: {
+    if (!errorItalicBox) {
+      errorItalicBox = new QCheckBox(this);
     }
-    case Options::STRING: {
-      if (!stringItalicBox) {
-        stringItalicBox = new QCheckBox(this);
-      }
-      return stringItalicBox;
+    return errorItalicBox;
+  }
+  case Options::STRING: {
+    if (!stringItalicBox) {
+      stringItalicBox = new QCheckBox(this);
     }
-    case Options::SCRIPT: {
-      if (!scriptItalicBox) {
-        scriptItalicBox = new QCheckBox(this);
-      }
-      return scriptItalicBox;
+    return stringItalicBox;
+  }
+  case Options::SCRIPT: {
+    if (!scriptItalicBox) {
+      scriptItalicBox = new QCheckBox(this);
     }
-    case Options::STYLE: {
-      if (!styleItalicBox) {
-        styleItalicBox = new QCheckBox(this);
-      }
-      return styleItalicBox;
+    return scriptItalicBox;
+  }
+  case Options::STYLE: {
+    if (!styleItalicBox) {
+      styleItalicBox = new QCheckBox(this);
     }
+    return styleItalicBox;
+  }
   }
   return Q_NULLPTR;
 }
 
-QComboBox*
-OptionsDialog::getWeightBox(Options::CodeOptions options)
+QComboBox* OptionsDialog::getWeightBox(Options::CodeOptions options)
 {
   switch (options) {
-    case Options::NORMAL: {
-      if (!normalWeightBox) {
-        normalWeightBox = new QComboBox(this);
-      }
-      return normalWeightBox;
+  case Options::NORMAL: {
+    if (!normalWeightBox) {
+      normalWeightBox = new QComboBox(this);
     }
-    case Options::TAG: {
-      if (!tagWeightBox) {
-        tagWeightBox = new QComboBox(this);
-      }
-      return tagWeightBox;
+    return normalWeightBox;
+  }
+  case Options::TAG: {
+    if (!tagWeightBox) {
+      tagWeightBox = new QComboBox(this);
     }
-    case Options::ATTRIBUTE: {
-      if (!attWeightBox) {
-        attWeightBox = new QComboBox(this);
-      }
-      return attWeightBox;
+    return tagWeightBox;
+  }
+  case Options::ATTRIBUTE: {
+    if (!attWeightBox) {
+      attWeightBox = new QComboBox(this);
     }
-    case Options::ERROR: {
-      if (!errorWeightBox) {
-        errorWeightBox = new QComboBox(this);
-      }
-      return errorWeightBox;
+    return attWeightBox;
+  }
+  case Options::ERROR: {
+    if (!errorWeightBox) {
+      errorWeightBox = new QComboBox(this);
     }
-    case Options::STRING: {
-      if (!stringWeightBox) {
-        stringWeightBox = new QComboBox(this);
-      }
-      return stringWeightBox;
+    return errorWeightBox;
+  }
+  case Options::STRING: {
+    if (!stringWeightBox) {
+      stringWeightBox = new QComboBox(this);
     }
-    case Options::SCRIPT: {
-      if (!scriptWeightBox) {
-        scriptWeightBox = new QComboBox(this);
-      }
-      return scriptWeightBox;
+    return stringWeightBox;
+  }
+  case Options::SCRIPT: {
+    if (!scriptWeightBox) {
+      scriptWeightBox = new QComboBox(this);
     }
-    case Options::STYLE: {
-      if (!styleWeightBox) {
-        styleWeightBox = new QComboBox(this);
-      }
-      return styleWeightBox;
+    return scriptWeightBox;
+  }
+  case Options::STYLE: {
+    if (!styleWeightBox) {
+      styleWeightBox = new QComboBox(this);
     }
+    return styleWeightBox;
+  }
   }
   return Q_NULLPTR;
 }
 
-QString
-OptionsDialog::convertColorToStyle(QColor color, QColor back)
+QString OptionsDialog::convertColorToStyle(QColor color, QColor back)
 {
   QString style, rs1, gs1, bs1, rs2, gs2, bs2;
   rs1 = QString("%1").arg(color.red(), 2, 16, QChar('0'));
@@ -575,18 +497,17 @@ OptionsDialog::convertColorToStyle(QColor color, QColor back)
   gs2 = QString("%1").arg(back.green(), 2, 16, QChar('0'));
   bs2 = QString("%1").arg(back.blue(), 2, 16, QChar('0'));
   style =
-    QString(BTN_STYLE).arg(rs1).arg(gs1).arg(bs1).arg(rs2).arg(gs2).arg(bs2);
+      QString(BTN_STYLE).arg(rs1).arg(gs1).arg(bs1).arg(rs2).arg(gs2).arg(bs2);
   return style;
 }
 
-QFrame*
-OptionsDialog::initCodeTab(Options::CodeOptions options)
+QFrame* OptionsDialog::initCodeTab(Options::CodeOptions options)
 {
   QFrame* frm;
   QFormLayout* form;
-  QStringList weights = { "Thin",   "ExtraLight", "Light",
-                          "Normal", "Medium",     "DemiBold",
-                          "Bold",   "ExtraBold",  "Black" };
+  QStringList weights = {"Thin",   "ExtraLight", "Light",
+                         "Normal", "Medium",     "DemiBold",
+                         "Bold",   "ExtraBold",  "Black"};
   //  QPalette pal;
   QComboBox* combo = getWeightBox(options);
   QCheckBox* box = getItalicBox(options);
@@ -628,8 +549,7 @@ OptionsDialog::initCodeTab(Options::CodeOptions options)
   return frm;
 }
 
-QFrame*
-OptionsDialog::initCodeEditorTab()
+QFrame* OptionsDialog::initCodeEditorTab()
 {
   QFrame* f = new QFrame(this);
   QGridLayout* l = new QGridLayout;
@@ -646,8 +566,8 @@ OptionsDialog::initCodeEditorTab()
   font_btn = new QPushButton(tr("Change Font"), this);
   font_btn->setFont(m_options->codeFont);
   form->addRow(tr("Font"), font_btn);
-  connect(
-    font_btn, &QAbstractButton::clicked, this, &OptionsDialog::setCodeFont);
+  connect(font_btn, &QAbstractButton::clicked, this,
+          &OptionsDialog::setCodeFont);
   tabs->addTab(frm, tr("Font"));
 
   frm = initCodeTab(Options::NORMAL);
@@ -668,8 +588,7 @@ OptionsDialog::initCodeEditorTab()
   return f;
 }
 
-void
-OptionsDialog::setCodeFont()
+void OptionsDialog::setCodeFont()
 {
   bool ok;
   QFont font = QFontDialog::getFont(&ok, m_options->codeFont, this);
@@ -681,8 +600,7 @@ OptionsDialog::setCodeFont()
   }
 }
 
-void
-OptionsDialog::setCodeColor(Options::CodeOptions options)
+void OptionsDialog::setCodeColor(Options::CodeOptions options)
 {
   QColor color = enactColorDialog(m_options->color(options));
   m_options->setColor(options, color);
@@ -695,14 +613,9 @@ OptionsDialog::setCodeColor(Options::CodeOptions options)
   m_modified = true;
 }
 
-void
-OptionsDialog::setNormalColor()
-{
-  setCodeColor(Options::NORMAL);
-}
+void OptionsDialog::setNormalColor() { setCodeColor(Options::NORMAL); }
 
-void
-OptionsDialog::setCodeBackground(Options::CodeOptions options)
+void OptionsDialog::setCodeBackground(Options::CodeOptions options)
 {
   QColor back = enactColorDialog(m_options->background(options));
   m_options->setBackground(options, back);
@@ -715,198 +628,140 @@ OptionsDialog::setCodeBackground(Options::CodeOptions options)
   m_modified = true;
 }
 
-void
-OptionsDialog::setNormalBackground()
+void OptionsDialog::setNormalBackground()
 {
   setCodeBackground(Options::NORMAL);
 }
 
-void
-OptionsDialog::setNormalItalic(bool state)
+void OptionsDialog::setNormalItalic(bool state)
 {
   m_options->setItalic(Options::NORMAL, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setNormalWeight(int index)
+void OptionsDialog::setNormalWeight(int index)
 {
   m_options->setWeight(Options::NORMAL, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setAttributeColor()
-{
-  setCodeColor(Options::ATTRIBUTE);
-}
+void OptionsDialog::setAttributeColor() { setCodeColor(Options::ATTRIBUTE); }
 
-void
-OptionsDialog::setAttributeBackground()
+void OptionsDialog::setAttributeBackground()
 {
   setCodeBackground(Options::ATTRIBUTE);
 }
 
-void
-OptionsDialog::setAttributeItalic(bool state)
+void OptionsDialog::setAttributeItalic(bool state)
 {
   m_options->setItalic(Options::ATTRIBUTE, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setAttributeWeight(int index)
+void OptionsDialog::setAttributeWeight(int index)
 {
   m_options->setWeight(Options::ATTRIBUTE, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setTagColor()
-{
-  setCodeColor(Options::TAG);
-}
+void OptionsDialog::setTagColor() { setCodeColor(Options::TAG); }
 
-void
-OptionsDialog::setTagBackground()
-{
-  setCodeBackground(Options::TAG);
-}
+void OptionsDialog::setTagBackground() { setCodeBackground(Options::TAG); }
 
-void
-OptionsDialog::setTagItalic(bool state)
+void OptionsDialog::setTagItalic(bool state)
 {
   m_options->setItalic(Options::TAG, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setTagWeight(int index)
+void OptionsDialog::setTagWeight(int index)
 {
   m_options->setWeight(Options::TAG, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setStringColor()
-{
-  setCodeColor(Options::STRING);
-}
+void OptionsDialog::setStringColor() { setCodeColor(Options::STRING); }
 
-void
-OptionsDialog::setStringBackground()
-{
-  setCodeBackground(Options::TAG);
-}
+void OptionsDialog::setStringBackground() { setCodeBackground(Options::TAG); }
 
-void
-OptionsDialog::setStringItalic(bool state)
+void OptionsDialog::setStringItalic(bool state)
 {
   m_options->setItalic(Options::STRING, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setStringWeight(int index)
+void OptionsDialog::setStringWeight(int index)
 {
   m_options->setWeight(Options::STRING, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setErrorColor()
-{
-  setCodeColor(Options::ERROR);
-}
+void OptionsDialog::setErrorColor() { setCodeColor(Options::ERROR); }
 
-void
-OptionsDialog::setErrorBackground()
-{
-  setCodeBackground(Options::ERROR);
-}
+void OptionsDialog::setErrorBackground() { setCodeBackground(Options::ERROR); }
 
-void
-OptionsDialog::setErrorItalic(bool state)
+void OptionsDialog::setErrorItalic(bool state)
 {
   m_options->setItalic(Options::ERROR, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setErrorWeight(int index)
+void OptionsDialog::setErrorWeight(int index)
 {
   m_options->setWeight(Options::ERROR, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setStyleColor()
-{
-  setCodeColor(Options::STYLE);
-}
+void OptionsDialog::setStyleColor() { setCodeColor(Options::STYLE); }
 
-void
-OptionsDialog::setStyleBackground()
-{
-  setCodeBackground(Options::STYLE);
-}
+void OptionsDialog::setStyleBackground() { setCodeBackground(Options::STYLE); }
 
-void
-OptionsDialog::setStyleItalic(bool state)
+void OptionsDialog::setStyleItalic(bool state)
 {
   m_options->setItalic(Options::STYLE, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setStyleWeight(int index)
+void OptionsDialog::setStyleWeight(int index)
 {
   m_options->setWeight(Options::STYLE, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setScriptColor()
-{
-  setCodeColor(Options::SCRIPT);
-}
+void OptionsDialog::setScriptColor() { setCodeColor(Options::SCRIPT); }
 
-void
-OptionsDialog::setScriptBackground()
+void OptionsDialog::setScriptBackground()
 {
   setCodeBackground(Options::SCRIPT);
 }
 
-void
-OptionsDialog::setScriptItalic(bool state)
+void OptionsDialog::setScriptItalic(bool state)
 {
   m_options->setItalic(Options::SCRIPT, state);
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setScriptWeight(int index)
+void OptionsDialog::setScriptWeight(int index)
 {
   m_options->setWeight(Options::SCRIPT, QFont::Weight(index));
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setCopyBookToStore(bool state)
+void OptionsDialog::setCopyBookToStore(bool state)
 {
   m_options->copy_books_to_store = state;
   emit codeChanged();
@@ -917,24 +772,42 @@ OptionsDialog::setCopyBookToStore(bool state)
     delete_old_book_box->setEnabled(false);
 }
 
-void
-OptionsDialog::setDeleteOldBook(bool state)
+void OptionsDialog::setDeleteOldBook(bool state)
 {
   m_options->delete_old_book = state;
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::setNeverConfirmDelete(bool state)
+void OptionsDialog::setNeverConfirmDelete(bool state)
 {
   m_options->never_confirm_delete = state;
   emit codeChanged();
   m_modified = true;
 }
 
-void
-OptionsDialog::initGui()
+void OptionsDialog::setShowTocEdit(bool state)
+{
+  m_options->setTocVisible(state);
+  emit codeChanged();
+  emit showToc(state);
+  m_modified = true;
+}
+
+void OptionsDialog::setTocPosition()
+{
+  if (m_options->tocPosition() == Options::LEFT) {
+    m_options->setTocPosition(Options::RIGHT);
+    emit moveToc(Options::RIGHT);
+    m_modified = true;
+  } else {
+    m_options->setTocPosition(Options::LEFT);
+    emit moveToc(Options::LEFT);
+    m_modified = true;
+  }
+}
+
+void OptionsDialog::initGui()
 {
   QGridLayout* l = new QGridLayout;
   setLayout(l);
@@ -963,16 +836,14 @@ OptionsDialog::initGui()
   tabs->addTab(miscFrame, tr("Miscellaneous Options"));
 }
 
-void
-OptionsDialog::resizeEvent(QResizeEvent* e)
+void OptionsDialog::resizeEvent(QResizeEvent* e)
 {
   QSize size = e->size();
   m_options->options_dlg = size;
   m_modified = true;
 }
 
-void
-OptionsDialog::changePopupTimeout(int value)
+void OptionsDialog::changePopupTimeout(int value)
 {
   if (m_options->popuptimeout != value) {
     m_options->popuptimeout = value * 1000;
@@ -980,8 +851,7 @@ OptionsDialog::changePopupTimeout(int value)
   }
 }
 
-void
-OptionsDialog::changeEnablePopup(bool value)
+void OptionsDialog::changeEnablePopup(bool value)
 {
   if (m_options->enablepopup != value) {
     m_options->enablepopup = value;
@@ -989,11 +859,10 @@ OptionsDialog::changeEnablePopup(bool value)
   }
 }
 
-QColor
-OptionsDialog::enactColorDialog(QColor old_color)
+QColor OptionsDialog::enactColorDialog(QColor old_color)
 {
   QColor color =
-    QColorDialog::getColor(old_color, this, tr("Select Normal Color"));
+      QColorDialog::getColor(old_color, this, tr("Select Normal Color"));
   if (color.isValid()) {
     emit codeChanged();
     m_modified = true;

@@ -50,13 +50,15 @@ public:
   bool loaded();
   void openDocument(const QString& path) override;
   void saveDocument() override;
-  void clearCache();
+  //  void clearCache();
   EPubContents* cloneData();
   void setClonedData(EPubContents* cloneData);
 
   // IEBookDocument interface
   QString filename() override;
   void setFilename(const QString& filename) override;
+
+  QTextDocument* toc() override;
 
   // IEBookDocument interface
   IEBookInterface* plugin() override;
@@ -68,15 +70,15 @@ public:
   void setPublished(const QDate& published) override;
 
   QString title() override;
-  void setTitle(const QString& title) override;
+  //  void setTitle(const QString& title) override;
   QString subject() override;
   void setSubject(const QString& subject) override;
   QString language() override;
   void setLanguage(const QString& language) override;
   QDateTime date() override;
   void setDate(const QDateTime& date) override;
-  QStringList creators() override;
-  void setCreators(const QStringList& creators) override;
+  //  QStringList creators() override;
+  //  void setCreators(const QStringList& creators) override;
   QString creatorNames() override;
   QString publisher() override;
   void setPublisher(const QString& publisher) override;

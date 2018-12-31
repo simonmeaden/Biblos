@@ -54,6 +54,8 @@ QString MainWindow::CODE_WEIGHT = "weight";
 QString MainWindow::CODE_ITALIC = "italic";
 QString MainWindow::COPY_BOOKS_TO_STORE = "copy books to store";
 QString MainWindow::DELETE_OLD_BOOK = "delete old book";
+QString MainWindow::SHOW_TOC = "show toc";
+QString MainWindow::TOC_POSITION = "toc position";
 
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent)
@@ -117,14 +119,41 @@ void MainWindow::initBuild()
   initGui();
 }
 
+void MainWindow::update(Options::TocPosition position)
+{
+  if (position == Options::LEFT) {
+    m_splitter->insertWidget(0, m_toc);
+    m_splitter->insertWidget(1, m_tabs);
+    m_splitter->setStretchFactor(0, 1);
+    m_splitter->setStretchFactor(1, 3);
+  } else if (position == Options::RIGHT) {
+    m_splitter->insertWidget(0, m_tabs);
+    m_splitter->insertWidget(1, m_toc);
+    m_splitter->setStretchFactor(0, 3);
+    m_splitter->setStretchFactor(1, 1);
+  }
+  QWidget::update();
+}
+
 void MainWindow::initGui()
 {
   QFrame* mainFrame = new QFrame(this);
   setCentralWidget(mainFrame);
-  QGridLayout* l = new QGridLayout;
-  mainFrame->setLayout(l);
+  QHBoxLayout* main_layout = new QHBoxLayout;
+  mainFrame->setLayout(main_layout);
 
-  m_tabs = new QTabWidget();
+  m_toc_position = m_options->tocPosition();
+
+  m_splitter = new QSplitter(Qt::Horizontal, this);
+  main_layout->addWidget(m_splitter);
+
+  m_toc = new QTextBrowser(this);
+  m_toc->setOpenLinks(false);
+  //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
+  connect(m_toc, &QTextBrowser::anchorClicked, this,
+          &MainWindow::tocAnchorClicked);
+
+  m_tabs = new QTabWidget(this);
   m_tabs->setTabsClosable(true);
   connect(m_tabs, &QTabWidget::currentChanged, this,
           &MainWindow::documentChanged);
@@ -132,7 +161,18 @@ void MainWindow::initGui()
           &MainWindow::tabClosing);
   if (m_tabs->count() == 0)
     m_tabs->setEnabled(false);
-  l->addWidget(m_tabs, 0, 0);
+
+  if (m_toc_position == Options::LEFT) {
+    m_splitter->addWidget(m_toc);
+    m_splitter->addWidget(m_tabs);
+    m_splitter->setStretchFactor(0, 1);
+    m_splitter->setStretchFactor(1, 3);
+  } else {
+    m_splitter->addWidget(m_tabs);
+    m_splitter->addWidget(m_toc);
+    m_splitter->setStretchFactor(0, 3);
+    m_splitter->setStretchFactor(1, 1);
+  }
 }
 
 void MainWindow::initFileMenu()
@@ -170,13 +210,16 @@ void MainWindow::initEditMenu()
   m_editmenu->addAction(m_edit_options);
 }
 
-void MainWindow::initWindowMenu()
+void MainWindow::initViewMenu()
 {
-  m_windowmenu = menuBar()->addMenu(tr("&Window"));
-  m_windowmenu->addAction(m_winmaximise);
-  m_windowmenu->addAction(m_winminimise);
-  m_windowmenu->addAction(m_winfullscreen);
-  m_windowmenu->addAction(m_wincentre);
+  m_view_menu = menuBar()->addMenu(tr("&View"));
+  m_view_menu->addAction(m_view_maximise);
+  m_view_menu->addAction(m_view_minimise);
+  m_view_menu->addAction(m_view_fullscreen);
+  m_view_menu->addAction(m_view_centre);
+  m_view_menu->addSeparator();
+  m_view_menu->addAction(m_view_toc);
+  m_view_menu->addAction(m_view_toc_position);
 }
 
 void MainWindow::initHelpMenu()
@@ -196,7 +239,7 @@ void MainWindow::initMenus()
 {
   initFileMenu();
   initEditMenu();
-  initWindowMenu();
+  initViewMenu();
   initHelpMenu();
 }
 
@@ -239,38 +282,63 @@ void MainWindow::initFileActions()
   connect(m_file_exit, &QAction::triggered, this, &MainWindow::fileExit);
 }
 
-void MainWindow::initWindowActions()
+void MainWindow::initViewActions()
 {
   m_screengrp = new QActionGroup(this);
 
-  m_winmaximise = new QAction(tr("Maximise screen"), this);
-  m_screengrp->addAction(m_winmaximise);
-  m_winmaximise->setShortcut(tr("Alt+X"));
-  m_winmaximise->setStatusTip(
+  m_view_maximise = new QAction(tr("Maximise screen"), this);
+  m_screengrp->addAction(m_view_maximise);
+  m_view_maximise->setShortcut(tr("Alt+X"));
+  m_view_maximise->setStatusTip(
       tr("Set screen size to full screen with title bar."));
-  connect(m_winmaximise, &QAction::triggered, this, &MainWindow::winMaximise);
+  connect(m_view_maximise, &QAction::triggered, this,
+          &MainWindow::viewMaximise);
 
-  m_winminimise = new QAction(tr("Minimise screen"), this);
-  m_screengrp->addAction(m_winminimise);
-  m_winminimise->setShortcut(tr("Alt+N"));
-  m_winminimise->setStatusTip(
+  m_view_minimise = new QAction(tr("Minimise screen"), this);
+  m_screengrp->addAction(m_view_minimise);
+  m_view_minimise->setShortcut(tr("Alt+N"));
+  m_view_minimise->setStatusTip(
       tr("Set screen size to minimised screen with title bar."));
-  connect(m_winminimise, &QAction::triggered, this, &MainWindow::winMinimise);
-  m_winminimise->setChecked(true);
+  connect(m_view_minimise, &QAction::triggered, this,
+          &MainWindow::viewMinimise);
+  m_view_minimise->setChecked(true);
 
-  m_winfullscreen = new QAction(tr("Full screen"), this);
-  m_screengrp->addAction(m_winfullscreen);
-  m_winfullscreen->setShortcut(QKeySequence::FullScreen);
-  m_winfullscreen->setStatusTip(
+  m_view_fullscreen = new QAction(tr("Full screen"), this);
+  m_screengrp->addAction(m_view_fullscreen);
+  m_view_fullscreen->setShortcut(QKeySequence::FullScreen);
+  m_view_fullscreen->setStatusTip(
       tr("Set screen size to full screen without title bar."));
-  connect(m_winfullscreen, &QAction::triggered, this,
-          &MainWindow::winFullscreen);
+  connect(m_view_fullscreen, &QAction::triggered, this,
+          &MainWindow::viewFullscreen);
 
-  m_wincentre = new QAction(tr("Centre screen"), this);
-  m_wincentre->setShortcut(QKeySequence::FullScreen);
-  m_wincentre->setStatusTip(tr("Adjust the screen so that it is centred, "
-                               "only available for minimised screens."));
-  connect(m_wincentre, &QAction::triggered, this, &MainWindow::winCentre);
+  m_view_centre = new QAction(tr("Centre screen"), this);
+  m_view_centre->setShortcut(QKeySequence::FullScreen);
+  m_view_centre->setStatusTip(tr("Adjust the screen so that it is centred, "
+                                 "only available for minimised screens."));
+  connect(m_view_centre, &QAction::triggered, this, &MainWindow::viewCentre);
+
+  QString text;
+  if (m_options->tocVisible()) {
+    text = tr("Hide Table of Contents");
+  } else {
+    text = tr("Show Table of Contents");
+  }
+  m_view_toc = new QAction(text, this);
+  m_view_toc->setShortcut(tr("Alt+T"));
+  m_view_toc->setStatusTip(tr("Show/Hide the table of contents viewer."));
+  connect(m_view_toc, &QAction::triggered, this, &MainWindow::viewToc);
+
+  if (m_options->tocPosition() == Options::LEFT) {
+    text = tr("Move Table of Contents to Right");
+  } else {
+    text = tr("Move Table of Contents to Left");
+  }
+  m_view_toc_position = new QAction(text, this);
+  m_view_toc_position->setShortcut(tr("Alt+P"));
+  m_view_toc_position->setStatusTip(
+      tr("Set the Table of Contents viewer position."));
+  connect(m_view_toc_position, &QAction::triggered, this,
+          &MainWindow::viewTocPosition);
 }
 
 void MainWindow::initEditActions()
@@ -405,7 +473,7 @@ void MainWindow::initActions()
 {
   initFileActions();
   initEditActions();
-  initWindowActions();
+  initViewActions();
   initEditorActions();
   initHelpActions();
 }
@@ -459,6 +527,12 @@ void MainWindow::saveOptions()
         emitter << YAML::Value << m_options->copy_books_to_store;
         emitter << YAML::Key << DELETE_OLD_BOOK;
         emitter << YAML::Value << m_options->delete_old_book;
+        emitter << YAML::Key << SHOW_TOC;
+        emitter << YAML::Value << m_options->m_toc_visible;
+        emitter << YAML::Key << TOC_POSITION;
+        emitter << YAML::Value
+                << (m_options->m_toc_position == Options::LEFT ? "LEFT"
+                                                               : "RIGHT");
         emitter << YAML::Key << PREF_BOOKLIST;
         {
           // Start of PREF_BOOKLIST
@@ -675,6 +749,18 @@ void MainWindow::loadOptions()
     } else {
       m_options->delete_old_book = false;
     }
+    if (m_preferences[SHOW_TOC]) {
+      m_options->m_toc_visible = m_preferences[SHOW_TOC].as<bool>();
+    } else {
+      m_options->m_toc_visible = true;
+    }
+    if (m_preferences[TOC_POSITION]) {
+      QString pos = m_preferences[TOC_POSITION].as<QString>();
+      m_options->m_toc_position =
+          (pos == "LEFT" ? Options::LEFT : Options::RIGHT);
+    } else {
+      m_options->m_toc_position = Options::LEFT;
+    }
     // Last books loaded in library.
     YAML::Node library = m_preferences[PREF_LIBRARY];
     if (library && library.IsSequence()) {
@@ -861,7 +947,7 @@ void MainWindow::setModifiedAuthors(IEBookDocument* doc,
   foreach (SharedAuthor author, authors) {
     names << author->name();
   }
-  doc->setCreators(names);
+  //  doc->setCreators(names);
   setModified();
 }
 
@@ -896,6 +982,7 @@ void MainWindow::loadDocument(QString filename)
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
     EBookWrapper* wrapper = new EBookWrapper(m_options, this);
     wrapper->editor()->setDocument(htmldocument);
+    m_toc->setDocument(htmldocument->toc());
     QString tabname = QString(tr("%1, (%2)")
                                   .arg(htmldocument->title())
                                   .arg(htmldocument->creatorNames()));
@@ -1043,8 +1130,10 @@ void MainWindow::saveDocument(IEBookDocument* document)
   EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
   IEBookDocument* current_doc =
       dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
-  IEBookInterface* plugin = current_doc->plugin();
-  current_doc->saveDocument();
+  if (current_doc) {
+    IEBookInterface* plugin = current_doc->plugin();
+    current_doc->saveDocument();
+  }
 }
 
 void MainWindow::documentChanged(int index)
@@ -1094,9 +1183,11 @@ void MainWindow::tabClosing(int index)
   m_tabs->removeTab(index);
 
   wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
-  document = dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
-  if (document) {
-    m_current_document = document;
+  if (wrapper) {
+    document = dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
+    if (document) {
+      m_current_document = document;
+    }
   } else {
     m_current_document = Q_NULLPTR;
   }
@@ -1214,6 +1305,8 @@ void MainWindow::editOptions()
 {
   OptionsDialog* dlg = new OptionsDialog(m_options, this);
   connect(dlg, &OptionsDialog::codeChanged, this, &MainWindow::codeChanged);
+  connect(dlg, &OptionsDialog::showToc, m_toc, &QTextEdit::setVisible);
+  connect(dlg, &OptionsDialog::moveToc, this, &MainWindow::update);
   int result = dlg->exec();
   if (result == QDialog::Accepted) {
     if (dlg->modified()) {
@@ -1224,19 +1317,50 @@ void MainWindow::editOptions()
   }
 }
 
-void MainWindow::winFullscreen() { m_wincentre->setEnabled(false); }
+void MainWindow::viewFullscreen() { m_view_centre->setEnabled(false); }
 
-void MainWindow::winMaximise() { m_wincentre->setEnabled(false); }
+void MainWindow::viewMaximise() { m_view_centre->setEnabled(false); }
 
-void MainWindow::winMinimise() { m_wincentre->setEnabled(true); }
+void MainWindow::viewMinimise() { m_view_centre->setEnabled(true); }
 
-void MainWindow::winCentre()
+void MainWindow::viewCentre()
 {
   QScreen* screen = QGuiApplication::primaryScreen();
   QRect screenGeometry = screen->geometry();
   move(screenGeometry.center() - rect().center());
   m_prefchanged = true;
   saveOptions();
+}
+
+void MainWindow::viewToc()
+{
+  QString text;
+  bool state = m_options->tocVisible();
+  m_options->setTocVisible(!state);
+  if (state) {
+    text = tr("Show Table of Contents");
+  } else {
+    text = tr("Hide Table of Contents");
+  }
+  m_view_toc->setText(text);
+  m_toc->setVisible(!state);
+}
+
+void MainWindow::viewTocPosition()
+{
+  QString text;
+  Options::TocPosition position = m_options->tocPosition();
+  if (position == Options::LEFT) {
+    m_options->setTocPosition(Options::RIGHT);
+    text = tr("Move Table of Contents to Left");
+    position = Options::RIGHT;
+  } else {
+    m_options->setTocPosition(Options::LEFT);
+    text = tr("Move Table of Contents to Right");
+    position = Options::LEFT;
+  }
+  m_view_toc_position->setText(text);
+  update(position);
 }
 
 void MainWindow::helpContents()
@@ -1305,6 +1429,13 @@ void MainWindow::openWindow()
       wrapper->setToMetadata();
     }
   }
+}
+
+void MainWindow::tocAnchorClicked(QUrl url)
+{
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  EBookEditor* editor = wrapper->editor();
+  editor->scrollToAnchor(url.fragment());
 }
 
 void MainWindow::fileNew()

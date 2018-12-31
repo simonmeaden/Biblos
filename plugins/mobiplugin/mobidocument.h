@@ -44,20 +44,22 @@ public:
   bool readOnly() override;
   void setReadOnly(const bool readonly) override;
   QString title() override;
-  void setTitle(const QString& title) override;
+  //  void setTitle(const QString& title) override;
   QString subject() override;
   void setSubject(const QString& subject) override;
   QString language() override;
   void setLanguage(const QString& language) override;
   QDateTime date() override;
   void setDate(const QDateTime& date) override;
-  QStringList creators() override;
-  void setCreators(const QStringList& creators) override;
-  QString creatorNames() override;
+  //  QStringList creators();
+  //  void setCreators(const QStringList& creators);
+  QString creatorNames();
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
   QDate published() override;
   void setPublished(const QDate& published) override;
+
+  QTextDocument* toc() override {}
 
 protected:
   MobiDocumentPrivate* d_ptr;

@@ -24,6 +24,7 @@ class QXmlStreamReader;
 typedef QSharedPointer<QDomDocument> SharedDomDocument;
 typedef QSharedPointer<QImage> SharedImage;
 typedef QMap<QString, SharedImage> SharedImageMap;
+typedef QSharedPointer<QTextCursor> SharedTextCursor;
 
 class EPubModified
 {
@@ -203,7 +204,8 @@ public:
   }
 };
 typedef QSharedPointer<EPubCreator> SharedCreator;
-typedef QMap<QString, SharedCreator> SharedCreatorMap;
+typedef QMultiMap<QString, SharedCreator> SharedCreatorMap;
+typedef QList<QString> CreatorList;
 
 class EPubMetadata
 {
@@ -211,6 +213,7 @@ public:
   SharedIdentifierMap identifiers;
   SharedTitleMap titles;
   SharedCreatorMap creators;
+  CreatorList creator_list;
   SharedLanguageMap languages;
   SharedSubjectMap subjects;
   EPubModified modified;
@@ -228,6 +231,7 @@ public:
   QString href;
   QString path;
   SharedDomDocument dom_document;
+  SharedTextCursor start, end;
   QString id;
   QByteArray media_type;
   QStringList properties;
@@ -238,26 +242,40 @@ public:
 typedef QSharedPointer<EPubManifestItem> SharedManifestItem;
 typedef QMap<QString, SharedManifestItem> SharedManifestItemMap;
 
+class EPubTocItem;
+typedef QSharedPointer<EPubTocItem> SharedTocItem;
+typedef QMap<int, SharedTocItem> SharedTocItemMap;
+class EPubTocItem
+{
+public:
+  QString id;
+  int playorder;
+  QString tag_class;
+  QString label;
+  QString source;
+  SharedTocItemMap sub_items;
+};
+
 class EPubManifest
 {
 public:
   QString id;
-  SharedManifestItem cover_image;     // 0 or 1
-  SharedManifestItem nav;             // 1
-  SharedManifestItemMap items;        // all items
-  SharedManifestItemMap mathml;       // subset of items for math markup
-  SharedManifestItemMap svg_images;   // subset of items for images
-  SharedImageMap rendered_svg_images; // rendered svg images
-  SharedImageMap images;
-  //  SharedManifestItemMap images;   // subset of items for images
+  SharedManifestItem cover_image;            // 0 or 1
+  SharedManifestItem nav;                    // 1
+  SharedManifestItemMap items;               // all items
+  SharedManifestItemMap mathml;              // subset of items for math markup
+  SharedManifestItemMap svg_images;          // subset of items for images
+  QMap<QString, QImage> rendered_svg_images; // rendered svg images
+  QMap<QString, QImage> images;
   SharedManifestItemMap remotes;
   SharedManifestItemMap scripted;
   SharedManifestItemMap switches;
-  //  SharedManifestItemMap xhtml;         // all items
-  SharedManifestItemMap css;           // all items
-  SharedManifestItemMap javascript;    // all items
+  QMap<QString, QString> css;          // all items
+  QMap<QString, QString> javascript;   // all items
   SharedManifestItemMap fonts;         // all items
   SharedManifestItemMap media_overlay; // all items
+  QString formatted_toc_string;
+  SharedTocItemMap toc_items;
 };
 
 class EPubSpineItem
@@ -295,7 +313,7 @@ public:
  * This is only included to support epub2.0 as it has been superceded in epub3.0
  * by the landmarks object.
  */
-class EPubGuide
+class EPubGuideItem
 {
 public:
   enum GuideType {
@@ -402,6 +420,9 @@ public:
     }
   }
 };
+typedef QSharedPointer<EPubGuideItem> SharedGuideItem;
+typedef QMap<QString, SharedGuideItem> SharedGuideItemMap;
+typedef QStringList GuideItemList;
 
 class EPubContainer : public QObject
 {
@@ -415,12 +436,23 @@ public:
   bool closeFile();
   //  QByteArray epubItem(const QString& id) const;
   //  QSharedPointer<QuaZipFile> zipFile(const QString& path);
-  SharedImage image(const QString& id, QSize image_size = QSize());
+  QImage image(const QString& id, QSize image_size = QSize());
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
   QStringList itemKeys();
-  SharedDomDocument item(QString key);
+  SharedManifestItem item(QString key);
+  QString css(QString key);
+  QString javascript(QString key);
+  SharedDomDocument itemDocument(QString key);
   QStringList spineKeys();
+  QStringList imageKeys();
+  QStringList cssKeys();
+  QStringList jsKeys();
+  QTextDocument* toc();
+  QStringList creators();
+
+  SharedMetadata metadata() { return m_metadata; }
+  EPubManifest manifest() { return m_manifest; }
 
 signals:
   void errorHappened(const QString& error);
@@ -448,6 +480,7 @@ protected:
                          const QString current_folder);
   bool parseSpineItem(const QDomNode& metadata_element);
   bool saveSpineItem();
+  bool parseToc();
   bool parseGuideItem(const QDomNode& guideItem);
   bool parseLandmarksItem(const QDomNode& guideItem);
   bool saveLandmarksItem();
@@ -503,10 +536,18 @@ protected:
   static const QString CREATOR;
   static const QString IDENTIFIER;
   static const QString LANGUAGE;
+
+  static const QString TOC_TITLE;
+  static const QString LIST_START;
+  static const QString LIST_END;
+  static const QString LIST_ITEM;
+
   void parseDateModified(QDomNamedNodeMap node_map, QString text);
   void saveTitles(QDomElement metadata_element);
   void saveCreator(QDomElement metadata_element);
   void saveIdentifier(QDomElement metadata_element);
+  SharedTocItem parseNavPoint(QDomElement navpoint,
+                              QString& formatted_toc_data);
 };
 
 #endif // EPUBCONTAINER_H

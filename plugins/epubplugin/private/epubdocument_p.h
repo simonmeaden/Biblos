@@ -22,9 +22,12 @@ public:
   bool loaded();
   void openDocument(const QString& path);
   void saveDocument();
-  void clearCache();
+  //  void clearCache();
   EPubContents* cloneData();
   void setClonedData(EPubContents* cloneData);
+
+  QStringList creators();
+  QString title();
 
   IEBookInterface* plugin() { return m_plugin; }
   void setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
@@ -36,18 +39,14 @@ public:
   void setDocumentPath(const QString& documentPath);
 
 protected:
-  QList<EPubCreator*> m_creators;
-
-  //  QHash<QString, QByteArray> m_svgs;
-  //  QHash<QString, QImage> m_renderedSvgs;
   EPubContainer* m_container;
   EBookItem m_currentItem;
   QString m_documentPath;
   bool m_loaded;
-  QString m_concatenated_authors;
 
   EPubDocumentPrivate(EPubDocumentPrivate& d);
   void loadDocument();
+  QTextDocument* toc();
   //  virtual QVariant loadResource(int, const QUrl&);
   //  void fixImages(SharedDomDocument newDocument);
   //  const QImage& getSvgImage(const QString& id);

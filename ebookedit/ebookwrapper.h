@@ -33,7 +33,7 @@ protected:
   EBookEditor* m_editor;
   EBookCodeEditor* m_codeeditor;
   MetadataEditor* m_metaeditor;
-  EBookWordReader* m_word_reader;
+  //  EBookWordReader* m_word_reader;
   int m_editorindex, m_codeindex, m_metaindex;
   Options* m_options;
 };

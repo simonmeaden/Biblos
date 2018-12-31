@@ -23,16 +23,18 @@ public:
   virtual bool readOnly() = 0;
   virtual void setReadOnly(const bool readonly) = 0;
 
+  virtual QTextDocument* toc() = 0;
+
   virtual QString title() = 0;
-  virtual void setTitle(const QString& title) = 0;
+  //  virtual void setTitle(const QString& title) = 0;
   virtual QString subject() = 0;
   virtual void setSubject(const QString& subject) = 0;
   virtual QString language() = 0;
   virtual void setLanguage(const QString& language) = 0;
   virtual QDateTime date() = 0;
   virtual void setDate(const QDateTime& date) = 0;
-  virtual QStringList creators() = 0;
-  virtual void setCreators(const QStringList& creators) = 0;
+  //  virtual QStringList creators() = 0;
+  //  virtual void setCreators(const QStringList& creators) = 0;
   virtual QString creatorNames() = 0;
   virtual QString publisher() = 0;
   virtual void setPublisher(const QString& publisher) = 0;
@@ -67,32 +69,30 @@ public:
   void setModified(bool modified) { m_modified = modified; }
   bool readonly() { return m_readonly; }
   void setReadonly(bool readonly) { m_readonly = readonly; }
-  QString title() { return m_title; }
-  QString title(QString name) { return m_titles.value(name); }
-  void setTitle(QString title) { m_title = title; }
-  void setTitle(QString name, QString title) { m_titles.insert(name, title); }
-  QStringList creators() { return m_creators; }
-  QString creator(int i) { return m_creators.at(i); }
-  void addCreator(QString creator) { m_creators.append(creator); }
-  void addCreators(QStringList creators) { m_creators.append(creators); }
-  void setCreators(QStringList creators) { m_creators = creators; }
-  void removeCreator(QString creator) { m_creators.removeOne(creator); }
+  //  void setTitle(QString title) { m_title = title; }
+  //  void setTitle(QString name, QString title) { m_titles.insert(name, title);
+  //  } QStringList creators() { return m_creators; } QString creator(int i) {
+  //  return m_creators.at(i); } void addCreator(QString creator) {
+  //  m_creators.append(creator); } void addCreators(QStringList creators) {
+  //  m_creators.append(creators); } void setCreators(QStringList creators) {
+  //  m_creators = creators; } void removeCreator(QString creator) {
+  //  m_creators.removeOne(creator); }
   /*!
-   * \brief Creates a comma separated list of creators.
+   * \brief Creates a & separated list of creators.
    * \return the list as a QString.
    */
-  QString creatorNames()
+  QString creatorNames(const QStringList& names)
   {
-    QString names;
-    foreach (QString name, m_creators) {
-      if (names.isEmpty()) {
-        names = name;
+    QString result;
+    foreach (QString name, names) {
+      if (result.isEmpty()) {
+        result = name;
       } else {
-        names += ", ";
-        names += name;
+        result += " &amp; ";
+        result += name;
       }
     }
-    return names;
+    return result;
   }
   QString subject() { return m_subject; }
   void setSubject(QString subject) { m_subject = subject; }
