@@ -77,9 +77,9 @@ public:
   void setLanguage(const QString& language) override;
   QDateTime date() override;
   void setDate(const QDateTime& date) override;
-  //  QStringList creators() override;
+  QStringList creators() override;
   //  void setCreators(const QStringList& creators) override;
-  QString creatorNames() override;
+  QString creatorNames(const QStringList& authors) override;
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
 

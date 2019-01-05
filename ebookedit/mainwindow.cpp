@@ -130,7 +130,9 @@ void MainWindow::initGui()
   m_library = new LibraryFrame(m_options, this);
   // These could not be created when the action was as l_library was still null.
   connect(m_library_shelf, &QAction::triggered, m_library, &LibraryFrame::setToShelf);
+  connect(m_library_shelf, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
   connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
+  connect(m_library_tree, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
   m_stack_library = m_stack->addWidget(m_library);
 
   m_tabs_frame = new QFrame(this);
@@ -166,6 +168,7 @@ void MainWindow::initGui()
     m_splitter->setStretchFactor(0, 3);
     m_splitter->setStretchFactor(1, 1);
   }
+  setLibraryToolbarState();
 }
 
 void MainWindow::initFileMenu()
@@ -626,22 +629,37 @@ QString MainWindow::copyBookToStore(QString path, QString authors)
   return QString();
 }
 
-SharedAuthorList MainWindow::selectAuthorNames(QString filename, EBookData* data)
+/*!
+ * \brief Gets a list of author data.
+ *
+ * First it attempts to extract the name(s) from the filename as this is
+ * often in the form of "title : author name or names.extension" or similar
+ * construct.
+ *
+ * If this fails it will pop up an author dialog that allows the
+ * user to either select an author from the database or input author
+ * information manually.
+ *
+ * \param filename - the filename od the book.
+ * \param title - the title of the book
+ * \return a QStringList containing the author(s) names.
+ */
+SharedAuthorList MainWindow::selectAuthorNames(QString filename, QString title)
 {
   SharedAuthorList authors;
-  AuthorDialog* authorDlg;
+  AuthorDialog* author_dlg;
   // TODO no author in metadata. Create it?
   // First see if the author name is in the title.
-  QStringList names = attemptToExtractAuthorFromFilename(filename, data);
+  QStringList names = attemptToExtractAuthorFromFilename(filename, title);
   if (!names.isEmpty()) {
-    authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::FromTitle, data->title, names) == QDialog::Accepted) {
-      authors = authorDlg->authors();
+    author_dlg = new AuthorDialog(m_database, this);
+    if (author_dlg->exec(AuthorDialog::FromTitle, title, names) == QDialog::Accepted) {
+      authors = author_dlg->authors();
     }
   } else {
-    authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::NoNames, data->title) == QDialog::Accepted) {
-      authors = authorDlg->authors();
+    author_dlg = new AuthorDialog(m_database, this);
+    if (author_dlg->exec(AuthorDialog::NoNames, title) == QDialog::Accepted) {
+      authors = author_dlg->authors();
     }
   }
   return authors;
@@ -661,12 +679,19 @@ void MainWindow::loadDocument(QString filename)
 {
   m_options->appendCurrentFile(filename);
 
+  // get the file extension
   QString ext;
+  bool is_in_library = false;
   QFileInfo info(filename);
   if (info.exists()) {
     ext = info.suffix();
   }
 
+  if (filename.startsWith(m_data_directory)) {
+    is_in_library = true;
+  }
+
+  // get the correct plugin.
   IEBookInterface* ebook_plugin = Q_NULLPTR;
   foreach (IPluginInterface* plugin, m_plugins) {
     ebook_plugin = dynamic_cast<IEBookInterface*>(plugin);
@@ -680,18 +705,59 @@ void MainWindow::loadDocument(QString filename)
   // there is an ebook plugin for this file type.
   if (ebook_plugin) {
     m_loading = true;
-    IEBookDocument* htmldocument = ebook_plugin->createDocument(filename);
-    ITextDocument* itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
+    IEBookDocument* htmldocument;
+    ITextDocument* itextdocument;
+    EBookWrapper* wrapper;
+    QString tabname;
+    htmldocument = ebook_plugin->createDocument(filename);
+    itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
     //    htmldocument->setPlugin(ebook_plugin);
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    EBookWrapper* wrapper = new EBookWrapper(m_options, this);
+    wrapper = new EBookWrapper(m_options, this);
     wrapper->editor()->setDocument(htmldocument);
-    m_toc->setDocument(htmldocument->toc());
-    QString tabname =
-      QString(tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
-    m_tabs->addTab(wrapper, tabname);
-    m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
-    connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
+    if (is_in_library) {
+      m_toc->setDocument(htmldocument->toc());
+      tabname = QString(tr("%1, (%2)")
+                        .arg(htmldocument->title())
+                        .arg(htmldocument->creatorNames(htmldocument->creators())));
+      m_tabs->addTab(wrapper, tabname);
+      m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
+      connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
+    } else {
+      // to copy it we need the authors.
+      if (m_options->copyBooksToStore()) {
+        QStringList authorlist = htmldocument->creators();
+        QString authors_name;
+        if (authorlist.isEmpty()) {
+          SharedAuthorList authors = selectAuthorNames(filename, htmldocument->title());
+          setModifiedAuthors(htmldocument, authors);
+
+          foreach (SharedAuthor author, authors) {
+            authors_name = author->forename() + " " + author->surname();
+            authorlist << authors_name;
+          }
+
+          authors_name = htmldocument->creatorNames(authorlist);
+          filename = copyBookToStore(filename, authors_name);
+        } else {
+          authors_name = htmldocument->creatorNames(authorlist);
+          filename = copyBookToStore(filename, authors_name);
+        }
+      }
+
+      htmldocument = ebook_plugin->createDocument(filename);
+      itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
+      //    htmldocument->setPlugin(ebook_plugin);
+      //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
+      wrapper = new EBookWrapper(m_options, this);
+      wrapper->editor()->setDocument(htmldocument);
+      m_toc->setDocument(htmldocument->toc());
+      tabname =
+        QString(tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
+      m_tabs->addTab(wrapper, tabname);
+      m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
+      connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
+    }
 
     //    wrapper->codeEditor()->setDocument(codeDocument);
     //    //  wrapper->startWordReader();
@@ -701,21 +767,6 @@ void MainWindow::loadDocument(QString filename)
     //    SharedAuthorList authors;
     //    QString authors_name;
     //    QString filename;
-
-    //    if (m_options->copy_books_to_store) {
-    //      //      QStringList authorlist = data->authors;
-    //      //      if (authorlist.isEmpty()) {
-    //      //        authors = selectAuthorNames(filename, data);
-    //      //        setModifiedAuthors(htmldocument, authors);
-    //      //        wrapper->metaEditor()->addAuthors(authors);
-    //      //        authors_name = concatenateAuthorNames(authors);
-    //      //        filename = copyBookToStore(filename, authors_name);
-    //      //      } else {
-    //      //        authors_name = concatenateAuthorNames(authorlist);
-    //      //        setModifiedAuthors(htmldocument, authors);
-    //      //        filename = copyBookToStore(filename, authors_name);
-    //      //      }
-    //    }
 
     //    htmldocument->setFilename(filename);
 
@@ -788,7 +839,7 @@ QStringList MainWindow::removeEmpty(QStringList values)
   return result;
 }
 
-QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, EBookData* data)
+QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, QString title)
 {
   QFile in_file(path);
   QFileInfo fileInfo(in_file);
@@ -797,9 +848,10 @@ QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, EBookDa
 
   // This removes case worries.
   QString lower_filename(filename.toLower()); // the lowercase version of the filename.
-  QString lower_title(data->title.toLower()); // the lowercase version of the title.
+  QString lower_title(title.toLower());       // the lowercase version of the title.
   QString remainder;
 
+  // remove the title (if used) from filename.
   int title_index;
   if (lower_filename.contains(lower_title)) {
     title_index = lower_filename.indexOf(lower_title);
@@ -1078,10 +1130,22 @@ void MainWindow::viewTocPosition()
   update(position);
 }
 
+void MainWindow::setLibraryToolbarState()
+{
+  if (m_library->isTree()) {
+    m_library_tree->setVisible(false);
+    m_library_shelf->setVisible(true);
+  } else {
+    m_library_tree->setVisible(true);
+    m_library_shelf->setVisible(false);
+  }
+}
+
 void MainWindow::viewShowLibrary()
 {
   m_stack->setCurrentIndex(m_stack_library);
   m_lib_type_toolbar->setEnabled(true);
+  setLibraryToolbarState();
 }
 
 void MainWindow::viewShowEditor()
@@ -1197,10 +1261,12 @@ void MainWindow::setObjectVisibility(int index)
       case Options::VIEW_LIBRARY_TREE:
         m_stack->setCurrentIndex(m_stack_library);
         m_library->setToTree();
+        setLibraryToolbarState();
         break;
       case Options::VIEW_LIBRARY_SHELF:
         m_stack->setCurrentIndex(m_stack_library);
         m_library->setToShelf();
+        setLibraryToolbarState();
         break;
       }
     }

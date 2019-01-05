@@ -168,6 +168,8 @@ public:
   void appendBook(SharedBook book) const;
   SharedBookList* books() const;
 
+  QStringList sortToAlphabeticalOrder();
+
   Comparison compare(QString forename, QString middlenames, QString surname);
   QStringList compareAndDiscard(QStringList names);
   bool isEmpty();

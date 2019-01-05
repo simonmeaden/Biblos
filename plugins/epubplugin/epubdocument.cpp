@@ -6,26 +6,34 @@
 
 using namespace qlogger;
 
-EPubDocument::EPubDocument(QObject* parent) :
-    ITextDocument(parent), d_ptr(new EPubDocumentPrivate(this))
+EPubDocument::EPubDocument(QObject* parent)
+  : ITextDocument(parent)
+  , d_ptr(new EPubDocumentPrivate(this))
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent) :
-    ITextDocument(parent), d_ptr(doc)
+EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent)
+  : ITextDocument(parent)
+  , d_ptr(doc)
 {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(const EPubDocument& doc) :
-    ITextDocument(doc.parent()), d_ptr(doc.d_ptr)
+EPubDocument::EPubDocument(const EPubDocument& doc)
+  : ITextDocument(doc.parent())
+  , d_ptr(doc.d_ptr)
 {
 }
 
-EPubDocument::EPubDocument(EPubDocumentPrivate& d) : ITextDocument(d.q_ptr) {}
+EPubDocument::EPubDocument(EPubDocumentPrivate& d)
+  : ITextDocument(d.q_ptr)
+{
+}
 
-EPubDocument::~EPubDocument() {}
+EPubDocument::~EPubDocument()
+{
+}
 
 bool EPubDocument::loaded()
 {
@@ -123,11 +131,11 @@ void EPubDocument::setDate(const QDateTime& date)
   // TODO
 }
 
-// QStringList EPubDocument::creators()
-//{
-//  Q_D(EPubDocument);
-//  return d->creators();
-//}
+QStringList EPubDocument::creators()
+{
+  Q_D(EPubDocument);
+  return d->creators();
+}
 
 // void EPubDocument::setCreators(const QStringList& authors)
 //{
@@ -135,10 +143,14 @@ void EPubDocument::setDate(const QDateTime& date)
 //  d->addCreators(authors);
 //}
 
-QString EPubDocument::creatorNames()
+QString EPubDocument::creatorNames(const QStringList &authors)
 {
   Q_D(EPubDocument);
-  return d->creatorNames(d->creators());
+  if (authors.isEmpty())
+    return d->creatorNames(d->creators());
+  else {
+    d->creatorNames(authors);
+  }
 }
 
 QString EPubDocument::publisher()

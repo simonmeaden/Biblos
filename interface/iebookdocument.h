@@ -10,7 +10,9 @@ class IEBookInterface;
 class IEBookDocument
 {
 public:
-  virtual ~IEBookDocument() {}
+  virtual ~IEBookDocument()
+  {
+  }
 
   virtual QString filename() = 0;
   virtual void setFilename(const QString& filename) = 0;
@@ -33,9 +35,9 @@ public:
   virtual void setLanguage(const QString& language) = 0;
   virtual QDateTime date() = 0;
   virtual void setDate(const QDateTime& date) = 0;
-  //  virtual QStringList creators() = 0;
+  virtual QStringList creators() = 0;
   //  virtual void setCreators(const QStringList& creators) = 0;
-  virtual QString creatorNames() = 0;
+  virtual QString creatorNames(const QStringList& names) = 0;
   virtual QString publisher() = 0;
   virtual void setPublisher(const QString& publisher) = 0;
   virtual QDate published() = 0;
@@ -49,7 +51,10 @@ class ITextDocument : public QTextDocument, public IEBookDocument
 {
   Q_OBJECT
 public:
-  ITextDocument(QObject* parent = Q_NULLPTR) : QTextDocument(parent) {}
+  ITextDocument(QObject* parent = Q_NULLPTR)
+    : QTextDocument(parent)
+  {
+  }
 
 signals:
   void loadCompleted();
@@ -63,8 +68,14 @@ protected:
 class ITextDocumentPrivate
 {
 public:
-  QString filename() { return m_filename; }
-  void setFilename(QString filename) { m_filename = filename; }
+  QString filename()
+  {
+    return m_filename;
+  }
+  void setFilename(QString filename)
+  {
+    m_filename = filename;
+  }
   //  bool isModified() { return m_modified; }
   //  void setModified(bool modified) { m_modified = modified; }
   //  bool readonly() { return m_readonly; }
@@ -94,12 +105,30 @@ public:
     }
     return result;
   }
-  QString subject() { return m_subject; }
-  void setSubject(QString subject) { m_subject = subject; }
-  QString publisher() { return m_publisher; }
-  void setPublisher(QString publisher) { m_publisher = publisher; }
-  QDate published() { return m_published; }
-  void setPublished(QDate date) { m_published = date; }
+  QString subject()
+  {
+    return m_subject;
+  }
+  void setSubject(QString subject)
+  {
+    m_subject = subject;
+  }
+  QString publisher()
+  {
+    return m_publisher;
+  }
+  void setPublisher(QString publisher)
+  {
+    m_publisher = publisher;
+  }
+  QDate published()
+  {
+    return m_published;
+  }
+  void setPublished(QDate date)
+  {
+    m_published = date;
+  }
 
 protected:
   IEBookInterface* m_plugin;

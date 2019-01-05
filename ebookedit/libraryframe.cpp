@@ -49,3 +49,8 @@ void LibraryFrame::setToTree()
 {
   m_stack->setCurrentIndex(m_stack_tree);
 }
+
+bool LibraryFrame::isTree()
+{
+  return (m_stack->currentIndex() == m_stack_tree);
+}

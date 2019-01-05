@@ -100,7 +100,7 @@ bool Author::setName(QString author)
 bool Author::surnameMatch(QString author)
 {
   // This assumes western type names ie forename middlename surname.
-  // TODO handle right to left order names.
+  // TODO handle right to left order names and oriental (surname first) names.
   QStringList names = author.split(" ");
   return (m_surname == names.at(names.size() - 1));
 }
@@ -177,6 +177,15 @@ bool Author::compareMiddlenames(QString value)
 void Author::appendBook(SharedBook book) const
 {
   m_books->append(book);
+}
+
+QStringList Author::sortToAlphabeticalOrder()
+{
+  QMap<QString, QString> map;
+  foreach (const QString &str, list)
+    map.insert(str.toLower(), str);
+
+  list = map.values();
 }
 
 Author::Comparison Author::compare(QString forename, QString middlenames, QString surname)

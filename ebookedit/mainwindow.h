@@ -36,7 +36,7 @@ public:
 
   void closePopup();
 
-  SharedAuthorList selectAuthorNames(QString filename, EBookData* data);
+  SharedAuthorList selectAuthorNames(QString filename, QString title);
 
   void loadNonLibraryFiles(QStringList current_files, int currentindex);
 
@@ -117,7 +117,7 @@ protected:
   QString concatenateAuthorNames(SharedAuthorList names);
   QString concatenateAuthorNames(QStringList names);
   QStringList removeEmpty(QStringList values);
-  QStringList attemptToExtractAuthorFromFilename(QString, EBookData* data);
+  QStringList attemptToExtractAuthorFromFilename(QString, QString title);
   QString cleanString(QString toClean);
 
   void setStatusModified();
@@ -242,6 +242,7 @@ protected: // Menu/StatusBar stuff
 
   void loadLibraryFiles(QStringList current_lib_files, int currentindex);
   void setModifiedAuthors(IEBookDocument* doc, SharedAuthorList authors);
+  void setLibraryToolbarState();
 };
 
 #endif // MAINWINDOW_H

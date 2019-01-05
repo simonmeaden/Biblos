@@ -18,6 +18,7 @@ public:
 
   void setToShelf();
   void setToTree();
+  bool isTree();
 
 protected:
   Options* m_options;
