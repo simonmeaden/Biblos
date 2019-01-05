@@ -63,9 +63,9 @@ public:
   // IEBookDocument interface
   IEBookInterface* plugin() override;
   void setPlugin(IEBookInterface* plugin) override;
-  bool isModified() override;
-  bool readOnly() override;
-  void setReadOnly(const bool readonly) override;
+  //  bool isModified() override;
+  //  bool readOnly() override;
+  //  void setReadOnly(const bool readonly) override;
   QDate published() override;
   void setPublished(const QDate& published) override;
 

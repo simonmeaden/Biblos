@@ -4,6 +4,7 @@
 #include <QtWidgets>
 
 #include "ebookcommon.h"
+#include "options.h"
 #include "library.h"
 
 class MetadataEditor : public QWidget

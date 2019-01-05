@@ -15,8 +15,11 @@
 
 #include "ebookwordreader.h"
 #include "ebookwrapper.h"
+#include "libraryframe.h"
 
+#include "aboutdialog.h"
 #include "authordialog.h"
+#include "libraryframe.h"
 #include "optionsdialog.h"
 #include "plugindialog.h"
 
@@ -31,51 +34,29 @@ const QString MainWindow::MODIFIED = MainWindow::tr("Modified");
 const QString MainWindow::PREF_FILE = "preferences.yaml";
 const QString MainWindow::DB_NAME = "library.sqlite";
 
-QString MainWindow::POSITION = "window";
-QString MainWindow::DIALOG = "options dialog";
-QString MainWindow::PREF_POPUP_TIMEOUT = "popup timeout";
-QString MainWindow::PREF_ENABLE_POPUP = "popup enable";
-QString MainWindow::PREF_CURRENT_INDEX = "current book";
-QString MainWindow::PREF_COUNT = "count";
-QString MainWindow::PREF_BOOKLIST = "book list";
-QString MainWindow::PREF_LIBRARY = "library list";
-QString MainWindow::CODE_OPTIONS = "code editor";
-QString MainWindow::CODE_FONT = "font";
-QString MainWindow::CODE_NORMAL = "normal";
-QString MainWindow::CODE_ATTRIBUTE = "attribute";
-QString MainWindow::CODE_TAG = "tag";
-QString MainWindow::CODE_ERROR = "error";
-QString MainWindow::CODE_STRING = "string";
-QString MainWindow::CODE_STYLE = "style";
-QString MainWindow::CODE_SCRIPT = "script";
-QString MainWindow::CODE_COLOR = "color";
-QString MainWindow::CODE_BACK = "background";
-QString MainWindow::CODE_WEIGHT = "weight";
-QString MainWindow::CODE_ITALIC = "italic";
-QString MainWindow::COPY_BOOKS_TO_STORE = "copy books to store";
-QString MainWindow::DELETE_OLD_BOOK = "delete old book";
-QString MainWindow::SHOW_TOC = "show toc";
-QString MainWindow::TOC_POSITION = "toc position";
-
-MainWindow::MainWindow(QWidget* parent) :
-    QMainWindow(parent)
+MainWindow::MainWindow(QWidget* parent)
+  : QMainWindow(parent)
     //  , m_library(QSharedPointer<Library>(new Library()))
-    ,
-    m_initialising(true), m_loading(false), m_options(new Options()),
-    m_bookcount(0), m_popup(Q_NULLPTR), m_current_spell_checker(Q_NULLPTR)
+  , m_initialising(true)
+  , m_loading(false)
+  , m_options(new Options(parent))
+  , m_bookcount(0)
+  , m_popup(Q_NULLPTR)
+  , m_current_spell_checker(Q_NULLPTR)
 {
   QLogger::addLogger("root", q5TRACE, CONSOLE);
+
+  connect(m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
+  connect(m_options, &Options::loadNonLibraryFiles, this, &MainWindow::loadNonLibraryFiles);
 
   loadPlugins();
   initBuild();
   QDir dir;
-  m_home_directiory = QStandardPaths::locate(
-      QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory);
-  m_data_directory =
-      QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+  m_home_directiory = QStandardPaths::locate(QStandardPaths::HomeLocation, QString(),
+                      QStandardPaths::LocateDirectory);
+  m_data_directory = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
   dir.mkpath(m_data_directory);
-  m_config_directory =
-      QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+  m_config_directory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
   dir.mkpath(m_config_directory);
   m_config_file = m_config_directory + QDir::separator() + PREF_FILE;
 
@@ -83,20 +64,21 @@ MainWindow::MainWindow(QWidget* parent) :
    * does not exist. The tables are created if they do not already exist.
    */
   QString db_path = m_config_directory + QDir::separator() + DB_NAME;
-  m_database = new DbManager(db_path, this);
+  m_database = new DbManager(db_path, parent);
 
   initSetup();
 
   m_initialising = false;
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+}
 
 void MainWindow::resizeEvent(QResizeEvent* e)
 {
   QSize size = e->size();
-  m_options->rect.setSize(size);
-  m_prefchanged = true;
+  m_options->rect().setSize(size);
   if (!m_initialising)
     saveOptions();
 }
@@ -104,8 +86,9 @@ void MainWindow::resizeEvent(QResizeEvent* e)
 void MainWindow::moveEvent(QMoveEvent* e)
 {
   QPoint pos = e->pos();
-  m_options->rect.setTopLeft(pos);
-  m_prefchanged = true;
+  QRect rect = m_options->rect();
+  rect.setTopLeft(pos);
+  m_options->setRect(rect);
   if (!m_initialising)
     saveOptions();
 }
@@ -137,10 +120,23 @@ void MainWindow::update(Options::TocPosition position)
 
 void MainWindow::initGui()
 {
-  QFrame* mainFrame = new QFrame(this);
-  setCentralWidget(mainFrame);
+  //  QFrame* mainFrame = new QFrame(this);
+  //  setCentralWidget(mainFrame);
+
+  m_stack = new QStackedWidget(this);
+  connect(m_stack, &QStackedWidget::currentChanged, this, &MainWindow::setObjectVisibility);
+  setCentralWidget(m_stack);
+
+  m_library = new LibraryFrame(m_options, this);
+  // These could not be created when the action was as l_library was still null.
+  connect(m_library_shelf, &QAction::triggered, m_library, &LibraryFrame::setToShelf);
+  connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
+  m_stack_library = m_stack->addWidget(m_library);
+
+  m_tabs_frame = new QFrame(this);
   QHBoxLayout* main_layout = new QHBoxLayout;
-  mainFrame->setLayout(main_layout);
+  m_tabs_frame->setLayout(main_layout);
+  m_stack_editor = m_stack->addWidget(m_tabs_frame);
 
   m_toc_position = m_options->tocPosition();
 
@@ -150,15 +146,12 @@ void MainWindow::initGui()
   m_toc = new QTextBrowser(this);
   m_toc->setOpenLinks(false);
   //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
-  connect(m_toc, &QTextBrowser::anchorClicked, this,
-          &MainWindow::tocAnchorClicked);
+  connect(m_toc, &QTextBrowser::anchorClicked, this, &MainWindow::tocAnchorClicked);
 
   m_tabs = new QTabWidget(this);
   m_tabs->setTabsClosable(true);
-  connect(m_tabs, &QTabWidget::currentChanged, this,
-          &MainWindow::documentChanged);
-  connect(m_tabs, &QTabWidget::tabCloseRequested, this,
-          &MainWindow::tabClosing);
+  connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::documentChanged);
+  connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::tabClosing);
   if (m_tabs->count() == 0)
     m_tabs->setEnabled(false);
 
@@ -180,6 +173,7 @@ void MainWindow::initFileMenu()
   m_filemenu = menuBar()->addMenu(tr("&File"));
   m_filemenu->addAction(m_file_new);
   m_filemenu->addAction(m_file_open);
+  m_filemenu->addSeparator();
   m_filemenu->addAction(m_file_save);
   m_filemenu->addAction(m_file_save_as);
   m_filemenu->addAction(m_file_save_all);
@@ -217,6 +211,11 @@ void MainWindow::initViewMenu()
   m_view_menu->addAction(m_view_minimise);
   m_view_menu->addAction(m_view_fullscreen);
   m_view_menu->addAction(m_view_centre);
+  m_view_menu->addSeparator();
+  m_view_menu->addAction(m_show_library);
+  m_view_menu->addAction(m_show_editor);
+  m_view_menu->addAction(m_library_tree);
+  m_view_menu->addAction(m_library_shelf);
   m_view_menu->addSeparator();
   m_view_menu->addAction(m_view_toc);
   m_view_menu->addAction(m_view_toc_position);
@@ -289,27 +288,21 @@ void MainWindow::initViewActions()
   m_view_maximise = new QAction(tr("Maximise screen"), this);
   m_screengrp->addAction(m_view_maximise);
   m_view_maximise->setShortcut(tr("Alt+X"));
-  m_view_maximise->setStatusTip(
-      tr("Set screen size to full screen with title bar."));
-  connect(m_view_maximise, &QAction::triggered, this,
-          &MainWindow::viewMaximise);
+  m_view_maximise->setStatusTip(tr("Set screen size to full screen with title bar."));
+  connect(m_view_maximise, &QAction::triggered, this, &MainWindow::viewMaximise);
 
   m_view_minimise = new QAction(tr("Minimise screen"), this);
   m_screengrp->addAction(m_view_minimise);
   m_view_minimise->setShortcut(tr("Alt+N"));
-  m_view_minimise->setStatusTip(
-      tr("Set screen size to minimised screen with title bar."));
-  connect(m_view_minimise, &QAction::triggered, this,
-          &MainWindow::viewMinimise);
+  m_view_minimise->setStatusTip(tr("Set screen size to minimised screen with title bar."));
+  connect(m_view_minimise, &QAction::triggered, this, &MainWindow::viewMinimise);
   m_view_minimise->setChecked(true);
 
   m_view_fullscreen = new QAction(tr("Full screen"), this);
   m_screengrp->addAction(m_view_fullscreen);
   m_view_fullscreen->setShortcut(QKeySequence::FullScreen);
-  m_view_fullscreen->setStatusTip(
-      tr("Set screen size to full screen without title bar."));
-  connect(m_view_fullscreen, &QAction::triggered, this,
-          &MainWindow::viewFullscreen);
+  m_view_fullscreen->setStatusTip(tr("Set screen size to full screen without title bar."));
+  connect(m_view_fullscreen, &QAction::triggered, this, &MainWindow::viewFullscreen);
 
   m_view_centre = new QAction(tr("Centre screen"), this);
   m_view_centre->setShortcut(QKeySequence::FullScreen);
@@ -335,10 +328,8 @@ void MainWindow::initViewActions()
   }
   m_view_toc_position = new QAction(text, this);
   m_view_toc_position->setShortcut(tr("Alt+P"));
-  m_view_toc_position->setStatusTip(
-      tr("Set the Table of Contents viewer position."));
-  connect(m_view_toc_position, &QAction::triggered, this,
-          &MainWindow::viewTocPosition);
+  m_view_toc_position->setStatusTip(tr("Set the Table of Contents viewer position."));
+  connect(m_view_toc_position, &QAction::triggered, this, &MainWindow::viewTocPosition);
 }
 
 void MainWindow::initEditActions()
@@ -370,10 +361,8 @@ void MainWindow::initEditActions()
 
   m_edit_paste_history = new QAction(tr("Paste from clipboard history"), this);
   m_edit_paste_history->setShortcut(tr("Ctrl+Shift+V"));
-  m_edit_paste_history->setStatusTip(
-      tr("Paste from a previous clipboard selection."));
-  connect(m_edit_paste_history, &QAction::triggered, this,
-          &MainWindow::editCopy);
+  m_edit_paste_history->setStatusTip(tr("Paste from a previous clipboard selection."));
+  connect(m_edit_paste_history, &QAction::triggered, this, &MainWindow::editCopy);
 
   m_edit_options = new QAction(tr("Preferences"), this);
   m_edit_options->setShortcut(QKeySequence::Preferences);
@@ -383,38 +372,31 @@ void MainWindow::initEditActions()
   m_edit_spellcheck = new QAction(tr("Spellcheck"), this);
   //  m_editoptions->setShortcut(QKeySequence::SelectPrevious);
   m_edit_options->setStatusTip(tr("Spellcheck Current Document."));
-  connect(m_edit_options, &QAction::triggered, this,
-          &MainWindow::editSpellcheck);
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSpellcheck);
 
-  m_edit_highlight_misspelled =
-      new QAction(tr("Highlight Misspelled Words"), this);
+  m_edit_highlight_misspelled = new QAction(tr("Highlight Misspelled Words"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   //  m_editoptions->setStatusTip(tr("Modify preferences."));
-  connect(m_edit_options, &QAction::triggered, this,
-          &MainWindow::editHighlightWords);
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editHighlightWords);
 
   m_edit_next_misspelled = new QAction(tr("Next Misspelled Word"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   m_edit_options->setStatusTip(tr("Modify preferences."));
   connect(m_edit_options, &QAction::triggered, this, &MainWindow::editNextWord);
 
-  m_edit_send_to_booklist =
-      new QAction(tr("Send Word to Book Dictionary"), this);
+  m_edit_send_to_booklist = new QAction(tr("Send Word to Book Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   m_edit_options->setStatusTip(
-      tr("This allows you to create a dictionary specifically for this book."));
-  connect(m_edit_options, &QAction::triggered, this,
-          &MainWindow::editSendToBookList);
+    tr("This allows you to create a dictionary specifically for this book."));
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSendToBookList);
 
-  m_edit_send_to_authorlist =
-      new QAction(tr("Send Word to Author Dictionary"), this);
+  m_edit_send_to_authorlist = new QAction(tr("Send Word to Author Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
-  m_edit_options->setStatusTip(tr(
-      "This allows you to create a dictionary specifically for this Author. "
-      "Generally you would use this for an Authors Series where the same, "
-      "possibly name or non-standard word might be used in muyltiple books."));
-  connect(m_edit_options, &QAction::triggered, this,
-          &MainWindow::editSendToAuthorList);
+  m_edit_options->setStatusTip(
+    tr("This allows you to create a dictionary specifically for this Author. "
+       "Generally you would use this for an Authors Series where the same, "
+       "possibly name or non-standard word might be used in muyltiple books."));
+  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSendToAuthorList);
 }
 
 void MainWindow::initEditorActions()
@@ -429,8 +411,7 @@ void MainWindow::initEditorActions()
 
   m_open_codeeditor = new QAction(code_icon, tr("Open Code Editor"), this);
   m_open_codeeditor->setStatusTip(tr("Switches to the Code Editor Window."));
-  connect(m_open_codeeditor, &QAction::triggered, this,
-          &MainWindow::openWindow);
+  connect(m_open_codeeditor, &QAction::triggered, this, &MainWindow::openWindow);
 
   m_open_metadata = new QAction(meta_icon, tr("Open Metadata editor"), this);
   m_open_metadata->setStatusTip(tr("Switches to the Metadata Editor Window."));
@@ -441,8 +422,7 @@ void MainWindow::initHelpActions()
 {
   m_help_contents = new QAction(tr("Contents"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this,
-          &MainWindow::helpContents);
+  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpContents);
 
   m_help_index = new QAction(tr("Index"), this);
   m_help_index->setStatusTip(tr("Access Help Index."));
@@ -454,19 +434,43 @@ void MainWindow::initHelpActions()
 
   m_help_about_ebookeditor = new QAction(tr("About EBookEditor"), this);
   m_help_about_ebookeditor->setStatusTip(tr("Information about EBookEditor."));
-  connect(m_help_about_ebookeditor, &QAction::triggered, this,
-          &MainWindow::helpAboutEbookEditor);
+  connect(m_help_about_ebookeditor, &QAction::triggered, this, &MainWindow::helpAboutEbookEditor);
 
   m_help_about_plugins = new QAction(tr("About Plugins"), this);
-  m_help_about_plugins->setStatusTip(
-      tr("Information about available Plugins."));
-  connect(m_help_about_plugins, &QAction::triggered, this,
-          &MainWindow::helpAboutPlugins);
+  m_help_about_plugins->setStatusTip(tr("Information about available Plugins."));
+  connect(m_help_about_plugins, &QAction::triggered, this, &MainWindow::helpAboutPlugins);
 
   m_help_check_updates = new QAction(tr("Check for Updates"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this,
-          &MainWindow::helpCheckUpdates);
+  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpCheckUpdates);
+}
+
+void MainWindow::initLibActions()
+{
+  QPixmap library_icon(":/icons/library");
+  QPixmap bookshelf_icon(":/icons/bookshelf");
+  QPixmap tree_icon(":icons/tree");
+  QPixmap editor_icon(":/icons/editor");
+
+  Options::ViewState state = m_options->viewState();
+
+  m_show_library = new QAction(library_icon, tr("Show Library"), this);
+  m_show_library->setStatusTip(tr("Shows the library page."));
+  connect(m_show_library, &QAction::triggered, this, &MainWindow::viewShowLibrary);
+
+  m_show_editor = new QAction(editor_icon, tr("Show Editor"), this);
+  m_show_editor->setStatusTip(tr("Shows the editor page."));
+  connect(m_show_editor, &QAction::triggered, this, &MainWindow::viewShowEditor);
+
+  m_library_tree = new QAction(tree_icon, tr("Library Tree"), this);
+  m_library_tree->setStatusTip(tr("Sets the library page to tree format."));
+  //  connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
+
+  m_library_shelf = new QAction(bookshelf_icon, tr("Library Shelf"), this);
+  m_library_shelf->setStatusTip(tr("Sets the library page to shelf format."));
+  //  connect(m_library_shelf, &QAction::triggered, m_library, &LibraryFrame::setToShelf);
+
+  setObjectVisibility(state);
 }
 
 void MainWindow::initActions()
@@ -476,6 +480,7 @@ void MainWindow::initActions()
   initViewActions();
   initEditorActions();
   initHelpActions();
+  initLibActions();
 }
 
 void MainWindow::initStatusbar()
@@ -493,190 +498,42 @@ void MainWindow::initStatusbar()
 
 void MainWindow::initToolbar()
 {
-  QToolBar* file_toolbar = addToolBar("file toolbar");
-  file_toolbar->addAction(m_file_open);
-  file_toolbar->addAction(m_file_save);
-  file_toolbar->setIconSize(QSize(48, 48));
+  m_lib_toolbar = addToolBar("library toolbar");
+  m_lib_toolbar->addAction(m_show_library);
+  m_lib_toolbar->addAction(m_show_editor);
+  m_show_editor->setVisible(false);
+  m_lib_toolbar->setIconSize(QSize(48, 48));
 
-  QToolBar* editor_toolbar = addToolBar("editor toolbar");
-  editor_toolbar->addAction(m_open_editor);
-  editor_toolbar->addAction(m_open_codeeditor);
-  editor_toolbar->addAction(m_open_metadata);
-  editor_toolbar->setIconSize(QSize(48, 48));
+  m_lib_type_toolbar = addToolBar("library type toolbar");
+  m_lib_type_toolbar->addAction(m_library_tree);
+  m_lib_type_toolbar->addAction(m_library_shelf);
+  m_lib_type_toolbar->setVisible(true);
+  m_lib_type_toolbar->setIconSize(QSize(48, 48));
+
+  m_file_toolbar = addToolBar("file toolbar");
+  m_file_toolbar->addAction(m_file_open);
+  m_file_toolbar->addAction(m_file_save);
+  m_file_save->setVisible(false);
+  m_file_toolbar->setIconSize(QSize(48, 48));
+
+  m_editor_toolbar = addToolBar("editor toolbar");
+  m_editor_toolbar->addAction(m_open_editor);
+  m_editor_toolbar->addAction(m_open_codeeditor);
+  m_editor_toolbar->addAction(m_open_metadata);
+  m_editor_toolbar->setIconSize(QSize(48, 48));
 }
 
-void MainWindow::saveOptions()
+void MainWindow::loadLibraryFiles(QStringList current_lib_files, int currentindex)
 {
-  QFile file(m_config_file);
-  if (m_prefchanged) {
-    if (file.open((QFile::ReadWrite | QFile::Truncate))) {
-      YAML::Emitter emitter;
-      {
-        emitter << YAML::BeginMap;
-        emitter << YAML::Key << POSITION;
-        emitter << YAML::Value << m_options->rect;
-        emitter << YAML::Key << DIALOG;
-        emitter << YAML::Value << m_options->options_dlg;
-        emitter << YAML::Key << PREF_POPUP_TIMEOUT;
-        emitter << YAML::Value << m_options->popuptimeout;
-        emitter << YAML::Key << PREF_ENABLE_POPUP;
-        emitter << YAML::Value << m_options->enablepopup;
-        emitter << YAML::Key << PREF_CURRENT_INDEX;
-        emitter << YAML::Value << m_options->currentindex;
-        emitter << YAML::Key << COPY_BOOKS_TO_STORE;
-        emitter << YAML::Value << m_options->copy_books_to_store;
-        emitter << YAML::Key << DELETE_OLD_BOOK;
-        emitter << YAML::Value << m_options->delete_old_book;
-        emitter << YAML::Key << SHOW_TOC;
-        emitter << YAML::Value << m_options->m_toc_visible;
-        emitter << YAML::Key << TOC_POSITION;
-        emitter << YAML::Value
-                << (m_options->m_toc_position == Options::LEFT ? "LEFT"
-                                                               : "RIGHT");
-        emitter << YAML::Key << PREF_BOOKLIST;
-        {
-          // Start of PREF_BOOKLIST
-          emitter << YAML::BeginSeq;
-          foreach (QString book, m_options->current_files) {
-            emitter << book;
-          }
-          emitter << YAML::EndSeq;
-        } // End of PREF_BOOKLIST
-        emitter << YAML::Key << PREF_LIBRARY;
-        {
-          // Start of PREF_LIBRARY
-          emitter << YAML::BeginSeq;
-          foreach (QString book, m_options->current_lib_files) {
-            emitter << book;
-          }
-          emitter << YAML::EndSeq;
-        } // End of PREF_LIBRARY
-        emitter << YAML::Key << CODE_OPTIONS;
-        {
-          // Start of CODE_OPTIONS
-          emitter << YAML::BeginMap;
-          emitter << YAML::Key << CODE_FONT;
-          emitter << YAML::Value << m_options->codeFont;
-          emitter << YAML::Key << CODE_NORMAL;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->normalColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->normalBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << int(m_options->normalWeight);
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->normalItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_ATTRIBUTE;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->attributeColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->attributeBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << int(m_options->attributeWeight);
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->attributeItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_TAG;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->tagColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->tagBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << int(m_options->tagWeight);
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->tagItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_STRING;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->stringColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->stringBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << int(m_options->stringWeight);
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->stringItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_ERROR;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->errorColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->errorBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << m_options->errorWeight;
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->errorItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_STYLE;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->styleColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->styleBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << m_options->styleWeight;
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->styleItalic;
-            emitter << YAML::EndMap;
-          }
-          emitter << YAML::Key << CODE_SCRIPT;
-          emitter << YAML::Value;
-          {
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << CODE_COLOR;
-            emitter << YAML::Value << m_options->scriptColor;
-            emitter << YAML::Key << CODE_BACK;
-            emitter << YAML::Value << m_options->scriptBack;
-            emitter << YAML::Key << CODE_WEIGHT;
-            emitter << YAML::Value << m_options->scriptWeight;
-            emitter << YAML::Key << CODE_ITALIC;
-            emitter << YAML::Value << m_options->scriptItalic;
-            emitter << YAML::EndMap;
-          }
-        } // End of CODE_OPTIONS
-        emitter << YAML::EndMap;
-      }
-      QTextStream out(&file);
-      out << emitter.c_str();
-    }
-  }
-  m_prefchanged = false;
-}
-
-void MainWindow::loadLibraryFiles()
-{
-  if (!m_options->current_lib_files.empty()) {
-    foreach (QString filename, m_options->current_lib_files) {
+  if (!current_lib_files.empty()) {
+    foreach (QString filename, current_lib_files) {
       filename = m_data_directory + QDir::separator() + filename;
       QFile file(filename);
       if (file.exists()) {
         loadDocument(filename);
       }
-      if (m_options->currentindex >= 0 &&
-          m_tabs->count() > m_options->currentindex) {
-        m_tabs->setCurrentIndex(m_options->currentindex);
+      if (currentindex >= 0 && m_tabs->count() > currentindex) {
+        m_tabs->setCurrentIndex(currentindex);
       } else {
         m_tabs->setCurrentIndex(0);
       }
@@ -684,17 +541,16 @@ void MainWindow::loadLibraryFiles()
   }
 }
 
-void MainWindow::loadNonLibraryFiles()
+void MainWindow::loadNonLibraryFiles(QStringList current_files, int currentindex)
 {
-  if (!m_options->current_files.empty()) {
-    foreach (QString filename, m_options->current_files) {
+  if (!current_files.empty()) {
+    foreach (QString filename, current_files) {
       QFile file(filename);
       if (file.exists()) {
         loadDocument(filename);
       }
-      if (m_options->currentindex >= 0 &&
-          m_tabs->count() > m_options->currentindex) {
-        m_tabs->setCurrentIndex(m_options->currentindex);
+      if (currentindex >= 0 && m_tabs->count() > currentindex) {
+        m_tabs->setCurrentIndex(currentindex);
       } else {
         m_tabs->setCurrentIndex(0);
       }
@@ -704,160 +560,19 @@ void MainWindow::loadNonLibraryFiles()
 
 void MainWindow::loadOptions()
 {
-  QFile file(m_config_file);
-  if (file.exists()) {
-    m_preferences = YAML::LoadFile(file);
-    // Last window position.
-    if (m_preferences[POSITION]) {
-      m_options->rect = m_preferences[POSITION].as<QRect>();
-    } else {
-      m_options->rect = QRect(0, 0, DEF_WIDTH, DEF_HEIGHT);
-    }
-    if (m_preferences[DIALOG]) {
-      m_options->options_dlg = m_preferences[DIALOG].as<QSize>();
-    } else {
-      m_options->options_dlg = QSize(DEF_DLG_WIDTH, DEF_DLG_HEIGHT);
-    }
-    // Popup information enablement.
-    if (m_preferences[PREF_ENABLE_POPUP]) {
-      m_options->enablepopup = m_preferences[PREF_ENABLE_POPUP].as<bool>();
-    } else {
-      m_options->enablepopup = true;
-    }
-    // Timeout for popup information.
-    if (m_preferences[PREF_POPUP_TIMEOUT]) {
-      m_options->popuptimeout = m_preferences[PREF_POPUP_TIMEOUT].as<int>();
-    } else {
-      m_options->popuptimeout = DEF_POPUP_TIMEOUT;
-    }
-    // Current book being read/edited.
-    if (m_preferences[PREF_CURRENT_INDEX]) {
-      m_options->currentindex = m_preferences[PREF_CURRENT_INDEX].as<int>();
-    } else {
-      m_options->currentindex = 0;
-    }
-    // Copy edited books to a book store.
-    if (m_preferences[COPY_BOOKS_TO_STORE]) {
-      m_options->copy_books_to_store =
-          m_preferences[COPY_BOOKS_TO_STORE].as<bool>();
-    } else {
-      m_options->copy_books_to_store = true;
-    }
-    // Copy edited books to a book store.
-    if (m_preferences[DELETE_OLD_BOOK]) {
-      m_options->delete_old_book = m_preferences[DELETE_OLD_BOOK].as<bool>();
-    } else {
-      m_options->delete_old_book = false;
-    }
-    if (m_preferences[SHOW_TOC]) {
-      m_options->m_toc_visible = m_preferences[SHOW_TOC].as<bool>();
-    } else {
-      m_options->m_toc_visible = true;
-    }
-    if (m_preferences[TOC_POSITION]) {
-      QString pos = m_preferences[TOC_POSITION].as<QString>();
-      m_options->m_toc_position =
-          (pos == "LEFT" ? Options::LEFT : Options::RIGHT);
-    } else {
-      m_options->m_toc_position = Options::LEFT;
-    }
-    // Last books loaded in library.
-    YAML::Node library = m_preferences[PREF_LIBRARY];
-    if (library && library.IsSequence()) {
-      m_options->current_lib_files.clear(); // Empty list just in case.
-      for (uint i = 0; i < library.size(); i++) {
-        m_options->current_lib_files.append(library[i].as<QString>());
-      }
-    }
-    loadLibraryFiles();
+  m_options->load(m_config_file);
+  setObjectVisibility();
+}
 
-    // Last books loaded NOT in library.
-    YAML::Node books = m_preferences[PREF_BOOKLIST];
-    if (books && books.IsSequence()) {
-      m_options->current_files.clear(); // Empty list just in case.
-      for (uint i = 0; i < books.size(); i++) {
-        m_options->current_files.append(books[i].as<QString>());
-      }
-    }
-    loadNonLibraryFiles();
-
-    //    m_options->currentfiles = m_preferences["book
-    //    list"].as<QStringList>();
-    YAML::Node codeoptions = m_preferences[CODE_OPTIONS];
-    if (codeoptions && codeoptions.IsMap()) {
-      YAML::Node codefont = codeoptions[CODE_FONT];
-      if (codefont) {
-        m_options->codeFont = codefont.as<QFont>();
-      }
-      YAML::Node codenormal = codeoptions[CODE_NORMAL];
-      if (codenormal && codenormal.IsMap()) {
-        m_options->normalColor = codenormal[CODE_COLOR].as<QColor>();
-        m_options->normalBack = codenormal[CODE_BACK].as<QColor>();
-        m_options->normalWeight =
-            QFont::Weight(codenormal[CODE_WEIGHT].as<int>());
-        m_options->normalItalic = codenormal[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codeatt = codeoptions[CODE_ATTRIBUTE];
-      if (codeatt && codeatt.IsMap()) {
-        m_options->attributeColor = codeatt[CODE_COLOR].as<QColor>();
-        m_options->attributeBack = codeatt[CODE_BACK].as<QColor>();
-        m_options->attributeWeight =
-            QFont::Weight(codeatt[CODE_WEIGHT].as<int>());
-        m_options->attributeItalic = codeatt[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codetag = codeoptions[CODE_TAG];
-      if (codetag && codetag.IsMap()) {
-        m_options->tagColor = codetag[CODE_COLOR].as<QColor>();
-        m_options->tagBack = codetag[CODE_BACK].as<QColor>();
-        m_options->tagWeight = QFont::Weight(codetag[CODE_WEIGHT].as<int>());
-        m_options->tagItalic = codeatt[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codeattstr = codeoptions[CODE_STRING];
-      if (codeattstr && codeattstr.IsMap()) {
-        m_options->stringColor = codeattstr[CODE_COLOR].as<QColor>();
-        m_options->stringBack = codeattstr[CODE_BACK].as<QColor>();
-        m_options->stringWeight =
-            QFont::Weight(codeattstr[CODE_WEIGHT].as<int>());
-        m_options->stringItalic = codeattstr[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codeerr = codeoptions[CODE_ERROR];
-      if (codeerr && codeerr.IsMap()) {
-        m_options->errorColor = codeerr[CODE_COLOR].as<QColor>();
-        m_options->errorBack = codeerr[CODE_BACK].as<QColor>();
-        m_options->errorWeight = QFont::Weight(codeerr[CODE_WEIGHT].as<int>());
-        m_options->errorItalic = codeerr[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codestyle = codeoptions[CODE_STYLE];
-      if (codestyle && codestyle.IsMap()) {
-        m_options->styleColor = codestyle[CODE_COLOR].as<QColor>();
-        m_options->styleBack = codestyle[CODE_BACK].as<QColor>();
-        m_options->styleWeight =
-            QFont::Weight(codestyle[CODE_WEIGHT].as<int>());
-        m_options->styleItalic = codestyle[CODE_ITALIC].as<bool>();
-      }
-      YAML::Node codescript = codeoptions[CODE_SCRIPT];
-      if (codescript && codescript.IsMap()) {
-        m_options->scriptColor = codescript[CODE_COLOR].as<QColor>();
-        m_options->scriptBack = codescript[CODE_BACK].as<QColor>();
-        m_options->scriptWeight =
-            QFont::Weight(codescript[CODE_WEIGHT].as<int>());
-        m_options->scriptItalic = codescript[CODE_ITALIC].as<bool>();
-      }
-    }
-  } else {
-    m_options->rect = QRect(DEF_X, DEF_Y, DEF_WIDTH, DEF_HEIGHT);
-    m_options->currentindex = -1;
-    m_options->current_files = QStringList();
-    m_options->bookcount = 0;
-    m_prefchanged = true;
-  }
+void MainWindow::saveOptions()
+{
+  m_options->load(m_config_file);
 }
 
 void MainWindow::initSetup()
 {
-  m_prefchanged = false;
   loadOptions();
-  setGeometry(m_options->rect);
+  setGeometry(m_options->rect());
 }
 
 QString MainWindow::copyBookToStore(QString path, QString authors)
@@ -880,44 +595,38 @@ QString MainWindow::copyBookToStore(QString path, QString authors)
   QFile out_file(newpath + filename);
   if (in_file.exists() && !out_file.exists()) {
     in_file.copy(out_file.fileName());
-    m_options->current_files.removeOne(path);
-    m_options->current_lib_files.append(filename);
-    //    if (m_options->delete_old_book) {
-    //      if (!m_options->never_confirm_delete) {
-    //        QCheckBox* neverAskBox =
-    //          new QCheckBox(tr("Never ask this again"), this);
-    //        neverAskBox->setToolTip(
-    //          tr("If this is checked then this dialog will not be "
-    //             "shown again. This can be reset in the Options->Editor "
-    //             "dialog."));
+    m_options->moveToLibFile(path);
+    if (m_options->deleteOldBook()) {
+      if (m_options->alwaysConfirmDelete()) {
+        QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"), this);
+        neverAskBox->setToolTip(tr("If this is checked then this dialog will not be "
+                                   "shown again. This can be reset in the Options->Editor "
+                                   "dialog."));
 
-    //        QMessageBox* msgBox = new QMessageBox(
-    //          QMessageBox::Warning,
-    //          tr("Delete Old Book"),
-    //          tr("You are about to delete the old book, Are you sure?"),
-    //          QMessageBox::Ok | QMessageBox::Cancel,
-    //          this);
-    //        msgBox->setCheckBox(neverAskBox);
+        QMessageBox* msgBox =
+          new QMessageBox(QMessageBox::Warning, tr("Delete Old Book"),
+                          tr("You are about to delete the old book, Are you sure?"),
+                          QMessageBox::Ok | QMessageBox::Cancel, this);
+        msgBox->setCheckBox(neverAskBox);
 
-    //        if (msgBox->exec() == QMessageBox::Accepted) {
-    //          in_file.remove();
-    //        }
+        if (msgBox->exec() == QMessageBox::Accepted) {
+          in_file.remove();
+        }
 
-    //        if (neverAskBox->isChecked()) {
-    //          m_options->never_confirm_delete = true;
-    //        }
+        if (neverAskBox->isChecked()) {
+          m_options->setNeverConfirmDelete(true);
+        }
 
-    //      } else {
-    //        in_file.remove();
-    //      }
-    //    }
+      } else {
+        in_file.remove();
+      }
+    }
     return out_file.fileName();
   }
   return QString();
 }
 
-SharedAuthorList MainWindow::selectAuthorNames(QString filename,
-                                               EBookData* data)
+SharedAuthorList MainWindow::selectAuthorNames(QString filename, EBookData* data)
 {
   SharedAuthorList authors;
   AuthorDialog* authorDlg;
@@ -926,36 +635,31 @@ SharedAuthorList MainWindow::selectAuthorNames(QString filename,
   QStringList names = attemptToExtractAuthorFromFilename(filename, data);
   if (!names.isEmpty()) {
     authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::FromTitle, data->title, names) ==
-        QDialog::Accepted) {
+    if (authorDlg->exec(AuthorDialog::FromTitle, data->title, names) == QDialog::Accepted) {
       authors = authorDlg->authors();
     }
   } else {
     authorDlg = new AuthorDialog(m_database, this);
-    if (authorDlg->exec(AuthorDialog::NoNames, data->title) ==
-        QDialog::Accepted) {
+    if (authorDlg->exec(AuthorDialog::NoNames, data->title) == QDialog::Accepted) {
       authors = authorDlg->authors();
     }
   }
   return authors;
 }
 
-void MainWindow::setModifiedAuthors(IEBookDocument* doc,
-                                    SharedAuthorList authors)
+void MainWindow::setModifiedAuthors(IEBookDocument* doc, SharedAuthorList authors)
 {
   QStringList names;
   foreach (SharedAuthor author, authors) {
     names << author->name();
   }
   //  doc->setCreators(names);
-  setModified();
+  setStatusModified();
 }
 
 void MainWindow::loadDocument(QString filename)
 {
-  if (!m_options->current_files.contains(filename)) {
-    m_options->current_files.append(filename);
-  }
+  m_options->appendCurrentFile(filename);
 
   QString ext;
   QFileInfo info(filename);
@@ -977,19 +681,17 @@ void MainWindow::loadDocument(QString filename)
   if (ebook_plugin) {
     m_loading = true;
     IEBookDocument* htmldocument = ebook_plugin->createDocument(filename);
-    ITextDocument* textdocument = dynamic_cast<ITextDocument*>(htmldocument);
+    ITextDocument* itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
     //    htmldocument->setPlugin(ebook_plugin);
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
     EBookWrapper* wrapper = new EBookWrapper(m_options, this);
     wrapper->editor()->setDocument(htmldocument);
     m_toc->setDocument(htmldocument->toc());
-    QString tabname = QString(tr("%1, (%2)")
-                                  .arg(htmldocument->title())
-                                  .arg(htmldocument->creatorNames()));
+    QString tabname =
+      QString(tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
     m_tabs->addTab(wrapper, tabname);
-    m_current_document = htmldocument;
-    connect(textdocument, &ITextDocument::loadCompleted, wrapper,
-            &EBookWrapper::update);
+    m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
+    connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
 
     //    wrapper->codeEditor()->setDocument(codeDocument);
     //    //  wrapper->startWordReader();
@@ -1039,6 +741,8 @@ void MainWindow::loadDocument(QString filename)
 
   if (m_tabs->count() > 0)
     m_tabs->setEnabled(true);
+
+  setObjectVisibility();
 }
 
 QString MainWindow::concatenateAuthorNames(SharedAuthorList authors)
@@ -1060,8 +764,7 @@ QString MainWindow::concatenateAuthorNames(QStringList authors)
 {
   QStringList names;
   foreach (QString name, authors) {
-    QStringList splits =
-        name.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
+    QStringList splits = name.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
     QStringList f;
     foreach (QString split, splits) {
       f << split;
@@ -1085,8 +788,7 @@ QStringList MainWindow::removeEmpty(QStringList values)
   return result;
 }
 
-QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path,
-                                                           EBookData* data)
+QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, EBookData* data)
 {
   QFile in_file(path);
   QFileInfo fileInfo(in_file);
@@ -1094,45 +796,41 @@ QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path,
   filename = filename.left(filename.lastIndexOf("."));
 
   // This removes case worries.
-  QString lower_filename(
-      filename.toLower()); // the lowercase version of the filename.
-  QString lower_title(
-      data->title.toLower()); // the lowercase version of the title.
+  QString lower_filename(filename.toLower()); // the lowercase version of the filename.
+  QString lower_title(data->title.toLower()); // the lowercase version of the title.
   QString remainder;
 
   int title_index;
   if (lower_filename.contains(lower_title)) {
     title_index = lower_filename.indexOf(lower_title);
     remainder = filename.left(title_index) +
-                filename.right(lower_filename.length() -
-                               (title_index + lower_title.length()));
+                filename.right(lower_filename.length() - (title_index + lower_title.length()));
   }
   remainder = cleanString(remainder);
-  QStringList list =
-      remainder.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
+  QStringList list = remainder.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
   return list;
 }
 
 QString MainWindow::cleanString(QString unclean)
 {
   QString clean = unclean;
-  clean.replace('_', ' '); // replaces _ with spaces
-  clean.replace('-', ' '); // replaces - with spaces
-  clean.remove(
-      QRegularExpression( // removes all sorts of other nonword characters
-          QString::fromUtf8("[-`~!@#$%^&*()_—+=|:;<>«»,.?/{}\'\"\\[\\]\\\\]")));
+  clean.replace('_', ' ');         // replaces _ with spaces
+  clean.replace('-', ' ');         // replaces - with spaces
+  clean.remove(QRegularExpression( // removes all sorts of other nonword characters
+                 QString::fromUtf8("[-`~!@#$%^&*()_—+=|:;<>«»,.?/{}\'\"\\[\\]\\\\]")));
   clean = clean.simplified(); // removes multiple spaces
   clean = clean.trimmed();    // removes pre and post spaces.
   return clean;
 }
 void MainWindow::saveDocument(IEBookDocument* document)
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
-  IEBookDocument* current_doc =
-      dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
-  if (current_doc) {
-    IEBookInterface* plugin = current_doc->plugin();
-    current_doc->saveDocument();
+  //  EBookWrapper* wrapper =
+  //  qobject_cast<EBookWrapper*>(m_tabs->currentWidget()); IEBookDocument*
+  //  current_doc =
+  //      dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
+  if (document) {
+    //    IEBookInterface* plugin = document->plugin();
+    document->saveDocument();
   }
 }
 
@@ -1140,28 +838,30 @@ void MainWindow::documentChanged(int index)
 {
   if (!m_loading) {
     if (index >= 0) {
-      m_options->currentindex = index;
-      EBookWrapper* wrapper =
-          qobject_cast<EBookWrapper*>(m_tabs->widget(index));
-      IEBookDocument* document =
-          dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
-      if (document->isModified()) {
-        setModified();
-      } else {
-        setNotModified();
-      }
-      if (document->readOnly()) {
-        setReadOnly();
-      } else {
-        setReadWrite();
-      }
-      setFilename(document->filename());
+      m_options->setCurrentIndex(index);
+      EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->widget(index));
+      QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+      IEBookDocument* iebookdocument = dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
 
-      if (document) {
-        m_current_document = document;
-        QString language = m_current_document->language();
-        QLocale local(language);
+      if (textdocument->isModified()) {
+        setStatusModified();
+      } else {
+        setStatusNotModified();
+      }
+      //      if (document->readOnly()) {
+      //        setStatusReadOnly();
+      //      } else {
+      //        setStatusReadWrite();
+      //      }
+      setStatusFilename(iebookdocument->filename());
 
+      if (textdocument) {
+        m_current_document = textdocument;
+
+        if (iebookdocument) {
+          QString language = iebookdocument->language();
+          QLocale local(language);
+        }
       } else {
         m_current_document = Q_NULLPTR;
       }
@@ -1174,21 +874,25 @@ void MainWindow::documentChanged(int index)
 void MainWindow::tabClosing(int index)
 {
   EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->widget(index));
-  IEBookDocument* document =
-      dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
-  if (document->isModified()) {
+  QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  if (textdocument->isModified()) {
     // TODO - Check if the user wants to save the document.
-    saveDocument(document);
+    IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+    if (itextdocument) {
+      saveDocument(itextdocument);
+    }
   }
   m_tabs->removeTab(index);
 
+  // load next document from m_tabs;
   wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
   if (wrapper) {
-    document = dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
-    if (document) {
-      m_current_document = document;
+    if (textdocument) {
+      m_current_document = textdocument;
     }
   } else {
+    // no more tabs.
     m_current_document = Q_NULLPTR;
   }
 }
@@ -1201,8 +905,7 @@ void MainWindow::fileOpen()
     IEBookInterface* ebook = dynamic_cast<IEBookInterface*>(plugin);
     if (ebook) {
       QString composite = ebook->fileFilter();
-      QString individual_filter =
-          ebook->fileDescription() + " ( " + composite + " );;";
+      QString individual_filter = ebook->fileDescription() + " ( " + composite + " );;";
       individual_filters.append(individual_filter);
       if (filters.isEmpty())
         filters += composite;
@@ -1218,19 +921,24 @@ void MainWindow::fileOpen()
   }
   filters += tr("All files (*.*)");
 
-  QStringList filenames = QFileDialog::getOpenFileNames(this, tr("Load Book"),
-                                                        m_defbookpath, filters);
+  QStringList filenames =
+    QFileDialog::getOpenFileNames(this, tr("Load Book"), m_defbookpath, filters);
   foreach (QString filename, filenames) {
     loadDocument(filename);
   }
-  m_bookcount = m_options->current_files.size();
-  m_prefchanged = true;
+  m_bookcount = m_options->currentfiles().size();
   saveOptions();
 }
 
 void MainWindow::fileSave()
 {
   // TODO
+  EBookWrapper* wrapper = dynamic_cast<EBookWrapper*>(m_tabs->currentWidget());
+  QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
+  if (textdocument->isModified()) {
+    saveDocument(itextdocument);
+  }
 }
 
 void MainWindow::fileSaveAs()
@@ -1312,23 +1020,30 @@ void MainWindow::editOptions()
     if (dlg->modified()) {
       m_options = dlg->options();
       saveOptions();
-      m_prefchanged = true;
     }
   }
 }
 
-void MainWindow::viewFullscreen() { m_view_centre->setEnabled(false); }
+void MainWindow::viewFullscreen()
+{
+  m_view_centre->setEnabled(false);
+}
 
-void MainWindow::viewMaximise() { m_view_centre->setEnabled(false); }
+void MainWindow::viewMaximise()
+{
+  m_view_centre->setEnabled(false);
+}
 
-void MainWindow::viewMinimise() { m_view_centre->setEnabled(true); }
+void MainWindow::viewMinimise()
+{
+  m_view_centre->setEnabled(true);
+}
 
 void MainWindow::viewCentre()
 {
   QScreen* screen = QGuiApplication::primaryScreen();
   QRect screenGeometry = screen->geometry();
   move(screenGeometry.center() - rect().center());
-  m_prefchanged = true;
   saveOptions();
 }
 
@@ -1363,6 +1078,18 @@ void MainWindow::viewTocPosition()
   update(position);
 }
 
+void MainWindow::viewShowLibrary()
+{
+  m_stack->setCurrentIndex(m_stack_library);
+  m_lib_type_toolbar->setEnabled(true);
+}
+
+void MainWindow::viewShowEditor()
+{
+  m_stack->setCurrentIndex(m_stack_editor);
+  m_lib_type_toolbar->setEnabled(false);
+}
+
 void MainWindow::helpContents()
 {
   // TODO
@@ -1380,7 +1107,8 @@ void MainWindow::helpContext()
 
 void MainWindow::helpAboutEbookEditor()
 {
-  // TODO
+  AboutDialog* dlg = new AboutDialog(this);
+  dlg->show();
 }
 
 void MainWindow::helpAboutPlugins()
@@ -1397,23 +1125,32 @@ void MainWindow::helpCheckUpdates()
   // TODO
 }
 
-void MainWindow::setModified()
+void MainWindow::setStatusModified()
 {
   m_modifiedlbl->setText(MODIFIED);
   m_file_save->setEnabled(true);
 }
 
-void MainWindow::setNotModified()
+void MainWindow::setStatusNotModified()
 {
   m_modifiedlbl->setText(NOT_MODIFIED);
   m_file_save->setEnabled(false);
 }
 
-void MainWindow::setReadOnly() { m_readonlylbl->setText(READ_ONLY); }
+void MainWindow::setStatusReadOnly()
+{
+  m_readonlylbl->setText(READ_ONLY);
+}
 
-void MainWindow::setReadWrite() { m_readonlylbl->setText(READ_WRITE); }
+void MainWindow::setStatusReadWrite()
+{
+  m_readonlylbl->setText(READ_WRITE);
+}
 
-void MainWindow::setFilename(QString name) { m_filelbl->setText(name); }
+void MainWindow::setStatusFilename(QString name)
+{
+  m_filelbl->setText(name);
+}
 
 void MainWindow::openWindow()
 {
@@ -1436,6 +1173,38 @@ void MainWindow::tocAnchorClicked(QUrl url)
   EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
   EBookEditor* editor = wrapper->editor();
   editor->scrollToAnchor(url.fragment());
+}
+
+void MainWindow::setObjectVisibility(int index)
+{
+  QObject* obj = sender();
+  if (obj) {
+    QStackedWidget* sw = dynamic_cast<QStackedWidget*>(obj);
+    if (sw) {
+      if (sw->currentWidget() == m_library) {
+        m_show_library->setVisible(false);
+        m_show_editor->setVisible(true);
+      } else if (sw->currentWidget() == m_tabs_frame) {
+        m_show_library->setVisible(true);
+        m_show_editor->setVisible(false);
+      }
+    } else {
+      Options::ViewState state = Options::ViewState(index);
+      switch (state) {
+      case Options::VIEW_EDITOR:
+        m_stack->setCurrentIndex(m_stack_editor);
+        break;
+      case Options::VIEW_LIBRARY_TREE:
+        m_stack->setCurrentIndex(m_stack_library);
+        m_library->setToTree();
+        break;
+      case Options::VIEW_LIBRARY_SHELF:
+        m_stack->setCurrentIndex(m_stack_library);
+        m_library->setToShelf();
+        break;
+      }
+    }
+  }
 }
 
 void MainWindow::fileNew()

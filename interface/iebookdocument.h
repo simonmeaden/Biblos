@@ -19,9 +19,9 @@ public:
   virtual IEBookInterface* plugin() = 0;
   virtual void setPlugin(IEBookInterface* plugin) = 0;
 
-  virtual bool isModified() = 0;
-  virtual bool readOnly() = 0;
-  virtual void setReadOnly(const bool readonly) = 0;
+  //  virtual bool isModified() = 0;
+  //  virtual bool readOnly() = 0;
+  //  virtual void setReadOnly(const bool readonly) = 0;
 
   virtual QTextDocument* toc() = 0;
 
@@ -65,10 +65,10 @@ class ITextDocumentPrivate
 public:
   QString filename() { return m_filename; }
   void setFilename(QString filename) { m_filename = filename; }
-  bool isModified() { return m_modified; }
-  void setModified(bool modified) { m_modified = modified; }
-  bool readonly() { return m_readonly; }
-  void setReadonly(bool readonly) { m_readonly = readonly; }
+  //  bool isModified() { return m_modified; }
+  //  void setModified(bool modified) { m_modified = modified; }
+  //  bool readonly() { return m_readonly; }
+  //  void setReadonly(bool readonly) { m_readonly = readonly; }
   //  void setTitle(QString title) { m_title = title; }
   //  void setTitle(QString name, QString title) { m_titles.insert(name, title);
   //  } QStringList creators() { return m_creators; } QString creator(int i) {

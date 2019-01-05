@@ -231,7 +231,9 @@ public:
   QString href;
   QString path;
   SharedDomDocument dom_document;
-  SharedTextCursor start, end;
+  // these should point to the start and end of each chapter block;
+  //  SharedTextCursor start, end;
+  QTextCursor start_cursor, end_cursor;
   QString id;
   QByteArray media_type;
   QStringList properties;

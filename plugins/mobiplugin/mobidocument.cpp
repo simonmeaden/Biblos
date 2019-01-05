@@ -61,23 +61,23 @@ void MobiDocument::setPlugin(IEBookInterface* plugin)
   d->setPlugin(plugin);
 }
 
-bool MobiDocument::isModified()
-{
-  Q_D(MobiDocument);
-  return d->isModified();
-}
+// bool MobiDocument::isModified()
+//{
+//  Q_D(MobiDocument);
+//  return d->isModified();
+//}
 
-bool MobiDocument::readOnly()
-{
-  Q_D(MobiDocument);
-  return d->readonly();
-}
+// bool MobiDocument::readOnly()
+//{
+//  Q_D(MobiDocument);
+//  return d->readonly();
+//}
 
-void MobiDocument::setReadOnly(const bool readonly)
-{
-  Q_D(MobiDocument);
-  d->setReadonly(readonly);
-}
+// void MobiDocument::setReadOnly(const bool readonly)
+//{
+//  Q_D(MobiDocument);
+//  d->setReadonly(readonly);
+//}
 
 QString MobiDocument::title()
 {

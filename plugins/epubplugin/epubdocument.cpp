@@ -171,23 +171,23 @@ void EPubDocument::setPlugin(IEBookInterface* plugin)
   d->setPlugin(plugin);
 }
 
-bool EPubDocument::isModified()
-{
-  Q_D(EPubDocument);
-  return d->isModified();
-}
+// bool EPubDocument::isModified()
+//{
+//  Q_D(EPubDocument);
+//  return d->isModified();
+//}
 
-bool EPubDocument::readOnly()
-{
-  Q_D(EPubDocument);
-  return d->readonly();
-}
+// bool EPubDocument::readOnly()
+//{
+//  Q_D(EPubDocument);
+//  return d->readonly();
+//}
 
-void EPubDocument::setReadOnly(const bool readonly)
-{
-  Q_D(EPubDocument);
-  d->setReadonly(readonly);
-}
+// void EPubDocument::setReadOnly(const bool readonly)
+//{
+//  Q_D(EPubDocument);
+//  d->setReadonly(readonly);
+//}
 
 QDate EPubDocument::published()
 {

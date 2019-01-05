@@ -28,7 +28,8 @@ DESTDIR = $$PWD/../../build/ebookedit/interface
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES +=  \
-    ebookcommon.cpp
+    ebookcommon.cpp \
+    options.cpp
 
 HEADERS += \
     interface_global.h \
@@ -36,7 +37,8 @@ HEADERS += \
     iplugininterface.h \
     iebookinterface.h \
     ebookcommon.h \
-    iebookdocument.h
+    iebookdocument.h \
+    options.h
 
 DISTFILES += \
     spellinterface.json \

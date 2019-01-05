@@ -1,27 +1,27 @@
 #include "optionsdialog.h"
 
 const QString OptionsDialog::BTN_STYLE =
-    "QPushButton {color: #%1%2%3; background-color: #%4%5%6}";
+  "QPushButton {color: #%1%2%3; background-color: #%4%5%6}";
 
 OptionsDialog::OptionsDialog(Options* options, QWidget* parent) :
-    QDialog(parent), m_options(options), m_oldoptions(options),
-    m_modified(false), normal_color_btn(Q_NULLPTR), normalBackBtn(Q_NULLPTR),
-    normalItalicBox(Q_NULLPTR), normalWeightBox(Q_NULLPTR),
-    attColorBtn(Q_NULLPTR), attBackBtn(Q_NULLPTR), attItalicBox(Q_NULLPTR),
-    attWeightBox(Q_NULLPTR), tagColorBtn(Q_NULLPTR), tagBackBtn(Q_NULLPTR),
-    tagItalicBox(Q_NULLPTR), tagWeightBox(Q_NULLPTR), stringColorBtn(Q_NULLPTR),
-    stringBackBtn(Q_NULLPTR), stringItalicBox(Q_NULLPTR),
-    stringWeightBox(Q_NULLPTR), errorColorBtn(Q_NULLPTR),
-    errorBackBtn(Q_NULLPTR), errorItalicBox(Q_NULLPTR),
-    errorWeightBox(Q_NULLPTR), styleColorBtn(Q_NULLPTR),
-    styleBackBtn(Q_NULLPTR), styleItalicBox(Q_NULLPTR),
-    styleWeightBox(Q_NULLPTR), scriptColorBtn(Q_NULLPTR),
-    scriptBackBtn(Q_NULLPTR), scriptItalicBox(Q_NULLPTR),
-    scriptWeightBox(Q_NULLPTR)
+  QDialog(parent), m_options(options), m_oldoptions(options),
+  m_modified(false), normal_color_btn(Q_NULLPTR), normalBackBtn(Q_NULLPTR),
+  normalItalicBox(Q_NULLPTR), normalWeightBox(Q_NULLPTR),
+  attColorBtn(Q_NULLPTR), attBackBtn(Q_NULLPTR), attItalicBox(Q_NULLPTR),
+  attWeightBox(Q_NULLPTR), tagColorBtn(Q_NULLPTR), tagBackBtn(Q_NULLPTR),
+  tagItalicBox(Q_NULLPTR), tagWeightBox(Q_NULLPTR), stringColorBtn(Q_NULLPTR),
+  stringBackBtn(Q_NULLPTR), stringItalicBox(Q_NULLPTR),
+  stringWeightBox(Q_NULLPTR), errorColorBtn(Q_NULLPTR),
+  errorBackBtn(Q_NULLPTR), errorItalicBox(Q_NULLPTR),
+  errorWeightBox(Q_NULLPTR), styleColorBtn(Q_NULLPTR),
+  styleBackBtn(Q_NULLPTR), styleItalicBox(Q_NULLPTR),
+  styleWeightBox(Q_NULLPTR), scriptColorBtn(Q_NULLPTR),
+  scriptBackBtn(Q_NULLPTR), scriptItalicBox(Q_NULLPTR),
+  scriptWeightBox(Q_NULLPTR)
 {
   initGui();
 
-  setGeometry(QRect(QPoint(0, 0), m_options->options_dlg));
+  setGeometry(QRect(QPoint(0, 0), m_options->optionsDlgSize()));
 }
 
 OptionsDialog::~OptionsDialog() {}
@@ -34,7 +34,10 @@ Options* OptionsDialog::options()
     return m_oldoptions;
 }
 
-bool OptionsDialog::modified() const { return m_modified; }
+bool OptionsDialog::modified() const
+{
+  return m_modified;
+}
 
 QFrame* OptionsDialog::initMiscTab()
 {
@@ -42,17 +45,17 @@ QFrame* OptionsDialog::initMiscTab()
   QFormLayout* l = new QFormLayout;
   miscFrame->setLayout(l);
 
-  QCheckBox* enablePopupBox = new QCheckBox(this);
-  enablePopupBox->setChecked(m_options->enablepopup);
-  connect(enablePopupBox, &QCheckBox::clicked, this,
-          &OptionsDialog::changeEnablePopup);
-  l->addRow(tr("Enable information popup's"), enablePopupBox);
+//  QCheckBox* enablePopupBox = new QCheckBox(this);
+//  enablePopupBox->setChecked(m_options->enablepopup);
+//  connect(enablePopupBox, &QCheckBox::clicked, this,
+//          &OptionsDialog::changeEnablePopup);
+//  l->addRow(tr("Enable information popup's"), enablePopupBox);
 
-  QSpinBox* popupTimeoutBox = new QSpinBox(this);
-  popupTimeoutBox->setValue(m_options->popuptimeout / 1000);
-  connect(popupTimeoutBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          &OptionsDialog::changePopupTimeout);
-  l->addRow(tr("Information popup timeout (Secs)"), popupTimeoutBox);
+//  QSpinBox* popupTimeoutBox = new QSpinBox(this);
+//  popupTimeoutBox->setValue(m_options->popuptimeout / 1000);
+//  connect(popupTimeoutBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
+//          &OptionsDialog::changePopupTimeout);
+//  l->addRow(tr("Information popup timeout (Secs)"), popupTimeoutBox);
 
   return miscFrame;
 }
@@ -64,22 +67,22 @@ QFrame* OptionsDialog::initEditorTab()
   f->setLayout(l);
 
   copy_book_to_store_box = new QCheckBox(this);
-  copy_book_to_store_box->setChecked(m_options->copy_books_to_store);
+  copy_book_to_store_box->setChecked(m_options->copyBooksToStore());
   copy_book_to_store_box->setToolTip(
-      tr("Copy the book to the book store before"
-         "you start to edit it. This allows the "
-         "original copy to be retained unmodified."));
+    tr("Copy the book to the book store before"
+       "you start to edit it. This allows the "
+       "original copy to be retained unmodified."));
   connect(copy_book_to_store_box, &QCheckBox::clicked, this,
           &OptionsDialog::setCopyBookToStore);
   l->addRow(tr("Copy Books to Book Store Before Editing"),
             copy_book_to_store_box);
 
   delete_old_book_box = new QCheckBox(this);
-  if (!m_options->copy_books_to_store)
+  if (!m_options->copyBooksToStore())
     delete_old_book_box->setEnabled(false);
   else
     delete_old_book_box->setEnabled(true);
-  delete_old_book_box->setChecked(m_options->delete_old_book);
+  delete_old_book_box->setChecked(m_options->deleteOldBook());
   delete_old_book_box->setToolTip(tr("Delete the original copy of the book "
                                      "when the book has been copied to the "
                                      "book store."));
@@ -88,7 +91,7 @@ QFrame* OptionsDialog::initEditorTab()
   l->addRow(tr("Delete the old copy of the stored book"), delete_old_book_box);
 
   toc_visible_box = new QCheckBox(this);
-  toc_visible_box->setChecked(m_options->m_toc_visible);
+  toc_visible_box->setChecked(m_options->tocVisible());
   l->addRow(tr("Show Table of Contents"), toc_visible_box);
   connect(toc_visible_box, &QCheckBox::clicked, this,
           &OptionsDialog::setShowTocEdit);
@@ -103,15 +106,15 @@ QFrame* OptionsDialog::initEditorTab()
           &OptionsDialog::setTocPosition);
 
   never_confirm_delete_box = new QCheckBox(this);
-  if (!m_options->copy_books_to_store)
+  if (!m_options->copyBooksToStore())
     never_confirm_delete_box->setEnabled(false);
   else
     never_confirm_delete_box->setEnabled(true);
-  never_confirm_delete_box->setChecked(m_options->never_confirm_delete);
+  never_confirm_delete_box->setChecked(m_options->neverConfirmDelete());
   never_confirm_delete_box->setToolTip(
-      tr("Delete the original copy of the book "
-         "when the book has been copied to the "
-         "book store."));
+    tr("Delete the original copy of the book "
+       "when the book has been copied to the "
+       "book store."));
   connect(never_confirm_delete_box, &QCheckBox::clicked, this,
           &OptionsDialog::setNeverConfirmDelete);
   l->addRow(tr("Never Confirm Deleteion of Old Book"),
@@ -155,9 +158,9 @@ void OptionsDialog::setColorConnection(Options::CodeOptions options)
   }
   case Options::STYLE: {
   }
-    connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
-            &OptionsDialog::setStyleColor);
-    break;
+  connect(this->getColorBtn(options), &QAbstractButton::clicked, this,
+          &OptionsDialog::setStyleColor);
+  break;
   }
 }
 
@@ -196,9 +199,9 @@ void OptionsDialog::setBackgroundConnection(Options::CodeOptions options)
   }
   case Options::STYLE: {
   }
-    connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
-            &OptionsDialog::setStyleBackground);
-    break;
+  connect(this->getBackgroundBtn(options), &QAbstractButton::clicked, this,
+          &OptionsDialog::setStyleBackground);
+  break;
   }
 }
 
@@ -237,9 +240,9 @@ void OptionsDialog::setItalicConnection(Options::CodeOptions options)
   }
   case Options::STYLE: {
   }
-    connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
-            &OptionsDialog::setStyleItalic);
-    break;
+  connect(this->getItalicBox(options), &QAbstractButton::clicked, this,
+          &OptionsDialog::setStyleItalic);
+  break;
   }
 }
 
@@ -284,10 +287,10 @@ void OptionsDialog::setWeightConnection(Options::CodeOptions options)
   }
   case Options::STYLE: {
   }
-    connect(this->getWeightBox(options),
-            QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &OptionsDialog::setStyleWeight);
-    break;
+  connect(this->getWeightBox(options),
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &OptionsDialog::setStyleWeight);
+  break;
   }
 }
 
@@ -497,7 +500,7 @@ QString OptionsDialog::convertColorToStyle(QColor color, QColor back)
   gs2 = QString("%1").arg(back.green(), 2, 16, QChar('0'));
   bs2 = QString("%1").arg(back.blue(), 2, 16, QChar('0'));
   style =
-      QString(BTN_STYLE).arg(rs1).arg(gs1).arg(bs1).arg(rs2).arg(gs2).arg(bs2);
+    QString(BTN_STYLE).arg(rs1).arg(gs1).arg(bs1).arg(rs2).arg(gs2).arg(bs2);
   return style;
 }
 
@@ -507,7 +510,8 @@ QFrame* OptionsDialog::initCodeTab(Options::CodeOptions options)
   QFormLayout* form;
   QStringList weights = {"Thin",   "ExtraLight", "Light",
                          "Normal", "Medium",     "DemiBold",
-                         "Bold",   "ExtraBold",  "Black"};
+                         "Bold",   "ExtraBold",  "Black"
+                        };
   //  QPalette pal;
   QComboBox* combo = getWeightBox(options);
   QCheckBox* box = getItalicBox(options);
@@ -564,7 +568,7 @@ QFrame* OptionsDialog::initCodeEditorTab()
   frm->setLayout(form);
 
   font_btn = new QPushButton(tr("Change Font"), this);
-  font_btn->setFont(m_options->codeFont);
+  font_btn->setFont(m_options->codeFont());
   form->addRow(tr("Font"), font_btn);
   connect(font_btn, &QAbstractButton::clicked, this,
           &OptionsDialog::setCodeFont);
@@ -591,9 +595,9 @@ QFrame* OptionsDialog::initCodeEditorTab()
 void OptionsDialog::setCodeFont()
 {
   bool ok;
-  QFont font = QFontDialog::getFont(&ok, m_options->codeFont, this);
+  QFont font = QFontDialog::getFont(&ok, m_options->codeFont(), this);
   if (ok) {
-    m_options->codeFont = font;
+    m_options->setCodeFont(font);
     emit codeChanged();
     font_btn->setFont(font);
     m_modified = true;
@@ -613,7 +617,10 @@ void OptionsDialog::setCodeColor(Options::CodeOptions options)
   m_modified = true;
 }
 
-void OptionsDialog::setNormalColor() { setCodeColor(Options::NORMAL); }
+void OptionsDialog::setNormalColor()
+{
+  setCodeColor(Options::NORMAL);
+}
 
 void OptionsDialog::setCodeBackground(Options::CodeOptions options)
 {
@@ -647,7 +654,10 @@ void OptionsDialog::setNormalWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setAttributeColor() { setCodeColor(Options::ATTRIBUTE); }
+void OptionsDialog::setAttributeColor()
+{
+  setCodeColor(Options::ATTRIBUTE);
+}
 
 void OptionsDialog::setAttributeBackground()
 {
@@ -668,9 +678,15 @@ void OptionsDialog::setAttributeWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setTagColor() { setCodeColor(Options::TAG); }
+void OptionsDialog::setTagColor()
+{
+  setCodeColor(Options::TAG);
+}
 
-void OptionsDialog::setTagBackground() { setCodeBackground(Options::TAG); }
+void OptionsDialog::setTagBackground()
+{
+  setCodeBackground(Options::TAG);
+}
 
 void OptionsDialog::setTagItalic(bool state)
 {
@@ -686,9 +702,15 @@ void OptionsDialog::setTagWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setStringColor() { setCodeColor(Options::STRING); }
+void OptionsDialog::setStringColor()
+{
+  setCodeColor(Options::STRING);
+}
 
-void OptionsDialog::setStringBackground() { setCodeBackground(Options::TAG); }
+void OptionsDialog::setStringBackground()
+{
+  setCodeBackground(Options::TAG);
+}
 
 void OptionsDialog::setStringItalic(bool state)
 {
@@ -704,9 +726,15 @@ void OptionsDialog::setStringWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setErrorColor() { setCodeColor(Options::ERROR); }
+void OptionsDialog::setErrorColor()
+{
+  setCodeColor(Options::ERROR);
+}
 
-void OptionsDialog::setErrorBackground() { setCodeBackground(Options::ERROR); }
+void OptionsDialog::setErrorBackground()
+{
+  setCodeBackground(Options::ERROR);
+}
 
 void OptionsDialog::setErrorItalic(bool state)
 {
@@ -722,9 +750,15 @@ void OptionsDialog::setErrorWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setStyleColor() { setCodeColor(Options::STYLE); }
+void OptionsDialog::setStyleColor()
+{
+  setCodeColor(Options::STYLE);
+}
 
-void OptionsDialog::setStyleBackground() { setCodeBackground(Options::STYLE); }
+void OptionsDialog::setStyleBackground()
+{
+  setCodeBackground(Options::STYLE);
+}
 
 void OptionsDialog::setStyleItalic(bool state)
 {
@@ -740,7 +774,10 @@ void OptionsDialog::setStyleWeight(int index)
   m_modified = true;
 }
 
-void OptionsDialog::setScriptColor() { setCodeColor(Options::SCRIPT); }
+void OptionsDialog::setScriptColor()
+{
+  setCodeColor(Options::SCRIPT);
+}
 
 void OptionsDialog::setScriptBackground()
 {
@@ -763,7 +800,7 @@ void OptionsDialog::setScriptWeight(int index)
 
 void OptionsDialog::setCopyBookToStore(bool state)
 {
-  m_options->copy_books_to_store = state;
+  m_options->setCopyBooksToStore(state);
   emit codeChanged();
   m_modified = true;
   if (state)
@@ -774,14 +811,14 @@ void OptionsDialog::setCopyBookToStore(bool state)
 
 void OptionsDialog::setDeleteOldBook(bool state)
 {
-  m_options->delete_old_book = state;
+  m_options->setDeleteOldBook(state);
   emit codeChanged();
   m_modified = true;
 }
 
 void OptionsDialog::setNeverConfirmDelete(bool state)
 {
-  m_options->never_confirm_delete = state;
+  m_options->setNeverConfirmDelete(state) ;
   emit codeChanged();
   m_modified = true;
 }
@@ -839,30 +876,14 @@ void OptionsDialog::initGui()
 void OptionsDialog::resizeEvent(QResizeEvent* e)
 {
   QSize size = e->size();
-  m_options->options_dlg = size;
+  m_options->setOptionsDlgSize(size);
   m_modified = true;
-}
-
-void OptionsDialog::changePopupTimeout(int value)
-{
-  if (m_options->popuptimeout != value) {
-    m_options->popuptimeout = value * 1000;
-    m_modified = true;
-  }
-}
-
-void OptionsDialog::changeEnablePopup(bool value)
-{
-  if (m_options->enablepopup != value) {
-    m_options->enablepopup = value;
-    m_modified = true;
-  }
 }
 
 QColor OptionsDialog::enactColorDialog(QColor old_color)
 {
   QColor color =
-      QColorDialog::getColor(old_color, this, tr("Select Normal Color"));
+    QColorDialog::getColor(old_color, this, tr("Select Normal Color"));
   if (color.isValid()) {
     emit codeChanged();
     m_modified = true;

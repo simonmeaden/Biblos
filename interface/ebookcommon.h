@@ -12,97 +12,6 @@
 #include <QSharedPointer>
 #include <QtPlugin>
 
-class Options
-{
-public:
-  enum CodeOptions {
-    NORMAL,
-    TAG,
-    STRING,
-    ATTRIBUTE,
-    ERROR,
-    STYLE,
-    SCRIPT,
-  };
-  enum TocPosition {
-    LEFT,
-    RIGHT,
-  };
-
-  Options();
-  ~Options();
-
-  QColor color(CodeOptions options);
-  void setColor(CodeOptions options, QColor color);
-
-  QColor background(CodeOptions options);
-  void setBackground(CodeOptions options, QColor color);
-
-  bool italic(CodeOptions options);
-  void setItalic(CodeOptions options, bool italic);
-
-  QFont::Weight weight(CodeOptions options);
-  void setWeight(CodeOptions options, QFont::Weight weight);
-
-  static QColor contrastingColor(QColor color);
-  static QString codeOptionToString(CodeOptions options);
-  static QString weightToString(QFont::Weight weight);
-
-  TocPosition m_toc_position = LEFT;
-  bool m_toc_visible = true;
-  TocPosition tocPosition() { return m_toc_position; }
-  void setTocPosition(TocPosition position) { m_toc_position = position; }
-  bool tocVisible() { return m_toc_visible; }
-  void setTocVisible(bool visible) { m_toc_visible = visible; }
-
-  QRect rect;
-  QSize options_dlg;
-  //  int x, y, width, height;
-  //  int prefx, prefy, prefwidth, prefheight;
-  int popuptimeout;
-  int currentindex;
-  int bookcount;
-  QStringList current_files;
-  QStringList current_lib_files;
-  bool enablepopup;
-
-  // Code Editor options
-  QFont codeFont;
-  QColor normalColor;
-  QColor normalBack;
-  bool normalItalic;
-  QFont::Weight normalWeight;
-  QColor attributeColor;
-  QColor attributeBack;
-  bool attributeItalic;
-  QFont::Weight attributeWeight;
-  QColor tagColor;
-  QColor tagBack;
-  bool tagItalic;
-  QFont::Weight tagWeight;
-  QColor stringColor;
-  QColor stringBack;
-  bool stringItalic;
-  QFont::Weight stringWeight;
-  QColor errorColor;
-  QColor errorBack;
-  bool errorItalic;
-  QFont::Weight errorWeight;
-  QColor scriptColor;
-  QColor scriptBack;
-  bool scriptItalic;
-  QFont::Weight scriptWeight;
-  QColor styleColor;
-  QColor styleBack;
-  bool styleItalic;
-  QFont::Weight styleWeight;
-
-  bool copy_books_to_store;
-  bool use_calibre_library;
-  bool delete_old_book;
-  bool never_confirm_delete;
-};
-
 struct EBookItem {
   QString path;
   QByteArray mimetype;
@@ -162,7 +71,8 @@ struct EPubToc {
 typedef QSharedPointer<EPubToc> ebooktoc_t;
 
 struct EBookData {
-  EBookData() : toc(Q_NULLPTR)
+  EBookData()
+    : toc(Q_NULLPTR)
   {
     title = "";
     subject = "";

@@ -8,6 +8,7 @@
 #include <QColorDialog>
 
 #include "ebookcommon.h"
+#include "options.h"
 
 class OptionsDialog : public QDialog
 {
@@ -67,8 +68,6 @@ protected:
 
   void initGui();
   void resizeEvent(QResizeEvent* e);
-  void changePopupTimeout(int);
-  void changeEnablePopup(bool);
   QFrame* initMiscTab();
   QFrame* initEditorTab();
   QFrame* initCodeEditorTab();

@@ -1,19 +1,22 @@
 #include "ebookcodeeditor.h"
 
-EBookCodeEditor::EBookCodeEditor(QWidget* parent) : QPlainTextEdit(parent) {
+EBookCodeEditor::EBookCodeEditor(QWidget* parent) : QPlainTextEdit(parent)
+{
   init();
 }
 
 EBookCodeEditor::EBookCodeEditor(Options* options, QWidget* parent)
-    : QPlainTextEdit(parent), m_options(options) {
+  : QPlainTextEdit(parent), m_options(options)
+{
   init();
 }
 
 EBookCodeEditor::EBookCodeEditor(const EBookCodeEditor& editor)
-    : QPlainTextEdit(editor.parentWidget()) {}
+  : QPlainTextEdit(editor.parentWidget()) {}
 EBookCodeEditor::~EBookCodeEditor() {}
 
-void EBookCodeEditor::init() {
+void EBookCodeEditor::init()
+{
   QFont font;
   font.setFamily("Courier");
   font.setFixedPitch(true);
@@ -33,7 +36,8 @@ void EBookCodeEditor::init() {
   highlightCurrentLine();
 }
 
-void EBookCodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
+void EBookCodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
+{
   QPainter painter(lineNumberArea);
   painter.fillRect(event->rect(), Qt::lightGray);
 
@@ -57,7 +61,8 @@ void EBookCodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event) {
   }
 }
 
-int EBookCodeEditor::lineNumberAreaWidth() {
+int EBookCodeEditor::lineNumberAreaWidth()
+{
   int digits = 1;
   int max = qMax(1, blockCount());
   while (max >= 10) {
@@ -70,19 +75,22 @@ int EBookCodeEditor::lineNumberAreaWidth() {
   return space;
 }
 
-void EBookCodeEditor::resizeEvent(QResizeEvent* e) {
+void EBookCodeEditor::resizeEvent(QResizeEvent* e)
+{
   QPlainTextEdit::resizeEvent(e);
 
   QRect cr = contentsRect();
   lineNumberArea->setGeometry(
-      QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void EBookCodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */) {
+void EBookCodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
+{
   setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
-void EBookCodeEditor::highlightCurrentLine() {
+void EBookCodeEditor::highlightCurrentLine()
+{
   QList<QTextEdit::ExtraSelection> extraSelections;
 
   if (!isReadOnly()) {
@@ -100,7 +108,8 @@ void EBookCodeEditor::highlightCurrentLine() {
   setExtraSelections(extraSelections);
 }
 
-void EBookCodeEditor::updateLineNumberArea(const QRect& rect, int dy) {
+void EBookCodeEditor::updateLineNumberArea(const QRect& rect, int dy)
+{
   if (dy)
     lineNumberArea->scroll(0, dy);
   else
@@ -109,7 +118,8 @@ void EBookCodeEditor::updateLineNumberArea(const QRect& rect, int dy) {
   if (rect.contains(viewport()->rect())) updateLineNumberAreaWidth(0);
 }
 
-void EBookCodeEditor::setDocument(IEBookDocument* document) {
+void EBookCodeEditor::setDocument(IEBookDocument* document)
+{
   QTextDocument* doc = dynamic_cast<QTextDocument*>(document);
   m_highlighter = new XhtmlHighlighter(m_options, doc);
   QPlainTextEdit::setDocument(doc);
@@ -121,20 +131,24 @@ void EBookCodeEditor::setDocument(IEBookDocument* document) {
  * Normally this is triggered when the user resets the options colours
  * or font weights or styles.
  */
-void EBookCodeEditor::rehighlight() {
-  setFont(m_options->codeFont);
+void EBookCodeEditor::rehighlight()
+{
+  setFont(m_options->codeFont());
   m_highlighter->resetFormattingOptions();
   m_highlighter->rehighlight();
 }
 
-LineNumberArea::LineNumberArea(EBookCodeEditor* editor) : QWidget(editor) {
+LineNumberArea::LineNumberArea(EBookCodeEditor* editor) : QWidget(editor)
+{
   codeEditor = editor;
 }
 
-QSize LineNumberArea::sizeHint() const {
+QSize LineNumberArea::sizeHint() const
+{
   return QSize(codeEditor->lineNumberAreaWidth(), 0);
 }
 
-void LineNumberArea::paintEvent(QPaintEvent* event) {
+void LineNumberArea::paintEvent(QPaintEvent* event)
+{
   codeEditor->lineNumberAreaPaintEvent(event);
 }

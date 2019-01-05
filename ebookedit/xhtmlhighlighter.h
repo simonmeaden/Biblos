@@ -9,6 +9,7 @@
 #include <qlogger/qlogger.h>
 
 #include "ebookcommon.h"
+#include "options.h"
 
 class XhtmlHighlighter : public QSyntaxHighlighter
 {

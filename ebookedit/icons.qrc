@@ -14,5 +14,13 @@
         <file alias="print-preview">document-print-preview.png</file>
         <file alias="save">document-save.png</file>
         <file alias="save-as">document-save-as.png</file>
+        <file alias="library">books_64.png</file>
+        <file alias="bookshelf">bookshelf.png</file>
+        <file alias="bookmark">bookmark.png</file>
+        <file alias="foldertree">foldertree.png</file>
+        <file alias="tree">tree.png</file>
+    </qresource>
+    <qresource prefix="/files">
+        <file alias="attributions">attributions.txt</file>
     </qresource>
 </RCC>

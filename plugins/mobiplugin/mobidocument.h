@@ -40,9 +40,9 @@ public:
   void saveDocument() override;
   IEBookInterface* plugin() override;
   void setPlugin(IEBookInterface* plugin) override;
-  bool isModified() override;
-  bool readOnly() override;
-  void setReadOnly(const bool readonly) override;
+  //  bool isModified() override;
+  //  bool readOnly() override;
+  //  void setReadOnly(const bool readonly) override;
   QString title() override;
   //  void setTitle(const QString& title) override;
   QString subject() override;

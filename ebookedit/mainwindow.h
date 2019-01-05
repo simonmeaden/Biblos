@@ -14,6 +14,8 @@
 #include "ebookcommon.h"
 #include "iebookdocument.h"
 
+#include "options.h"
+
 // class Library;
 class IEBookDocument;
 class EPubDocument;
@@ -22,6 +24,7 @@ class ISpellInterface;
 class IPluginInterface;
 class CountryData;
 class DbManager;
+class LibraryFrame;
 
 class MainWindow : public QMainWindow
 {
@@ -35,7 +38,7 @@ public:
 
   SharedAuthorList selectAuthorNames(QString filename, EBookData* data);
 
-  void loadNonLibraryFiles();
+  void loadNonLibraryFiles(QStringList current_files, int currentindex);
 
 signals:
   void codeChanged();
@@ -43,9 +46,13 @@ signals:
 protected:
   // main document pointer.
   IEBookDocument* m_document = Q_NULLPTR;
+  QStackedWidget* m_stack;
+  int m_stack_library, m_stack_editor;
+  QFrame* m_tabs_frame;
   QSplitter* m_splitter;
   QTabWidget* m_tabs;
   QTextBrowser* m_toc;
+  LibraryFrame* m_library;
   Options::TocPosition m_toc_position;
   QMap<QString, ISpellInterface*> m_spellchecker_plugins;
   QMap<QString, IPluginInterface*> m_ebookplugins;
@@ -53,8 +60,7 @@ protected:
   QStringList m_languages;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
-  QString m_home_directiory, m_data_directory, m_config_directory,
-      m_config_file;
+  QString m_home_directiory, m_data_directory, m_config_directory, m_config_file;
   //  QSharedPointer<Library> m_library;
   DbManager* m_database;
 
@@ -70,7 +76,7 @@ protected:
   YAML::Node m_preferences;
   bool m_initialising, m_loading;
   Options* m_options;
-  bool m_prefchanged = false;
+  //  bool m_prefchanged = false;
   QString m_defbookpath;
   int m_bookcount;
   //  HoverDialog *m_dlg;
@@ -78,7 +84,7 @@ protected:
   QFrame* m_popup;
   //  QTimer* m_popuptimer;
   int m_popupindex;
-  IEBookDocument* m_current_document;
+  QTextDocument* m_current_document;
   ISpellInterface* m_current_spell_checker;
 
   void initBuild();
@@ -93,6 +99,7 @@ protected:
   void initEditActions();
   void initEditorActions();
   void initHelpActions();
+  void initLibActions();
   void initFileMenu();
   void initEditMenu();
   void initViewMenu();
@@ -113,15 +120,18 @@ protected:
   QStringList attemptToExtractAuthorFromFilename(QString, EBookData* data);
   QString cleanString(QString toClean);
 
-  void setModified();
-  void setNotModified();
-  void setReadOnly();
-  void setReadWrite();
-  void setFilename(QString name);
+  void setStatusModified();
+  void setStatusNotModified();
+  void setStatusReadOnly();
+  void setStatusReadWrite();
+  void setStatusFilename(QString name);
   void tabEntered(int, QPoint pos, QVariant);
   void tabExited(int);
   void openWindow();
   void tocAnchorClicked(QUrl url);
+  void setObjectVisibility(int index = 0);
+//  void setObjectVisibility(Options::ViewState state);
+  //  void currentDocumentCursorChanged(QTextCursor cursor);
 
 protected: // Menu/StatusBar stuff
   QMenuBar* m_menubar;
@@ -131,9 +141,19 @@ protected: // Menu/StatusBar stuff
   QMenu* m_spellingmenu;
   QMenu* m_helpmenu;
 
+  QToolBar* m_lib_toolbar;
+  QToolBar* m_lib_type_toolbar;
+  QToolBar* m_file_toolbar;
+  QToolBar* m_editor_toolbar;
+
   QLabel* m_modifiedlbl;
   QLabel* m_readonlylbl;
   QLabel* m_filelbl;
+
+  QAction* m_show_library;
+  QAction* m_show_editor;
+  QAction* m_library_shelf;
+  QAction* m_library_tree;
 
   QAction* m_file_new;
   QAction* m_file_open;
@@ -200,6 +220,8 @@ protected: // Menu/StatusBar stuff
   void viewCentre();
   void viewToc();
   void viewTocPosition();
+  void viewShowLibrary();
+  void viewShowEditor();
 
   void helpContents();
   void helpIndex();
@@ -208,50 +230,17 @@ protected: // Menu/StatusBar stuff
   void helpAboutPlugins();
   void helpCheckUpdates();
 
-  static const int DEF_WIDTH = 600;
-  static const int DEF_HEIGHT = 1200;
-  static const int DEF_X = 0;
-  static const int DEF_Y = 0;
-  static const int DEF_DLG_WIDTH = 300;
-  static const int DEF_DLG_HEIGHT = 300;
   static const QString READ_ONLY;
   static const QString READ_WRITE;
   static const QString NO_FILE;
   static const QString NOT_MODIFIED;
   static const QString MODIFIED;
-  static const int DEF_POPUP_TIMEOUT = 10000;
 
   static const QString DB_NAME;
 
   static const QString PREF_FILE;
-  static QString POSITION;
-  static QString DIALOG;
-  static QString PREF_POPUP_TIMEOUT;
-  static QString PREF_ENABLE_POPUP;
-  static QString PREF_CURRENT_INDEX;
-  static QString PREF_COUNT;
-  static QString PREF_BOOKLIST;
-  static QString PREF_LIBRARY;
-  static QString CODE_OPTIONS;
-  static QString CODE_NORMAL;
-  static QString CODE_FONT;
-  static QString CODE_ATTRIBUTE;
-  static QString CODE_TAG;
-  static QString CODE_ERROR;
-  static QString CODE_STRING;
-  static QString CODE_STYLE;
-  static QString CODE_SCRIPT;
-  static QString CODE_COLOR;
-  static QString CODE_BACK;
-  static QString CODE_WEIGHT;
-  static QString CODE_ITALIC;
-  static QString COPY_BOOKS_TO_STORE;
-  static QString DELETE_OLD_BOOK;
-  static QString SHOW_TOC;
-  static QString TOC_POSITION;
 
-  static const QString BTN_STYLE;
-  void loadLibraryFiles();
+  void loadLibraryFiles(QStringList current_lib_files, int currentindex);
   void setModifiedAuthors(IEBookDocument* doc, SharedAuthorList authors);
 };
 

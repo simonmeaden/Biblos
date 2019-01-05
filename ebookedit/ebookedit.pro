@@ -52,7 +52,10 @@ SOURCES += \
     metadataeditor.cpp \
     dbmanager.cpp \
     ebookwordreader.cpp \
-    plugindialog.cpp
+    plugindialog.cpp \
+    libraryframe.cpp \
+    libraryshelf.cpp \
+    aboutdialog.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -67,7 +70,10 @@ HEADERS += \
     metadataeditor.h \
     dbmanager.h \
     ebookwordreader.h \
-    plugindialog.h
+    plugindialog.h \
+    libraryframe.h \
+    libraryshelf.h \
+    aboutdialog.h
 
 FORMS += \
         mainwindow.ui
@@ -104,5 +110,8 @@ unix|win32: LIBS += -lquazip5
 unix|win32: LIBS += -lqloggerlib
 ## STRINGUTIL
 #unix|win32: LIBS += -lstringutil
+
+DISTFILES += \
+    attributions.txt
 
 
