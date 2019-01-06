@@ -68,7 +68,7 @@ public:
   void setCurrentIndex(const int index);
   bool currentFilesContains(const QString filename);
   void appendCurrentFile(const QString filename);
-  void moveToLibFile(const QString filename);
+//  void moveToLibFile(const QString filename);
   QStringList currentfiles() const;
   int bookCount() const;
 
@@ -193,7 +193,7 @@ protected:
   //  int prefx, prefy, prefwidth, prefheight;
   int m_currentindex;
   QStringList m_current_files;
-  QStringList m_current_lib_files;
+//  QStringList m_current_lib_files;
 
   // Code Editor options
   QFont m_code_font;

@@ -7,17 +7,17 @@
 #include "private/mobidocument_p.h"
 
 MobiDocument::MobiDocument(QObject* parent) :
-    ITextDocument(parent), d_ptr(new MobiDocumentPrivate(this))
+  ITextDocument(parent), d_ptr(new MobiDocumentPrivate(this))
 {
 }
 
 MobiDocument::MobiDocument(MobiDocumentPrivate* doc, QObject* parent) :
-    ITextDocument(parent), d_ptr(doc)
+  ITextDocument(parent), d_ptr(doc)
 {
 }
 
 MobiDocument::MobiDocument(const MobiDocument& doc) :
-    ITextDocument(doc.parent()), d_ptr(doc.d_ptr)
+  ITextDocument(doc.parent()), d_ptr(doc.d_ptr)
 {
 }
 
@@ -111,11 +111,11 @@ QDateTime MobiDocument::date() {}
 
 void MobiDocument::setDate(const QDateTime& date) {}
 
-// QStringList MobiDocument::creators()
-//{
-////  Q_D(MobiDocument);
-////  return d->creators();
-//}
+QStringList MobiDocument::creators()
+{
+//  Q_D(MobiDocument);
+//  return d->creators();
+}
 
 // void MobiDocument::setCreators(const QStringList& creators)
 //{
@@ -123,7 +123,7 @@ void MobiDocument::setDate(const QDateTime& date) {}
 ////  d->setCreators(creators);
 //}
 
-QString MobiDocument::creatorNames()
+QString MobiDocument::creatorNames(const QStringList &)
 {
   Q_D(MobiDocument);
   return d->creatorNames(QStringList());

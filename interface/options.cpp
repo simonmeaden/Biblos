@@ -97,15 +97,15 @@ void Options::save(const QString filename)
           }
           emitter << YAML::EndSeq;
         } // End of PREF_BOOKLIST
-        emitter << YAML::Key << PREF_LIBRARY;
-        {
-          // Start of PREF_LIBRARY
-          emitter << YAML::BeginSeq;
-          foreach (QString book, m_current_lib_files) {
-            emitter << book;
-          }
-          emitter << YAML::EndSeq;
-        } // End of PREF_LIBRARY
+        //        emitter << YAML::Key << PREF_LIBRARY;
+        //        {
+        //          // Start of PREF_LIBRARY
+        //          emitter << YAML::BeginSeq;
+        //          foreach (QString book, m_current_lib_files) {
+        //            emitter << book;
+        //          }
+        //          emitter << YAML::EndSeq;
+        //        } // End of PREF_LIBRARY
         emitter << YAML::Key << CODE_OPTIONS;
         {
           // Start of CODE_OPTIONS
@@ -265,14 +265,14 @@ void Options::load(const QString filename)
       m_toc_position = Options::LEFT;
     }
     // Last books loaded in library.
-    YAML::Node library = m_preferences[PREF_LIBRARY];
-    if (library && library.IsSequence()) {
-      m_current_lib_files.clear(); // Empty list just in case.
-      for (uint i = 0; i < library.size(); i++) {
-        m_current_lib_files.append(library[i].as<QString>());
-      }
-    }
-    emit loadLibraryFiles(m_current_lib_files, m_currentindex);
+    //    YAML::Node library = m_preferences[PREF_LIBRARY];
+    //    if (library && library.IsSequence()) {
+    //      m_current_lib_files.clear(); // Empty list just in case.
+    //      for (uint i = 0; i < library.size(); i++) {
+    //        m_current_lib_files.append(library[i].as<QString>());
+    //      }
+    //    }
+    //    emit loadLibraryFiles(m_current_lib_files, m_currentindex);
 
     // Last books loaded NOT in library.
     YAML::Node books = m_preferences[PREF_BOOKLIST];
@@ -282,7 +282,7 @@ void Options::load(const QString filename)
         m_current_files.append(books[i].as<QString>());
       }
     }
-    emit loadNonLibraryFiles(m_current_files, m_currentindex);
+    emit loadLibraryFiles(m_current_files, m_currentindex);
 
     //    currentfiles = m_preferences["book
     //    list"].as<QStringList>();
@@ -423,7 +423,7 @@ QColor Options::normalColor() const
   return m_normal_color;
 }
 
-void Options::setNormalColor(const QColor &normal_color)
+void Options::setNormalColor(const QColor& normal_color)
 {
   m_normal_color = normal_color;
   m_prefchanged = true;
@@ -434,7 +434,7 @@ QColor Options::normalBack() const
   return m_normal_back;
 }
 
-void Options::setNormalBack(const QColor &normal_back)
+void Options::setNormalBack(const QColor& normal_back)
 {
   m_normal_back = normal_back;
   m_prefchanged = true;
@@ -456,7 +456,7 @@ QFont Options::codeFont() const
   return m_code_font;
 }
 
-void Options::setCodeFont(const QFont &code_font)
+void Options::setCodeFont(const QFont& code_font)
 {
   m_code_font = code_font;
   m_prefchanged = true;
@@ -467,7 +467,7 @@ QFont::Weight Options::normalWeight() const
   return m_normal_weight;
 }
 
-void Options::setNormalWeight(const QFont::Weight &normal_weight)
+void Options::setNormalWeight(const QFont::Weight& normal_weight)
 {
   m_normal_weight = normal_weight;
   m_prefchanged = true;
@@ -478,7 +478,7 @@ QColor Options::attributeColor() const
   return m_attribute_color;
 }
 
-void Options::setAttributeColor(const QColor &attribute_color)
+void Options::setAttributeColor(const QColor& attribute_color)
 {
   m_attribute_color = attribute_color;
   m_prefchanged = true;
@@ -489,7 +489,7 @@ QColor Options::attributeBack() const
   return m_attribute_back;
 }
 
-void Options::setAttributeBack(const QColor &attribute_back)
+void Options::setAttributeBack(const QColor& attribute_back)
 {
   m_attribute_back = attribute_back;
   m_prefchanged = true;
@@ -511,7 +511,7 @@ QFont::Weight Options::attributeWeight() const
   return m_attribute_weight;
 }
 
-void Options::setAttributeWeight(const QFont::Weight &attribute_weight)
+void Options::setAttributeWeight(const QFont::Weight& attribute_weight)
 {
   m_attribute_weight = attribute_weight;
   m_prefchanged = true;
@@ -522,7 +522,7 @@ QColor Options::tagColor() const
   return m_tag_color;
 }
 
-void Options::setTagColor(const QColor &tag_color)
+void Options::setTagColor(const QColor& tag_color)
 {
   m_tag_color = tag_color;
   m_prefchanged = true;
@@ -533,7 +533,7 @@ QColor Options::tagBack() const
   return m_tag_back;
 }
 
-void Options::setTagBack(const QColor &tag_back)
+void Options::setTagBack(const QColor& tag_back)
 {
   m_tag_back = tag_back;
   m_prefchanged = true;
@@ -555,7 +555,7 @@ QFont::Weight Options::tagWeight() const
   return m_tag_weight;
 }
 
-void Options::setTagWeight(const QFont::Weight &tag_weight)
+void Options::setTagWeight(const QFont::Weight& tag_weight)
 {
   m_tag_weight = tag_weight;
   m_prefchanged = true;
@@ -566,7 +566,7 @@ QColor Options::stringColor() const
   return m_string_color;
 }
 
-void Options::setStringColor(const QColor &string_color)
+void Options::setStringColor(const QColor& string_color)
 {
   m_string_color = string_color;
   m_prefchanged = true;
@@ -577,7 +577,7 @@ QColor Options::stringBack() const
   return m_string_back;
 }
 
-void Options::setStringBack(const QColor &string_back)
+void Options::setStringBack(const QColor& string_back)
 {
   m_string_back = string_back;
   m_prefchanged = true;
@@ -599,7 +599,7 @@ QFont::Weight Options::stringWeight() const
   return m_string_weight;
 }
 
-void Options::setStringWeight(const QFont::Weight &string_weight)
+void Options::setStringWeight(const QFont::Weight& string_weight)
 {
   m_string_weight = string_weight;
   m_prefchanged = true;
@@ -610,7 +610,7 @@ QColor Options::errorColor() const
   return m_error_color;
 }
 
-void Options::setErrorColor(const QColor &error_color)
+void Options::setErrorColor(const QColor& error_color)
 {
   m_error_color = error_color;
   m_prefchanged = true;
@@ -621,7 +621,7 @@ QColor Options::errorBack() const
   return m_error_back;
 }
 
-void Options::setErrorBack(const QColor &error_back)
+void Options::setErrorBack(const QColor& error_back)
 {
   m_error_back = error_back;
   m_prefchanged = true;
@@ -643,7 +643,7 @@ QFont::Weight Options::errorWeight() const
   return m_error_weight;
 }
 
-void Options::setErrorWeight(const QFont::Weight &error_weight)
+void Options::setErrorWeight(const QFont::Weight& error_weight)
 {
   m_error_weight = error_weight;
   m_prefchanged = true;
@@ -654,7 +654,7 @@ QColor Options::scriptColor() const
   return m_script_color;
 }
 
-void Options::setScriptColor(const QColor &script_color)
+void Options::setScriptColor(const QColor& script_color)
 {
   m_script_color = script_color;
   m_prefchanged = true;
@@ -665,7 +665,7 @@ QColor Options::scriptBack() const
   return m_script_back;
 }
 
-void Options::setScriptBack(const QColor &script_back)
+void Options::setScriptBack(const QColor& script_back)
 {
   m_script_back = script_back;
   m_prefchanged = true;
@@ -687,7 +687,7 @@ QFont::Weight Options::scriptWeight() const
   return m_script_weight;
 }
 
-void Options::setScriptWeight(const QFont::Weight &script_weight)
+void Options::setScriptWeight(const QFont::Weight& script_weight)
 {
   m_script_weight = script_weight;
   m_prefchanged = true;
@@ -698,7 +698,7 @@ QColor Options::styleColor() const
   return m_style_color;
 }
 
-void Options::setStyleColor(const QColor &style_color)
+void Options::setStyleColor(const QColor& style_color)
 {
   m_style_color = style_color;
   m_prefchanged = true;
@@ -709,7 +709,7 @@ QColor Options::styleBack() const
   return m_style_back;
 }
 
-void Options::setStyleBack(const QColor &style_back)
+void Options::setStyleBack(const QColor& style_back)
 {
   m_style_back = style_back;
   m_prefchanged = true;
@@ -731,7 +731,7 @@ QFont::Weight Options::styleWeight() const
   return m_style_weight;
 }
 
-void Options::setStyleWeight(const QFont::Weight &style_weight)
+void Options::setStyleWeight(const QFont::Weight& style_weight)
 {
   m_style_weight = style_weight;
   m_prefchanged = true;
@@ -783,17 +783,17 @@ void Options::appendCurrentFile(const QString filename)
   }
 }
 
-void Options::moveToLibFile(const QString filename)
-{
-  if (m_current_files.contains(filename)) {
-    m_current_files.removeOne(filename);
-    m_prefchanged = true;
-  }
-  if (!m_current_lib_files.contains(filename)) {
-    m_current_lib_files.append(filename);
-    m_prefchanged = true;
-  }
-}
+//void Options::moveToLibFile(const QString filename)
+//{
+//  if (m_current_files.contains(filename)) {
+//    m_current_files.removeOne(filename);
+//    m_prefchanged = true;
+//  }
+//  if (!m_current_lib_files.contains(filename)) {
+//    m_current_lib_files.append(filename);
+//    m_prefchanged = true;
+//  }
+//}
 
 QStringList Options::currentfiles() const
 {
@@ -802,7 +802,7 @@ QStringList Options::currentfiles() const
 
 int Options::bookCount() const
 {
-  return m_current_files.size() + m_current_lib_files.size();
+  return m_current_files.size();
 }
 
 bool Options::deleteOldBook()
@@ -839,7 +839,7 @@ bool Options::copyBooksToStore()
 
 void Options::setCopyBooksToStore(bool copy_books)
 {
-  m_copy_books_to_store=copy_books;
+  m_copy_books_to_store = copy_books;
   m_prefchanged = true;
 }
 
@@ -850,7 +850,7 @@ bool Options::useCalibreLibrary()
 
 void Options::setUseCalibreLibrary(bool use_calibre)
 {
-  m_use_calibre_library=use_calibre;
+  m_use_calibre_library = use_calibre;
   m_prefchanged = true;
 }
 

@@ -569,7 +569,7 @@ void MainWindow::loadOptions()
 
 void MainWindow::saveOptions()
 {
-  m_options->load(m_config_file);
+  m_options->save(m_config_file);
 }
 
 void MainWindow::initSetup()
@@ -596,9 +596,18 @@ QString MainWindow::copyBookToStore(QString path, QString authors)
   }
 
   QFile out_file(newpath + filename);
-  if (in_file.exists() && !out_file.exists()) {
-    in_file.copy(out_file.fileName());
-    m_options->moveToLibFile(path);
+  if (in_file.exists()) {
+    if (!out_file.exists()) {
+      in_file.copy(out_file.fileName());
+    } else {
+      if (QMessageBox::warning(
+            this, "Overwriting existing file!",
+            tr("You are attempting to overwrite an existing library file. Are you sure?"),
+            QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Cancel) == QMessageBox::Ok) {
+        in_file.copy(out_file.fileName());
+      }
+    }
+
     if (m_options->deleteOldBook()) {
       if (m_options->alwaysConfirmDelete()) {
         QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"), this);
@@ -677,18 +686,16 @@ void MainWindow::setModifiedAuthors(IEBookDocument* doc, SharedAuthorList author
 
 void MainWindow::loadDocument(QString filename)
 {
-  m_options->appendCurrentFile(filename);
-
   // get the file extension
   QString ext;
-  bool is_in_library = false;
+  bool is_a_library_book = false;
   QFileInfo info(filename);
   if (info.exists()) {
     ext = info.suffix();
   }
 
   if (filename.startsWith(m_data_directory)) {
-    is_in_library = true;
+    is_a_library_book = true;
   }
 
   // get the correct plugin.
@@ -715,7 +722,7 @@ void MainWindow::loadDocument(QString filename)
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
     wrapper = new EBookWrapper(m_options, this);
     wrapper->editor()->setDocument(htmldocument);
-    if (is_in_library) {
+    if (is_a_library_book) {
       m_toc->setDocument(htmldocument->toc());
       tabname = QString(tr("%1, (%2)")
                         .arg(htmldocument->title())
@@ -724,76 +731,55 @@ void MainWindow::loadDocument(QString filename)
       m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
       connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
     } else {
-      // to copy it we need the authors.
-      if (m_options->copyBooksToStore()) {
-        QStringList authorlist = htmldocument->creators();
-        QString authors_name;
-        if (authorlist.isEmpty()) {
-          SharedAuthorList authors = selectAuthorNames(filename, htmldocument->title());
-          setModifiedAuthors(htmldocument, authors);
+      // TODO check if there is a library copy.
+      QStringList authorlist = htmldocument->creators();
+      QString authors_name;
+      if (authorlist.isEmpty()) {
+        SharedAuthorList authors = selectAuthorNames(filename, htmldocument->title());
+        setModifiedAuthors(htmldocument, authors);
 
-          foreach (SharedAuthor author, authors) {
-            authors_name = author->forename() + " " + author->surname();
-            authorlist << authors_name;
-          }
-
-          authors_name = htmldocument->creatorNames(authorlist);
-          filename = copyBookToStore(filename, authors_name);
-        } else {
-          authors_name = htmldocument->creatorNames(authorlist);
-          filename = copyBookToStore(filename, authors_name);
+        foreach (SharedAuthor author, authors) {
+          authorlist << authors_name;
         }
       }
 
-      htmldocument = ebook_plugin->createDocument(filename);
-      itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
-      //    htmldocument->setPlugin(ebook_plugin);
-      //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-      wrapper = new EBookWrapper(m_options, this);
-      wrapper->editor()->setDocument(htmldocument);
-      m_toc->setDocument(htmldocument->toc());
-      tabname =
-        QString(tr("%1, (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
-      m_tabs->addTab(wrapper, tabname);
-      m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
-      connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
+      authors_name = htmldocument->creatorNames(authorlist);
+      if (m_options->copyBooksToStore()) {
+        filename = copyBookToStore(filename, authors_name);
+      }
+
+      // to copy it we need the authors.
     }
 
-    //    wrapper->codeEditor()->setDocument(codeDocument);
-    //    //  wrapper->startWordReader();
-    //    connect(this, &MainWindow::codeChanged, wrapper,
-    //            &EBookWrapper::optionsHaveChanged);
-    //    //    EBookData* data = htmldocument->data();
-    //    SharedAuthorList authors;
-    //    QString authors_name;
-    //    QString filename;
-
-    //    htmldocument->setFilename(filename);
-
-    //    //      if (!htmldocument->title().isEmpty()) {
-    //    //      }
-
-    //    //            CountryData *country_data = m_dict_data[data->language];
-    //    //            if (!country_data) {
-    //    //                if (m_current_spell_checker) {
-    //    //                    //                QStringList codes =
-    //    //                    //
-    //    // m_current_spell_checker->compatibleLanguageCodes(data->language);
-    //    //                    //                foreach (QString code, codes)
-    //    {
-    //    //                    //                    // TODO
-    //    //                    //                }
-    //    //                }
-    //    //            }
-    //    //            country_data = m_dict_data;
-
-    m_loading = false;
+    htmldocument = ebook_plugin->createDocument(filename);
+    itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
+    //    htmldocument->setPlugin(ebook_plugin);
+    //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
+    wrapper = new EBookWrapper(m_options, this);
+    wrapper->editor()->setDocument(htmldocument);
+    m_toc->setDocument(htmldocument->toc());
+    //      tabname =
+    //        QString(tr("%1,
+    //        (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
+    tabname = tr("%1").arg(htmldocument->title());
+    m_tabs->addTab(wrapper, tabname);
+    m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
+    connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
   }
 
-  if (m_tabs->count() > 0)
-    m_tabs->setEnabled(true);
+  m_loading = false;
+  // set up the ditor state correctly (editor visible, show_library btn visible)
+  m_stack->setCurrentIndex(m_stack_editor);
+  m_show_library->setVisible(true);
+  m_show_editor->setVisible(false);
+  m_options->appendCurrentFile(filename);
+  saveOptions();
+}
 
-  setObjectVisibility();
+if (m_tabs->count() > 0)
+  m_tabs->setEnabled(true);
+
+setObjectVisibility();
 }
 
 QString MainWindow::concatenateAuthorNames(SharedAuthorList authors)

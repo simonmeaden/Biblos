@@ -179,7 +179,7 @@ void Author::appendBook(SharedBook book) const
   m_books->append(book);
 }
 
-QStringList Author::sortToAlphabeticalOrder()
+QStringList Author::sortToAlphabeticalOrder(QStringList list)
 {
   QMap<QString, QString> map;
   foreach (const QString &str, list)

@@ -149,7 +149,7 @@ QString EPubDocument::creatorNames(const QStringList &authors)
   if (authors.isEmpty())
     return d->creatorNames(d->creators());
   else {
-    d->creatorNames(authors);
+    return d->creatorNames(authors);
   }
 }
 
