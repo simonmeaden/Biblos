@@ -56,9 +56,6 @@ Options::Options(QObject* parent)
   , m_style_back(Qt::white)
   , m_style_italic(false)
   , m_style_weight(QFont::Normal)
-  , m_copy_books_to_store(true)
-  , m_delete_old_book(false)
-  , m_never_confirm_delete(false)
 {
 }
 
@@ -80,10 +77,6 @@ void Options::save(const QString filename)
         emitter << YAML::Value << m_options_dlg_size;
         emitter << YAML::Key << PREF_CURRENT_INDEX;
         emitter << YAML::Value << m_currentindex;
-        emitter << YAML::Key << COPY_BOOKS_TO_STORE;
-        emitter << YAML::Value << m_copy_books_to_store;
-        emitter << YAML::Key << DELETE_OLD_BOOK;
-        emitter << YAML::Value << m_delete_old_book;
         emitter << YAML::Key << SHOW_TOC;
         emitter << YAML::Value << m_toc_visible;
         emitter << YAML::Key << TOC_POSITION;
@@ -97,15 +90,6 @@ void Options::save(const QString filename)
           }
           emitter << YAML::EndSeq;
         } // End of PREF_BOOKLIST
-        //        emitter << YAML::Key << PREF_LIBRARY;
-        //        {
-        //          // Start of PREF_LIBRARY
-        //          emitter << YAML::BeginSeq;
-        //          foreach (QString book, m_current_lib_files) {
-        //            emitter << book;
-        //          }
-        //          emitter << YAML::EndSeq;
-        //        } // End of PREF_LIBRARY
         emitter << YAML::Key << CODE_OPTIONS;
         {
           // Start of CODE_OPTIONS
@@ -241,18 +225,6 @@ void Options::load(const QString filename)
     } else {
       m_currentindex = 0;
     }
-    // Copy edited books to a book store.
-    if (m_preferences[COPY_BOOKS_TO_STORE]) {
-      m_copy_books_to_store = m_preferences[COPY_BOOKS_TO_STORE].as<bool>();
-    } else {
-      m_copy_books_to_store = true;
-    }
-    // Copy edited books to a book store.
-    if (m_preferences[DELETE_OLD_BOOK]) {
-      m_delete_old_book = m_preferences[DELETE_OLD_BOOK].as<bool>();
-    } else {
-      m_delete_old_book = false;
-    }
     if (m_preferences[SHOW_TOC]) {
       m_toc_visible = m_preferences[SHOW_TOC].as<bool>();
     } else {
@@ -265,16 +237,6 @@ void Options::load(const QString filename)
       m_toc_position = Options::LEFT;
     }
     // Last books loaded in library.
-    //    YAML::Node library = m_preferences[PREF_LIBRARY];
-    //    if (library && library.IsSequence()) {
-    //      m_current_lib_files.clear(); // Empty list just in case.
-    //      for (uint i = 0; i < library.size(); i++) {
-    //        m_current_lib_files.append(library[i].as<QString>());
-    //      }
-    //    }
-    //    emit loadLibraryFiles(m_current_lib_files, m_currentindex);
-
-    // Last books loaded NOT in library.
     YAML::Node books = m_preferences[PREF_BOOKLIST];
     if (books && books.IsSequence()) {
       m_current_files.clear(); // Empty list just in case.
@@ -284,8 +246,6 @@ void Options::load(const QString filename)
     }
     emit loadLibraryFiles(m_current_files, m_currentindex);
 
-    //    currentfiles = m_preferences["book
-    //    list"].as<QStringList>();
     YAML::Node codeoptions = m_preferences[CODE_OPTIONS];
     if (codeoptions && codeoptions.IsMap()) {
       YAML::Node codefont = codeoptions[CODE_FONT];
@@ -783,18 +743,6 @@ void Options::appendCurrentFile(const QString filename)
   }
 }
 
-//void Options::moveToLibFile(const QString filename)
-//{
-//  if (m_current_files.contains(filename)) {
-//    m_current_files.removeOne(filename);
-//    m_prefchanged = true;
-//  }
-//  if (!m_current_lib_files.contains(filename)) {
-//    m_current_lib_files.append(filename);
-//    m_prefchanged = true;
-//  }
-//}
-
 QStringList Options::currentfiles() const
 {
   return m_current_files;
@@ -803,55 +751,6 @@ QStringList Options::currentfiles() const
 int Options::bookCount() const
 {
   return m_current_files.size();
-}
-
-bool Options::deleteOldBook()
-{
-  return m_delete_old_book;
-}
-
-void Options::setDeleteOldBook(bool delete_book)
-{
-  m_delete_old_book = delete_book;
-  m_prefchanged = true;
-}
-
-bool Options::alwaysConfirmDelete()
-{
-  return !m_never_confirm_delete;
-}
-
-bool Options::neverConfirmDelete()
-{
-  return m_never_confirm_delete;
-}
-
-void Options::setNeverConfirmDelete(bool never_confirm)
-{
-  m_never_confirm_delete = never_confirm;
-  m_prefchanged = true;
-}
-
-bool Options::copyBooksToStore()
-{
-  return m_copy_books_to_store;
-}
-
-void Options::setCopyBooksToStore(bool copy_books)
-{
-  m_copy_books_to_store = copy_books;
-  m_prefchanged = true;
-}
-
-bool Options::useCalibreLibrary()
-{
-  return m_use_calibre_library;
-}
-
-void Options::setUseCalibreLibrary(bool use_calibre)
-{
-  m_use_calibre_library = use_calibre;
-  m_prefchanged = true;
 }
 
 Options::ViewState Options::viewState() const

@@ -25,6 +25,10 @@ MobiDocument::~MobiDocument() {}
 
 MobiDocument::MobiDocument(MobiDocumentPrivate& d) : ITextDocument(d.q_ptr) {}
 
+QString MobiDocument::buildTocFromData()
+{
+}
+
 QString MobiDocument::filename()
 {
   Q_D(MobiDocument);

@@ -29,8 +29,14 @@ public:
   QStringList creators();
   QString title();
 
-  IEBookInterface* plugin() { return m_plugin; }
-  void setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
+  IEBookInterface* plugin()
+  {
+    return m_plugin;
+  }
+  void setPlugin(IEBookInterface* plugin)
+  {
+    m_plugin = plugin;
+  }
 
   QString language() const {}
   void setLanguage(const QString& language) {}
@@ -38,9 +44,10 @@ public:
   void setDate(const QDateTime& date) {}
   void setDocumentPath(const QString& documentPath);
 
+  QString buildTocFromFiles();
+
 protected:
   EPubContainer* m_container;
-  EBookItem m_currentItem;
   QString m_documentPath;
   bool m_loaded;
 

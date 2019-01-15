@@ -6,10 +6,11 @@
 
 #include "iebookdocument.h"
 
-class EBookEditor : public QTextEdit {
+class EBookEditor : public QTextEdit
+{
   Q_OBJECT
 
- public:
+public:
   EBookEditor(QWidget* parent = Q_NULLPTR);
   EBookEditor(const EBookEditor& editor);
   ~EBookEditor();
@@ -17,10 +18,12 @@ class EBookEditor : public QTextEdit {
   void setDocument(IEBookDocument* document);
   QVariant data();
 
- signals:
+  QString buildTocFromData();
+
+signals:
   void documentLoaded();
 
- protected:
+protected:
   QVariant m_data;
   IEBookDocument* m_document;
 };

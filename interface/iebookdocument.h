@@ -5,6 +5,8 @@
 #include <QString>
 #include <QTextDocument>
 
+#include "ebookcommon.h"
+
 class IEBookInterface;
 
 class IEBookDocument
@@ -20,6 +22,7 @@ public:
   virtual void saveDocument() = 0;
   virtual IEBookInterface* plugin() = 0;
   virtual void setPlugin(IEBookInterface* plugin) = 0;
+  virtual EBookType type() const = 0;
 
   //  virtual bool isModified() = 0;
   //  virtual bool readOnly() = 0;
@@ -42,6 +45,9 @@ public:
   virtual void setPublisher(const QString& publisher) = 0;
   virtual QDate published() = 0;
   virtual void setPublished(const QDate& published) = 0;
+
+  virtual QString buildTocFromData() = 0;
+
 };
 
 /*!
@@ -99,7 +105,7 @@ public:
       if (result.isEmpty()) {
         result = name;
       } else {
-        result += " &amp; ";
+        result += ", ";
         result += name;
       }
     }
@@ -133,7 +139,6 @@ public:
 protected:
   IEBookInterface* m_plugin;
   QString m_filename;
-  bool m_modified, m_readonly;
   QStringList m_creators;
   QString m_publisher;
   QDate m_published;

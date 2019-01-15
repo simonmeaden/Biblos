@@ -31,6 +31,12 @@ EPubDocument::EPubDocument(EPubDocumentPrivate& d)
 {
 }
 
+QString EPubDocument::buildTocFromData()
+{
+  Q_D(EPubDocument);
+  return d->buildTocFromFiles();
+}
+
 EPubDocument::~EPubDocument()
 {
 }
@@ -111,6 +117,7 @@ QString EPubDocument::language()
 {
   Q_D(EPubDocument);
   // TODO
+  return QString();
 }
 
 void EPubDocument::setLanguage(const QString& language)
@@ -123,6 +130,7 @@ QDateTime EPubDocument::date()
 {
   Q_D(EPubDocument);
   // TODO
+  return QDateTime();
 }
 
 void EPubDocument::setDate(const QDateTime& date)
@@ -136,12 +144,6 @@ QStringList EPubDocument::creators()
   Q_D(EPubDocument);
   return d->creators();
 }
-
-// void EPubDocument::setCreators(const QStringList& authors)
-//{
-//  Q_D(EPubDocument);
-//  d->addCreators(authors);
-//}
 
 QString EPubDocument::creatorNames(const QStringList &authors)
 {
@@ -165,12 +167,6 @@ void EPubDocument::setPublisher(const QString& publisher)
   d->setPublisher(publisher);
 }
 
-// void EPubDocument::clearCache()
-//{
-//  Q_D(EPubDocument);
-//  d->clearCache();
-//}
-
 IEBookInterface* EPubDocument::plugin()
 {
   Q_D(EPubDocument);
@@ -182,24 +178,6 @@ void EPubDocument::setPlugin(IEBookInterface* plugin)
   Q_D(EPubDocument);
   d->setPlugin(plugin);
 }
-
-// bool EPubDocument::isModified()
-//{
-//  Q_D(EPubDocument);
-//  return d->isModified();
-//}
-
-// bool EPubDocument::readOnly()
-//{
-//  Q_D(EPubDocument);
-//  return d->readonly();
-//}
-
-// void EPubDocument::setReadOnly(const bool readonly)
-//{
-//  Q_D(EPubDocument);
-//  d->setReadonly(readonly);
-//}
 
 QDate EPubDocument::published()
 {

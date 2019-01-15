@@ -3,8 +3,6 @@
 
 #include <QDialog>
 #include <QtWidgets>
-//#include <QFrame>
-//#include <QtGlobal>
 #include <QColorDialog>
 
 #include "ebookcommon.h"
@@ -60,9 +58,6 @@ protected:
   QCheckBox* scriptItalicBox;
   QComboBox* scriptWeightBox;
 
-  QCheckBox* copy_book_to_store_box;
-  QCheckBox* delete_old_book_box;
-  QCheckBox* never_confirm_delete_box;
   QCheckBox* toc_visible_box;
   QPushButton* toc_position_btn;
 
@@ -101,9 +96,6 @@ protected:
   void setScriptItalic(bool);
   void setScriptWeight(int);
 
-  void setCopyBookToStore(bool);
-  void setDeleteOldBook(bool);
-  void setNeverConfirmDelete(bool);
   void setShowTocEdit(bool);
   void setTocPosition();
 

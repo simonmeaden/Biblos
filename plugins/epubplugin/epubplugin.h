@@ -17,6 +17,7 @@ class INTERFACESHARED_EXPORT EPubPlugin : public QObject, public IEBookInterface
   Q_PLUGIN_METADATA(IID IEBookInterface_iid FILE "ebookinterface.json")
   Q_INTERFACES(IPluginInterface)
   Q_INTERFACES(IEBookInterface)
+
 public:
   EPubPlugin(QObject* parent = Q_NULLPTR);
   EPubPlugin(Options* options, QObject* parent = Q_NULLPTR);
@@ -40,6 +41,10 @@ public:
   // IEBookInterface interface
   QString fileFilter() override;
   QString fileDescription() override;
+  EBookType type() const override
+  {
+    return EPUB;
+  }
 
 protected:
   // static variables for IPluginInterface.

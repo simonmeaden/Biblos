@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    scan \
     interface \
 #    ebook \
     plugins \

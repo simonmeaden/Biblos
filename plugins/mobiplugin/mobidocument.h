@@ -58,8 +58,14 @@ public:
   void setPublisher(const QString& publisher) override;
   QDate published() override;
   void setPublished(const QDate& published) override;
+  EBookType type() const override
+  {
+    return MOBI;
+  }
 
   QTextDocument* toc() override {}
+
+  QString buildTocFromData() override;
 
 protected:
   MobiDocumentPrivate* d_ptr;
@@ -75,6 +81,9 @@ protected:
   static const int m_build_version;
   static bool m_loaded;
   static const QString m_file_filter;
+
+  // IEBookDocument interface
+public:
 };
 
 Q_DECLARE_METATYPE(MobiDocument);

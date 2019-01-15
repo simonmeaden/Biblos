@@ -1,8 +1,9 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QDir>
 #include <QMainWindow>
+#include <QMimeDatabase>
 #include <QSqlDatabase>
 #include <QStringList>
 #include <QtWidgets>
@@ -38,21 +39,21 @@ public:
 
   SharedAuthorList selectAuthorNames(QString filename, QString title);
 
-  void loadNonLibraryFiles(QStringList current_files, int currentindex);
-
 signals:
   void codeChanged();
 
 protected:
   // main document pointer.
   IEBookDocument* m_document = Q_NULLPTR;
-  QStackedWidget* m_stack;
+  QStackedWidget* m_doc_stack, *m_toc_stack;
   int m_stack_library, m_stack_editor;
   QFrame* m_tabs_frame;
   QSplitter* m_splitter;
-  QTabWidget* m_tabs;
+  QTabWidget* m_doc_tabs;
   QTextBrowser* m_toc;
   LibraryFrame* m_library;
+  QMap<int, QWidget*> m_toc_backup;
+
   Options::TocPosition m_toc_position;
   QMap<QString, ISpellInterface*> m_spellchecker_plugins;
   QMap<QString, IPluginInterface*> m_ebookplugins;
@@ -60,7 +61,8 @@ protected:
   QStringList m_languages;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
-  QString m_home_directiory, m_data_directory, m_config_directory, m_config_file;
+  QString m_home_directiory, m_library_directory, m_config_directory, m_config_file;
+  bool is_in_temp_store = false;
   //  QSharedPointer<Library> m_library;
   DbManager* m_database;
 
@@ -110,10 +112,9 @@ protected:
   //    EBookDocument* createEPubDocument(QString path);
   //    EBookDocument* createMobiDocument(QString path);
   void loadPlugins();
-  void loadDocument(QString filename);
+  void loadDocument(QString file_name, bool from_library=false);
   void saveDocument(IEBookDocument* document);
   //    void clearDocuments();
-  QString copyBookToStore(QString filename, QString authors);
   QString concatenateAuthorNames(SharedAuthorList names);
   QString concatenateAuthorNames(QStringList names);
   QStringList removeEmpty(QStringList values);
@@ -130,8 +131,11 @@ protected:
   void openWindow();
   void tocAnchorClicked(QUrl url);
   void setObjectVisibility(int index = 0);
-//  void setObjectVisibility(Options::ViewState state);
+  //  void setObjectVisibility(Options::ViewState state);
   //  void currentDocumentCursorChanged(QTextCursor cursor);
+  void buildTocFromData();
+  void builManualToc();
+  void addTocAnchors();
 
 protected: // Menu/StatusBar stuff
   QMenuBar* m_menubar;
@@ -241,8 +245,10 @@ protected: // Menu/StatusBar stuff
   static const QString PREF_FILE;
 
   void loadLibraryFiles(QStringList current_lib_files, int currentindex);
+  EBookType checkMimetype(QString filename);
   void setModifiedAuthors(IEBookDocument* doc, SharedAuthorList authors);
   void setLibraryToolbarState();
+  IEBookDocument *copyToLibraryAndOpen(QString &filename, IEBookInterface *ebook_plugin);
 };
 
 #endif // MAINWINDOW_H

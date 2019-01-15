@@ -21,7 +21,6 @@
 
 #include "iebookdocument.h"
 #include "interface_global.h"
-//#include "private/epubdocument_p.h"
 #include "ebookcommon.h"
 #include "epubcontainer.h"
 #include "epubplugin.h"
@@ -30,7 +29,6 @@ struct EPubContents {
   QHash<QString, QByteArray> m_svgs;
   QHash<QString, QImage> m_renderedSvgs;
   EPubContainer* m_container;
-  EBookItem m_currentItem;
   bool m_loaded;
 };
 
@@ -63,12 +61,14 @@ public:
   // IEBookDocument interface
   IEBookInterface* plugin() override;
   void setPlugin(IEBookInterface* plugin) override;
-  //  bool isModified() override;
-  //  bool readOnly() override;
-  //  void setReadOnly(const bool readonly) override;
   QDate published() override;
   void setPublished(const QDate& published) override;
+  QString buildTocFromData() override;
 
+  EBookType type() const override
+  {
+    return EPUB;
+  }
   QString title() override;
   //  void setTitle(const QString& title) override;
   QString subject() override;
@@ -88,6 +88,7 @@ protected:
   EPubDocument(EPubDocumentPrivate& doc);
 
   bool m_modified, m_readonly;
+
 };
 
 Q_DECLARE_METATYPE(EPubDocument);

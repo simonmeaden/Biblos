@@ -15,7 +15,9 @@ class EBookDocument;
 class INTERFACESHARED_EXPORT IEBookInterface : public IPluginInterface
 {
 public:
-  virtual ~IEBookInterface() {}
+  virtual ~IEBookInterface()
+  {
+  }
 
   virtual IEBookDocument* createDocument(QString filename) = 0;
   virtual IEBookDocument* createCodeDocument() = 0;
@@ -23,6 +25,7 @@ public:
 
   virtual QString fileFilter() = 0;
   virtual QString fileDescription() = 0;
+  virtual EBookType type() const = 0;
 };
 #define IEBookInterface_iid "uk.org.smelecomp.IEBookInterface/0.1.0"
 Q_DECLARE_INTERFACE(IEBookInterface, IEBookInterface_iid)

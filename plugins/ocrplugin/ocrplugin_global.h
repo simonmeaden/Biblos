@@ -1,0 +1,12 @@
+#ifndef OCRPLUGIN_GLOBAL_H
+#define OCRPLUGIN_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(OCRPLUGIN_LIBRARY)
+#  define OCRPLUGINSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define OCRPLUGINSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // OCRPLUGIN_GLOBAL_H

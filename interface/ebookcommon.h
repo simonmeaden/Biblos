@@ -12,11 +12,6 @@
 #include <QSharedPointer>
 #include <QtPlugin>
 
-struct EBookItem {
-  QString path;
-  QByteArray mimetype;
-};
-
 // struct EPubPageReference {
 //  enum StandardType {
 //    CoverPage,
@@ -60,42 +55,8 @@ struct EPubNavPoint {
 };
 typedef QSharedPointer<EPubNavPoint> navpoint_t;
 
-struct EPubToc {
-  QString version;
-  QString xml_lang;
-  QString xmlns;
-  QString title;
-  QMap<QString, QString> metadata;
-  QMap<int, navpoint_t> navmap;
-};
-typedef QSharedPointer<EPubToc> ebooktoc_t;
-
-struct EBookData {
-  EBookData()
-    : toc(Q_NULLPTR)
-  {
-    title = "";
-    subject = "";
-    language = "";
-    author_names = "";
-    authors.clear();
-    date = QDateTime::currentDateTime();
-    publisher = "";
-  }
-  QString title;
-  QString subject;
-  QString language;
-  QString author_names;
-  QStringList authors;
-  QDateTime date;
-  QString publisher;
-  ebooktoc_t toc;
-  QString dict_path;
-  QString country;
-};
-Q_DECLARE_METATYPE(EBookData);
-
 enum DocumentType { PLAINTEXT, HTML };
+enum EBookType { EPUB, MOBI, AZW, PDF, };
 
 class Author;
 class Book : public QObject

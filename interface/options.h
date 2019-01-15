@@ -72,16 +72,6 @@ public:
   QStringList currentfiles() const;
   int bookCount() const;
 
-  bool deleteOldBook();
-  void setDeleteOldBook(bool delete_book);
-  bool alwaysConfirmDelete();
-  bool neverConfirmDelete();
-  void setNeverConfirmDelete(bool never_confirm);
-  bool copyBooksToStore();
-  void setCopyBooksToStore(bool copy_books);
-  bool useCalibreLibrary();
-  void setUseCalibreLibrary(bool use_calibre);
-
   ViewState viewState() const;
   void setViewState(const ViewState& viewState);
 
@@ -181,6 +171,7 @@ signals:
   void loadNonLibraryFiles(QStringList, int);
 
 protected:
+  ViewState m_view_state = VIEW_LIBRARY_TREE;
   TocPosition m_toc_position = LEFT;
   bool m_toc_visible = true;
 
@@ -189,11 +180,9 @@ protected:
 
   QRect m_rect;
   QSize m_options_dlg_size;
-  //  int x, y, width, height;
-  //  int prefx, prefy, prefwidth, prefheight;
   int m_currentindex;
   QStringList m_current_files;
-//  QStringList m_current_lib_files;
+
 
   // Code Editor options
   QFont m_code_font;
@@ -226,13 +215,7 @@ protected:
   bool m_style_italic;
   QFont::Weight m_style_weight;
 
-  ViewState m_view_state = VIEW_LIBRARY_TREE;
-
-  bool m_copy_books_to_store;
-  bool m_use_calibre_library;
-  bool m_delete_old_book;
-  bool m_never_confirm_delete;
-
+  // static tag strings.
   static const int DEF_WIDTH = 600;
   static const int DEF_HEIGHT = 1200;
   static const int DEF_X = 0;

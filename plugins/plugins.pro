@@ -5,4 +5,5 @@ SUBDIRS += \
 #    googlespellplugin \
     hunspellplugin \
     epubplugin \
-    mobiplugin
+    mobiplugin \
+    ocrplugin

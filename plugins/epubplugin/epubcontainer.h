@@ -230,7 +230,8 @@ class EPubManifestItem
 public:
   QString href;
   QString path;
-  SharedDomDocument dom_document;
+//  SharedDomDocument dom_document;
+  QString document_string;
   // these should point to the start and end of each chapter block;
   //  SharedTextCursor start, end;
   QTextCursor start_cursor, end_cursor;
@@ -243,10 +244,12 @@ public:
 };
 typedef QSharedPointer<EPubManifestItem> SharedManifestItem;
 typedef QMap<QString, SharedManifestItem> SharedManifestItemMap;
+typedef QList<SharedManifestItem> SharedManifestItemList;
 
 class EPubTocItem;
 typedef QSharedPointer<EPubTocItem> SharedTocItem;
 typedef QMap<int, SharedTocItem> SharedTocItemMap;
+typedef QMap<QString, SharedTocItem> SharedTocItemPathMap;
 class EPubTocItem
 {
 public:
@@ -256,6 +259,7 @@ public:
   QString label;
   QString source;
   SharedTocItemMap sub_items;
+  QString chapter_tag;
 };
 
 class EPubManifest
@@ -265,6 +269,7 @@ public:
   SharedManifestItem cover_image;            // 0 or 1
   SharedManifestItem nav;                    // 1
   SharedManifestItemMap items;               // all items
+  SharedManifestItemList html_items;
   SharedManifestItemMap mathml;              // subset of items for math markup
   SharedManifestItemMap svg_images;          // subset of items for images
   QMap<QString, QImage> rendered_svg_images; // rendered svg images
@@ -278,6 +283,7 @@ public:
   SharedManifestItemMap media_overlay; // all items
   QString formatted_toc_string;
   SharedTocItemMap toc_items;
+  SharedTocItemPathMap toc_paths;
 };
 
 class EPubSpineItem
@@ -445,7 +451,7 @@ public:
   SharedManifestItem item(QString key);
   QString css(QString key);
   QString javascript(QString key);
-  SharedDomDocument itemDocument(QString key);
+  QString itemDocument(QString key);
   QStringList spineKeys();
   QStringList imageKeys();
   QStringList cssKeys();
@@ -453,8 +459,16 @@ public:
   QTextDocument* toc();
   QStringList creators();
 
-  SharedMetadata metadata() { return m_metadata; }
-  EPubManifest manifest() { return m_manifest; }
+  SharedMetadata metadata()
+  {
+    return m_metadata;
+  }
+  EPubManifest manifest()
+  {
+    return m_manifest;
+  }
+
+  QString buildTocfromHtml();
 
 signals:
   void errorHappened(const QString& error);
@@ -478,9 +492,8 @@ protected:
   bool parsePackageFile(QString& full_path);
   bool savePackageFile(QString& full_path);
   bool parseMetadataItem(const QDomNode& metadata_node);
-  bool parseManifestItem(const QDomNode& manifest_node,
-                         const QString current_folder);
-  bool parseSpineItem(const QDomNode& metadata_element);
+  bool parseManifestItem(const QDomNode& manifest_node, const QString current_folder);
+  SharedSpineItem parseSpineItem(const QDomNode& metadata_element, SharedSpineItem item);
   bool saveSpineItem();
   bool parseToc();
   bool parseGuideItem(const QDomNode& guideItem);
@@ -508,6 +521,7 @@ protected:
   QMap<QString, SharedDomDocument> m_current_rootfile;
   // a map of dom elements within the  that might be modified.
   QMap<QString, QDomElement*> m_metadata_nodes;
+  int m_toc_chapter_index;
 
   //  QMultiHash<QString, QString> metadata_old;
   //  QMultiHash<QString, QMap<QString, QString>> m_tag_attributes;
@@ -527,6 +541,14 @@ protected:
   void parseIdentifierMetadata(QDomElement metadata_element);
   void parseLanguageMetadata(QDomElement metadata_element);
   void parseSubjectMetadata(QDomElement metadata_element);
+  void parseDateModified(QDomNamedNodeMap node_map, QString text);
+  void saveTitles(QDomElement metadata_element);
+  void saveCreator(QDomElement metadata_element);
+  void saveIdentifier(QDomElement metadata_element);
+  SharedTocItem parseNavPoint(QDomElement navpoint, QString& formatted_toc_data);
+  void createAnchorPointForChapter(SharedTocItem toc_item, SharedManifestItem manifest_item);
+  void createChapterAnchorPoints(SharedSpineItem spine_item);
+  void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);
 
   static const QString MIMETYPE_FILE;
   static const QByteArray MIMETYPE;
@@ -543,13 +565,9 @@ protected:
   static const QString LIST_START;
   static const QString LIST_END;
   static const QString LIST_ITEM;
+  static const QString LIST_BUILD_ITEM;
+  static const QString LIST_FILEPOS;
 
-  void parseDateModified(QDomNamedNodeMap node_map, QString text);
-  void saveTitles(QDomElement metadata_element);
-  void saveCreator(QDomElement metadata_element);
-  void saveIdentifier(QDomElement metadata_element);
-  SharedTocItem parseNavPoint(QDomElement navpoint,
-                              QString& formatted_toc_data);
 };
 
 #endif // EPUBCONTAINER_H

@@ -34,7 +34,10 @@ public:
   // IEBookInterface interface
   IEBookDocument* createDocument(QString path) override;
   IEBookDocument* createCodeDocument() override;
-  //  void saveDocument(IEBookDocument* document) override;
+  EBookType type() const override
+  {
+    return MOBI;
+  }
 
   // IEBookInterface interface
   QString fileFilter() override;

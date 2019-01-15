@@ -33,14 +33,19 @@ const QString EPubContainer::TOC_TITLE = "<h2>%1</h2>";
 const QString EPubContainer::LIST_START = "<ul>";
 const QString EPubContainer::LIST_END = "</ul>";
 const QString EPubContainer::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
+const QString EPubContainer::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>";
+const QString EPubContainer::LIST_FILEPOS = "position%1";
 
-EPubContainer::EPubContainer(QObject* parent) :
-    QObject(parent), m_archive(Q_NULLPTR) /*, m_toc(new EPubToc())*/,
-    m_metadata(new EPubMetadata())
+EPubContainer::EPubContainer(QObject* parent)
+  : QObject(parent)
+  , m_archive(Q_NULLPTR) /*, m_toc(new EPubToc())*/
+  , m_metadata(new EPubMetadata())
 {
 }
 
-EPubContainer::~EPubContainer() {}
+EPubContainer::~EPubContainer()
+{
+}
 
 bool EPubContainer::loadFile(const QString path)
 {
@@ -156,36 +161,54 @@ QImage EPubContainer::image(const QString& id, QSize image_size)
   return image;
 }
 
-QStringList EPubContainer::itemKeys() { return m_manifest.items.keys(); }
+QStringList EPubContainer::itemKeys()
+{
+  return m_manifest.items.keys();
+}
 
 SharedManifestItem EPubContainer::item(QString key)
 {
   return m_manifest.items.value(key);
 }
 
-QString EPubContainer::css(QString key) { return m_manifest.css.value(key); }
+QString EPubContainer::css(QString key)
+{
+  return m_manifest.css.value(key);
+}
 
 QString EPubContainer::javascript(QString key)
 {
   return m_manifest.javascript.value(key);
 }
 
-SharedDomDocument EPubContainer::itemDocument(QString key)
+QString EPubContainer::itemDocument(QString key)
 {
-  return item(key)->dom_document;
+  return item(key)->document_string;
 }
 
 // void setStartCursor(SharedTextCursor start) {
 //  m_manif
 //}
 
-QStringList EPubContainer::spineKeys() { return m_spine.ordered_items; }
+QStringList EPubContainer::spineKeys()
+{
+  return m_spine.ordered_items;
+}
 
-QStringList EPubContainer::imageKeys() { return m_manifest.images.keys(); }
+QStringList EPubContainer::imageKeys()
+{
+  return m_manifest.images.keys();
+}
 
-QStringList EPubContainer::cssKeys() { return m_manifest.css.keys(); }
+QStringList EPubContainer::cssKeys()
+{
+  return m_manifest.css.keys();
+}
 
-QStringList EPubContainer::jsKeys() { return m_manifest.javascript.keys(); }
+QStringList EPubContainer::jsKeys()
+{
+  return m_manifest.javascript.keys();
+}
 
 QTextDocument* EPubContainer::toc()
 {
@@ -194,7 +217,10 @@ QTextDocument* EPubContainer::toc()
   return toc_document;
 }
 
-QStringList EPubContainer::creators() { return m_metadata->creator_list; }
+QStringList EPubContainer::creators()
+{
+  return m_metadata->creator_list;
+}
 
 bool EPubContainer::parseMimetype()
 {
@@ -232,9 +258,7 @@ bool EPubContainer::saveMimetype()
 
   qint64 size = mimetypeFile.write(m_mimetype);
   if (size != m_mimetype.size()) {
-    QLOG_DEBUG(tr("Unexpected mimetype size %1 should be %2")
-                   .arg(size)
-                   .arg(m_mimetype.size()));
+    QLOG_DEBUG(tr("Unexpected mimetype size %1 should be %2").arg(size).arg(m_mimetype.size()));
     return false;
   }
   return true;
@@ -256,8 +280,7 @@ bool EPubContainer::parseContainer()
     QString container(containerFile.readAll());
     m_container_document = SharedDomDocument(new QDomDocument());
     m_container_document->setContent(container);
-    QDomNodeList root_nodes =
-        m_container_document->elementsByTagName("rootfile");
+    QDomNodeList root_nodes = m_container_document->elementsByTagName("rootfile");
     for (int i = 0; i < root_nodes.count(); i++) {
       QDomElement rootElement = root_nodes.at(i).toElement();
       QString full_path = rootElement.attribute("full-path");
@@ -287,6 +310,32 @@ bool EPubContainer::parseContainer()
 
   QLOG_DEBUG(tr("Unable to find and use any content files"));
   return false;
+}
+
+void EPubContainer::createChapterAnchorPoints(SharedSpineItem spine_item)
+{
+  SharedManifestItem manifest_item = m_manifest.items.value(spine_item->idref);
+  if (manifest_item) {
+    SharedTocItem toc_item = m_manifest.toc_paths.value(manifest_item->href);
+    if (toc_item) {
+      if (!toc_item->chapter_tag.isEmpty()) {
+        // toc has a label added.
+        QString tag("<a id=\"%1\"></a>");
+        tag = tag.arg(toc_item->chapter_tag);
+        QString document = manifest_item->document_string;
+        QRegularExpression body_tag("<body[^>]*> ");
+        QRegularExpressionMatch match = body_tag.match(document);
+        if (match.hasMatch()) {
+          //        int start = match.capturedStart();
+          int end = match.capturedEnd();
+          document.insert(end, tag);
+        }
+      }
+
+      if (!toc_item->sub_items.isEmpty()) {
+      }
+    }
+  }
 }
 
 bool EPubContainer::parsePackageFile(QString& full_path)
@@ -341,8 +390,7 @@ bool EPubContainer::parsePackageFile(QString& full_path)
   }
 
   // parse metadata.
-  QDomNodeList metadata_node_list =
-      package_document->elementsByTagName("metadata");
+  QDomNodeList metadata_node_list = package_document->elementsByTagName("metadata");
   for (int i = 0; i < metadata_node_list.count(); i++) {
     QDomNodeList metadata_child_list = metadata_node_list.at(i).childNodes();
     for (int j = 0; j < metadata_child_list.count(); j++) {
@@ -359,8 +407,7 @@ bool EPubContainer::parsePackageFile(QString& full_path)
 
   // Parse out all the components/items in the epub
   // should only have one manifest.
-  QDomNodeList manifest_node_list =
-      package_document->elementsByTagName("manifest");
+  QDomNodeList manifest_node_list = package_document->elementsByTagName("manifest");
   for (int i = 0; i < manifest_node_list.count(); i++) {
     QDomElement manifest_element = manifest_node_list.at(i).toElement();
     node_map = manifest_element.attributes();
@@ -368,8 +415,7 @@ bool EPubContainer::parsePackageFile(QString& full_path)
     if (!node.isNull()) {
       m_manifest.id = node.nodeValue();
     }
-    QDomNodeList manifest_item_list =
-        manifest_element.elementsByTagName("item");
+    QDomNodeList manifest_item_list = manifest_element.elementsByTagName("item");
 
     for (int j = 0; j < manifest_item_list.count(); j++) {
       parseManifestItem(manifest_item_list.at(j), content_file_folder);
@@ -381,7 +427,7 @@ bool EPubContainer::parsePackageFile(QString& full_path)
   QDomNodeList spine_node_list = package_document->elementsByTagName("spine");
   for (int i = 0; i < spine_node_list.count(); i++) {
     QDomElement spine_element = spine_node_list.at(i).toElement();
-    SharedSpineItem item = SharedSpineItem(new EPubSpineItem());
+    SharedSpineItem spine_item = SharedSpineItem(new EPubSpineItem());
     node_map = spine_element.attributes();
     node = node_map.namedItem("id");
     if (!node.isNull()) { // optional
@@ -398,12 +444,20 @@ bool EPubContainer::parsePackageFile(QString& full_path)
 
     QDomNodeList spineItemList = spine_element.elementsByTagName("itemref");
     for (int j = 0; j < spineItemList.count(); j++) {
-      parseSpineItem(spineItemList.at(j));
+      spine_item = parseSpineItem(spineItemList.at(j), spine_item);
     }
 
     if (!m_spine.toc.isEmpty()) { // EPUB2.0 toc
       parseToc();
     }
+
+    /*
+     * At this point not all books have anchors added for chapter links. Calibre
+     * adds in anchors at the end of the previous chapter. For simplicitys sake I
+     * am adding them at the start of the new chapter.
+     * Also remember that some
+     */
+    createChapterAnchorPoints(spine_item);
   }
 
   //  QDomNodeList guide_node_list =
@@ -488,8 +542,7 @@ void EPubContainer::saveTitles(QDomElement metadata_element)
       if (shared_title->sequence >= 0) {
         elem = QDomElement();
         elem.setTagName("meta");
-        elem.setAttribute("display-seq",
-                          QString::number(shared_title->sequence));
+        elem.setAttribute("display-seq", QString::number(shared_title->sequence));
         metadata_element.appendChild(elem);
       }
     }
@@ -570,8 +623,7 @@ bool EPubContainer::savePackageFile(QString& full_path)
   QDomElement root = doc.createElement("package");
   root.setAttribute("xmlns", "http://www.idpf.org/2007/opf");
   root.setAttribute("version", "3.0");
-  if (!m_unique_identifier_name
-           .isEmpty()) { // actually this is a required element
+  if (!m_unique_identifier_name.isEmpty()) { // actually this is a required element
     root.setAttribute("unique-identifier", m_unique_identifier_name);
   } else {
     // TODO create a unique identifier ??
@@ -594,8 +646,7 @@ bool EPubContainer::savePackageFile(QString& full_path)
 
   // add the unique identifier meta. This is basically mandatory because
   // the unique-identifier attribute of package is mandatory in 2.0 and 3.0.
-  SharedIdentifier unigue_identifier =
-      m_metadata->identifiers.value(m_unique_identifier_name);
+  SharedIdentifier unigue_identifier = m_metadata->identifiers.value(m_unique_identifier_name);
   elem.setTagName("dc:identifier");
   elem.setAttribute("id", m_unique_identifier_name);
   elem.setNodeValue(unigue_identifier->uid);
@@ -629,8 +680,7 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
           if (!node.isNull()) {
             name = node.nodeValue();
             if (name == "title-type")
-              shared_title->type =
-                  EPubTitle::fromString(metadata_element.text());
+              shared_title->type = EPubTitle::fromString(metadata_element.text());
             else if (name == "display-seq")
               shared_title->sequence = metadata_element.text().toInt();
           }
@@ -644,16 +694,14 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
               node = node_map.namedItem("scheme");
               name = node.nodeValue();
               if (name == "marc:relators") {
-                shared_creator->type =
-                    EPubCreator::fromCreatorString(metadata_element.text());
+                shared_creator->type = EPubCreator::fromCreatorString(metadata_element.text());
                 if (shared_creator->role.isEmpty()) {
-                  shared_creator->role =
-                      EPubCreator::toCreatorString(shared_creator->type);
+                  shared_creator->role = EPubCreator::toCreatorString(shared_creator->type);
                 }
                 if (shared_creator->type == EPubCreator::string_creator_type) {
                   shared_creator->string_creator = metadata_element.text();
-                  QLOG_DEBUG(QString("An unexpected role has come up. %1")
-                                 .arg(metadata_element.text()))
+                  QLOG_DEBUG(
+                    QString("An unexpected role has come up. %1").arg(metadata_element.text()))
                 }
               } else {
                 // TODO treat as a string if not a recognised scheme type;
@@ -675,16 +723,13 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
             m_metadata->source = metadata_element.text();
           } else {
             // Not certain whether multi sources are allowed?
-            QLOG_DEBUG(
-                QString(
-                    "Problem setting document source : %1 when %2 already set.")
-                    .arg(metadata_element.text().arg(m_metadata->source)));
+            QLOG_DEBUG(QString("Problem setting document source : %1 when %2 already set.")
+                       .arg(metadata_element.text().arg(m_metadata->source)));
           }
         }
       }
     }
-  } else if (metadata_element.prefix() == "dc" ||
-             metadata_element.prefix() == "opf") {
+  } else if (metadata_element.prefix() == "dc" || metadata_element.prefix() == "opf") {
     if (tag_name == "creator") {
       parseCreatorMetadata(metadata_element);
     } else if (tag_name == "title") {
@@ -698,8 +743,7 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
     } else if (tag_name == "publisher") {
       m_metadata->publisher = metadata_element.text();
     } else if (tag_name == "date") {
-      m_metadata->date =
-          QDateTime::fromString(metadata_element.text(), Qt::ISODate);
+      m_metadata->date = QDateTime::fromString(metadata_element.text(), Qt::ISODate);
       QDomNode node = node_map.namedItem("id");
       if (!node.isNull()) {
         m_metadata->modified.id = node.nodeValue();
@@ -754,8 +798,7 @@ void EPubContainer::parseCreatorMetadata(QDomElement metadata_element)
     shared_creator->type = EPubCreator::fromCreatorString(node.nodeValue());
     if (shared_creator->type == EPubCreator::string_creator_type) {
       shared_creator->string_creator = node.nodeValue();
-      QLOG_DEBUG(
-          QString("An unexpected role has come up. %1").arg(node.nodeValue()))
+      QLOG_DEBUG(QString("An unexpected role has come up. %1").arg(node.nodeValue()))
     }
   }
   node = node_map.namedItem("file-as");
@@ -823,8 +866,7 @@ void EPubContainer::parseDateModified(QDomNamedNodeMap node_map, QString text)
   }
 }
 
-bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
-                                      const QString current_folder)
+bool EPubContainer::parseManifestItem(const QDomNode& manifest_node, const QString current_folder)
 {
   QDomElement metadata_element = manifest_node.toElement();
   QString tag_name = metadata_element.tagName();
@@ -861,7 +903,7 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
 
         if (!QImageReader::supportedMimeTypes().contains(item->media_type)) {
           QLOG_DEBUG(QString("Requested image type %1 is an unsupported type")
-                         .arg(QString(item->media_type)));
+                     .arg(QString(item->media_type)));
         }
 
         m_archive->setCurrentFile(item->path);
@@ -893,9 +935,10 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
         }
 
         QString container(itemFile.readAll());
-        SharedDomDocument item_document = SharedDomDocument(new QDomDocument());
-        item_document->setContent(container);
-        item->dom_document = item_document;
+        //        SharedDomDocument item_document = SharedDomDocument(new QDomDocument());
+        //        item_document->setContent(container);
+        item->document_string = container;
+        m_manifest.html_items.append(item);
       } else if (item->media_type == "text/css") {
         m_archive->setCurrentFile(item->path);
         QuaZipFile itemFile(m_archive);
@@ -981,14 +1024,13 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node,
   return true;
 }
 
-bool EPubContainer::parseSpineItem(const QDomNode& spine_node)
+SharedSpineItem EPubContainer::parseSpineItem(const QDomNode& spine_node, SharedSpineItem item)
 {
   QDomElement metadata_element = spine_node.toElement();
   QString tag_name = metadata_element.tagName();
   QDomNamedNodeMap node_map = metadata_element.attributes();
   QDomNode node;
   QString name, value;
-  SharedSpineItem item = SharedSpineItem(new EPubSpineItem());
 
   if (tag_name == "itemref") {
 
@@ -1017,7 +1059,7 @@ bool EPubContainer::parseSpineItem(const QDomNode& spine_node)
       } else {
         QLOG_DEBUG(tr("Warning invalid manifest itemref : linear MUST be "
                       "either yes or no not %1")
-                       .arg(value))
+                   .arg(value))
       }
     }
 
@@ -1036,9 +1078,11 @@ bool EPubContainer::parseSpineItem(const QDomNode& spine_node)
         }
       }
     }
+
     m_spine.items.insert(item->idref, item);
     m_spine.ordered_items.append(item->idref);
   }
+  return item;
 }
 
 bool EPubContainer::saveSpineItem()
@@ -1046,9 +1090,9 @@ bool EPubContainer::saveSpineItem()
   // TODO save spine manfest section
 }
 
-SharedTocItem EPubContainer::parseNavPoint(QDomElement navpoint,
-                                           QString& formatted_toc_data)
+SharedTocItem EPubContainer::parseNavPoint(QDomElement navpoint, QString& formatted_toc_data)
 {
+  m_toc_chapter_index++;
   SharedTocItem toc_item = SharedTocItem(new EPubTocItem());
   //  QDomNamedNodeMap attributes = navpoint.attributes();
   QString value = navpoint.attribute("class");
@@ -1086,7 +1130,17 @@ SharedTocItem EPubContainer::parseNavPoint(QDomElement navpoint,
   QDomElement content = navpoint.firstChildElement("content");
   value = content.attribute("src");
   if (!value.isEmpty()) {
-    toc_item->source = value;
+    // if no chapter fragment then add one in.
+    int index = value.indexOf("#");
+    if (index <= 0) {
+      toc_item->source = value;
+      toc_item->chapter_tag.clear();
+    } else {
+      QString tag;
+      tag = QString("#part%1").arg(m_toc_chapter_index);
+      value += tag;
+      toc_item->chapter_tag = tag;
+    }
   } else {
     //            QLOG_DEBUG(tr("Warning invalid manifest itemref : no
     //            idref value"))
@@ -1110,6 +1164,85 @@ SharedTocItem EPubContainer::parseNavPoint(QDomElement navpoint,
   }
 
   return toc_item;
+}
+
+void EPubContainer::handleSubNavpoints(QDomElement elem, QString& formatted_toc_string)
+{
+  QDomElement subpoint = elem.firstChildElement("navPoint");
+  while (!subpoint.isNull()) {
+    SharedTocItem toc_item = parseNavPoint(subpoint, formatted_toc_string);
+    m_manifest.toc_items.insert(toc_item->playorder, toc_item);
+    m_manifest.toc_paths.insert(toc_item->source, toc_item);
+
+    handleSubNavpoints(subpoint, formatted_toc_string);
+
+    subpoint = elem.nextSiblingElement("navPoint");
+  }
+}
+
+QString EPubContainer::buildTocfromHtml()
+{
+  QString formatted_toc_string = LIST_START;
+
+  QRegularExpression re_anchor_complete("<a[\\s]+([^>]+)>((?:.(?!\\<\\/a\\>))*.)</a>");
+  QRegularExpression re_anchor_tag("<a[^>]*>");
+  QRegularExpression re_href("href=\\\"[^\"]*\"");
+  int anchor_start, pos = 0;
+
+  foreach (SharedManifestItem item, m_manifest.html_items) {
+    QString document_string = item->document_string;
+    if (!document_string.isEmpty()) {
+      QRegularExpressionMatchIterator i = re_anchor_complete.globalMatch(document_string);
+      QRegularExpressionMatch anchor_complete_match, anchor_tag_match, href_match;
+      QString anchor_complete, anchor_tag, href_attr;
+
+      while (i.hasNext()) {
+        anchor_complete_match = i.next();
+        anchor_complete = anchor_complete_match.captured(0);
+        anchor_start = anchor_complete_match.capturedStart(0); // start of open anchor tag.
+
+        anchor_tag_match = re_anchor_tag.match(anchor_complete);
+        if (anchor_tag_match.hasMatch()) {
+          anchor_tag = anchor_tag_match.captured(0);
+          anchor_start += anchor_tag_match.capturedLength(0); // end of open anchor tag
+
+          href_match = re_href.match(anchor_tag);
+          if (href_match.hasMatch()) {
+            href_attr = href_match.captured(0);
+            href_attr = href_attr.mid(6, href_attr.length() - 7);
+            QStringList splits = href_attr.split("#", QString::KeepEmptyParts);
+            if (splits.length() == 1) {
+              QString filename = splits.at(0);
+              SharedManifestItemList files = m_manifest.html_items;
+              foreach (SharedManifestItem item, files) {
+                QString href = item->href;
+                if (href == filename) {
+                  // TODO add anchor & make anchor tag.
+                }
+              }
+            } else if (!splits.at(0).isEmpty() && !splits.at(1).isEmpty()) {
+              // existing file + anchor points exist.
+              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(splits.at(1)).arg("");
+            } else if (!splits.at(0).isEmpty() && splits.at(1).isEmpty()) {
+              // existing file but no anchor point.
+              QString pos_tag = LIST_FILEPOS.arg(pos++);
+              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(pos_tag).arg("");
+              // TODO introduce anchor tag
+            } else if (splits.at(0).isEmpty() && !splits.at(1).isEmpty()) {
+              // existing anchor tag but no file.
+              // TODO find file and add to anchor.
+            } else {
+              // TODO no existing anchor point ??? not certain we ever get here.
+              // may need to move this outside last regex match.
+            }
+          }
+        }
+      }
+    }
+  }
+
+  formatted_toc_string += LIST_END;
+  return formatted_toc_string;
 }
 
 bool EPubContainer::parseToc()
@@ -1143,6 +1276,7 @@ bool EPubContainer::parseToc()
   }
   formatted_toc_string += LIST_START;
 
+  m_toc_chapter_index = -1;
   node_list = document->elementsByTagName("navMap");
   if (!node_list.isEmpty()) {
     QString name, value;
@@ -1152,6 +1286,10 @@ bool EPubContainer::parseToc()
     while (!navpoint.isNull()) {
       SharedTocItem toc_item = parseNavPoint(navpoint, formatted_toc_string);
       m_manifest.toc_items.insert(toc_item->playorder, toc_item);
+      m_manifest.toc_paths.insert(toc_item->source, toc_item);
+
+      handleSubNavpoints(navpoint, formatted_toc_string);
+
       navpoint = navpoint.nextSiblingElement("navPoint");
     }
   }
@@ -1176,7 +1314,9 @@ bool EPubContainer::saveLandmarksItem()
   // TODO save landmarks
 }
 
-bool EPubContainer::parseBindingsItem(const QDomNode& bindingsItem) {}
+bool EPubContainer::parseBindingsItem(const QDomNode& bindingsItem)
+{
+}
 
 bool EPubContainer::saveBindingsItem()
 {

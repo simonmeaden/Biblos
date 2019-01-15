@@ -13,6 +13,8 @@
 #include "ebookcodeeditor.h"
 #include "ebookeditor.h"
 
+#include "ebooktoceditor.h"
+#include "ebooktocwidget.h"
 #include "ebookwordreader.h"
 #include "ebookwrapper.h"
 #include "libraryframe.h"
@@ -47,15 +49,14 @@ MainWindow::MainWindow(QWidget* parent)
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
   connect(m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
-  connect(m_options, &Options::loadNonLibraryFiles, this, &MainWindow::loadNonLibraryFiles);
 
   loadPlugins();
   initBuild();
   QDir dir;
   m_home_directiory = QStandardPaths::locate(QStandardPaths::HomeLocation, QString(),
                       QStandardPaths::LocateDirectory);
-  m_data_directory = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-  dir.mkpath(m_data_directory);
+  m_library_directory = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+  dir.mkpath(m_library_directory);
   m_config_directory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
   dir.mkpath(m_config_directory);
   m_config_file = m_config_directory + QDir::separator() + PREF_FILE;
@@ -105,13 +106,13 @@ void MainWindow::initBuild()
 void MainWindow::update(Options::TocPosition position)
 {
   if (position == Options::LEFT) {
-    m_splitter->insertWidget(0, m_toc);
-    m_splitter->insertWidget(1, m_tabs);
+    m_splitter->insertWidget(0, m_toc_stack);
+    m_splitter->insertWidget(1, m_doc_tabs);
     m_splitter->setStretchFactor(0, 1);
     m_splitter->setStretchFactor(1, 3);
   } else if (position == Options::RIGHT) {
-    m_splitter->insertWidget(0, m_tabs);
-    m_splitter->insertWidget(1, m_toc);
+    m_splitter->insertWidget(0, m_doc_tabs);
+    m_splitter->insertWidget(1, m_toc_stack);
     m_splitter->setStretchFactor(0, 3);
     m_splitter->setStretchFactor(1, 1);
   }
@@ -123,9 +124,9 @@ void MainWindow::initGui()
   //  QFrame* mainFrame = new QFrame(this);
   //  setCentralWidget(mainFrame);
 
-  m_stack = new QStackedWidget(this);
-  connect(m_stack, &QStackedWidget::currentChanged, this, &MainWindow::setObjectVisibility);
-  setCentralWidget(m_stack);
+  m_doc_stack = new QStackedWidget(this);
+  connect(m_doc_stack, &QStackedWidget::currentChanged, this, &MainWindow::setObjectVisibility);
+  setCentralWidget(m_doc_stack);
 
   m_library = new LibraryFrame(m_options, this);
   // These could not be created when the action was as l_library was still null.
@@ -133,38 +134,35 @@ void MainWindow::initGui()
   connect(m_library_shelf, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
   connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
   connect(m_library_tree, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
-  m_stack_library = m_stack->addWidget(m_library);
+  m_stack_library = m_doc_stack->addWidget(m_library);
 
   m_tabs_frame = new QFrame(this);
   QHBoxLayout* main_layout = new QHBoxLayout;
   m_tabs_frame->setLayout(main_layout);
-  m_stack_editor = m_stack->addWidget(m_tabs_frame);
+  m_stack_editor = m_doc_stack->addWidget(m_tabs_frame);
 
   m_toc_position = m_options->tocPosition();
 
   m_splitter = new QSplitter(Qt::Horizontal, this);
   main_layout->addWidget(m_splitter);
 
-  m_toc = new QTextBrowser(this);
-  m_toc->setOpenLinks(false);
-  //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
-  connect(m_toc, &QTextBrowser::anchorClicked, this, &MainWindow::tocAnchorClicked);
+  m_toc_stack = new QStackedWidget(this);
 
-  m_tabs = new QTabWidget(this);
-  m_tabs->setTabsClosable(true);
-  connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::documentChanged);
-  connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::tabClosing);
-  if (m_tabs->count() == 0)
-    m_tabs->setEnabled(false);
+  m_doc_tabs = new QTabWidget(this);
+  m_doc_tabs->setTabsClosable(true);
+  connect(m_doc_tabs, &QTabWidget::currentChanged, this, &MainWindow::documentChanged);
+  connect(m_doc_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::tabClosing);
+  if (m_doc_tabs->count() == 0)
+    m_doc_tabs->setEnabled(false);
 
   if (m_toc_position == Options::LEFT) {
-    m_splitter->addWidget(m_toc);
-    m_splitter->addWidget(m_tabs);
+    m_splitter->addWidget(m_toc_stack);
+    m_splitter->addWidget(m_doc_tabs);
     m_splitter->setStretchFactor(0, 1);
     m_splitter->setStretchFactor(1, 3);
   } else {
-    m_splitter->addWidget(m_tabs);
-    m_splitter->addWidget(m_toc);
+    m_splitter->addWidget(m_doc_tabs);
+    m_splitter->addWidget(m_toc_stack);
     m_splitter->setStretchFactor(0, 3);
     m_splitter->setStretchFactor(1, 1);
   }
@@ -530,35 +528,28 @@ void MainWindow::loadLibraryFiles(QStringList current_lib_files, int currentinde
 {
   if (!current_lib_files.empty()) {
     foreach (QString filename, current_lib_files) {
-      filename = m_data_directory + QDir::separator() + filename;
+      //      filename = filename;
       QFile file(filename);
       if (file.exists()) {
-        loadDocument(filename);
+        loadDocument(filename, true);
       }
-      if (currentindex >= 0 && m_tabs->count() > currentindex) {
-        m_tabs->setCurrentIndex(currentindex);
+      if (currentindex >= 0 && m_doc_tabs->count() > currentindex) {
+        m_doc_tabs->setCurrentIndex(currentindex);
       } else {
-        m_tabs->setCurrentIndex(0);
+        m_doc_tabs->setCurrentIndex(0);
       }
     }
   }
 }
 
-void MainWindow::loadNonLibraryFiles(QStringList current_files, int currentindex)
+EBookType MainWindow::checkMimetype(QString filename)
 {
-  if (!current_files.empty()) {
-    foreach (QString filename, current_files) {
-      QFile file(filename);
-      if (file.exists()) {
-        loadDocument(filename);
-      }
-      if (currentindex >= 0 && m_tabs->count() > currentindex) {
-        m_tabs->setCurrentIndex(currentindex);
-      } else {
-        m_tabs->setCurrentIndex(0);
-      }
-    }
-  }
+  QMimeDatabase db;
+  QMimeType mime = db.mimeTypeForFile(filename, QMimeDatabase::MatchDefault);
+
+  if (mime.name() == "application/epub+zip")
+    return EPUB;
+  // TODO add further mime types.
 }
 
 void MainWindow::loadOptions()
@@ -578,65 +569,127 @@ void MainWindow::initSetup()
   setGeometry(m_options->rect());
 }
 
-QString MainWindow::copyBookToStore(QString path, QString authors)
-{
-  QString newpath = m_data_directory + QDir::separator();
-  QDir dir;
-  QString filename;
-  QFile in_file(path);
-  QFileInfo fileInfo(in_file);
+/*!
+ * \brief Copies a book to the library.
+ *
+ * The file will be copied to the library store if it does not already exist.
+ * The directory within the library will be the space and comma separated concatenation
+ * of the author(s) names.
+ * If it does exist a dialog will pop up offering several options.
+ * \list
+ * \li Overwriting the library file.
+ * \li Saving the file with a different name.
+ * \li Opening the Library file instead.
+ * \endlist
+ * In all cases the result will be true if the file was copied or the library
+ * file used otherwise false will be returned.
+ * The new file name will be copied into the filename parameter.
+ *
+ * \param path - the original file name.
+ * \param authors - the autor(s) of the book.
+ * \return true if the copy was successful.
+ */
+// bool MainWindow::copyBookToStore(QString& path, QString authors)
+//{
+//  QString newpath = m_library_directory + QDir::separator();
+//  QDir dir;
+//  QString filename;
+//  QFile in_file(path);
+//  QFileInfo in_file_info(in_file);
+//  QString ext = in_file_info.suffix();
+//  bool result = false;
 
-  if (authors.isEmpty()) {
-    QString temp("temp");
-    dir.mkpath(newpath + temp);
-    filename = temp + QDir::separator() + fileInfo.fileName();
-  } else {
-    dir.mkpath(newpath + authors);
-    filename = authors + QDir::separator() + fileInfo.fileName();
-  }
+//  if (authors.isEmpty()) {
+//    QString temp("temp");
+//    dir.mkpath(newpath + temp);
+//    filename = temp + QDir::separator() + in_file_info.fileName();
+//  } else {
+//    dir.mkpath(newpath + authors);
+//    filename = authors + QDir::separator() + in_file_info.fileName();
+//  }
 
-  QFile out_file(newpath + filename);
-  if (in_file.exists()) {
-    if (!out_file.exists()) {
-      in_file.copy(out_file.fileName());
-    } else {
-      if (QMessageBox::warning(
-            this, "Overwriting existing file!",
-            tr("You are attempting to overwrite an existing library file. Are you sure?"),
-            QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Cancel) == QMessageBox::Ok) {
-        in_file.copy(out_file.fileName());
-      }
-    }
+//  QFile out_file(newpath + filename);
+//  QFileInfo out_file_info(out_file);
+//  if (in_file.exists()) {
+//    if (!out_file.exists()) {
+//      in_file.copy(out_file.fileName());
+//    } else {
+//      QMessageBox* box = new QMessageBox(
+//        QMessageBox::Warning, tr("Overwriting existing file!"),
+//        tr("You are attempting to overwrite an existing library file.\n"
+//           "Please Note :\n"
+//           "If you choose Overwrite then the Library file will be\n"
+//           "removed and this cannot be undone!\n"
+//           "Are you sure?"),
+//        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Ok, this);
+//      box->setDefaultButton(QMessageBox::Cancel);
+//      box->setButtonText(QMessageBox::Open, tr("Use Library Version"));
+//      box->setButtonText(QMessageBox::Save, tr("Save As.."));
+//      box->setButtonText(QMessageBox::Ok, tr("Overwrite Existing Library Version"));
+//      int btn = box->exec();
+//      if (btn == QMessageBox::Ok) { // Overwrite.
+//        bool success = in_file.copy(out_file.fileName());
+//        if (!success) { // file exists
+//          out_file.remove();
+//          in_file.copy(out_file.fileName());
+//        }
+//        filename = out_file.fileName();
+//        result = true;
+//      } else if (btn == QMessageBox::Open) { // Use Library Version.
+//        filename = out_file.fileName();
+//        result = false;
+//      } else if (btn == QMessageBox::Save) { // Save As.
+//        bool ok;
+//        QString text =
+//          QInputDialog::getText(this, tr("Save file as.."), tr("Enter the new file name : "),
+//                                QLineEdit::Normal, out_file_info.fileName(), &ok);
+//        if (ok && !text.isEmpty()) {
+//          QString path = out_file_info.filePath();
+//          QString name = path + "/" + text + "." + ext;
+//          out_file.setFileName(name);
+//          bool success = in_file.copy(out_file.fileName());
+//          if (!success) { // file exists
+//            out_file.remove();
+//            in_file.copy(out_file.fileName());
+//          }
+//          filename = out_file.fileName();
+//          result = true;
+//        }
+//      }
+//    }
+//  }
 
-    if (m_options->deleteOldBook()) {
-      if (m_options->alwaysConfirmDelete()) {
-        QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"), this);
-        neverAskBox->setToolTip(tr("If this is checked then this dialog will not be "
-                                   "shown again. This can be reset in the Options->Editor "
-                                   "dialog."));
+//  if (result) { // Only delete the old file if the copy has been made.
+//    if (m_options->deleteOldBook()) {
+//      if (m_options->alwaysConfirmDelete()) {
+//        QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"), this);
+//        neverAskBox->setToolTip(tr("If this is checked then this dialog will not be "
+//                                   "shown again. This can be reset in the Options->Editor "
+//                                   "dialog."));
 
-        QMessageBox* msgBox =
-          new QMessageBox(QMessageBox::Warning, tr("Delete Old Book"),
-                          tr("You are about to delete the old book, Are you sure?"),
-                          QMessageBox::Ok | QMessageBox::Cancel, this);
-        msgBox->setCheckBox(neverAskBox);
+//        QMessageBox* msgBox =
+//          new QMessageBox(QMessageBox::Warning, tr("Delete Old Book"),
+//                          tr("You are about to delete the old book, Are you sure?"),
+//                          QMessageBox::Ok | QMessageBox::Cancel, this);
+//        msgBox->setCheckBox(neverAskBox);
 
-        if (msgBox->exec() == QMessageBox::Accepted) {
-          in_file.remove();
-        }
+//        if (msgBox->exec() == QMessageBox::Accepted) {
+//          in_file.remove();
+//        }
 
-        if (neverAskBox->isChecked()) {
-          m_options->setNeverConfirmDelete(true);
-        }
+//        if (neverAskBox->isChecked()) {
+//          m_options->setNeverConfirmDelete(true);
+//        }
 
-      } else {
-        in_file.remove();
-      }
-    }
-    return out_file.fileName();
-  }
-  return QString();
-}
+//      } else {
+//        in_file.remove();
+//      }
+//      return true;
+//    }
+//  }
+
+//  return result;
+//}
 
 /*!
  * \brief Gets a list of author data.
@@ -684,102 +737,171 @@ void MainWindow::setModifiedAuthors(IEBookDocument* doc, SharedAuthorList author
   setStatusModified();
 }
 
-void MainWindow::loadDocument(QString filename)
+IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterface* ebook_plugin)
 {
-  // get the file extension
-  QString ext;
-  bool is_a_library_book = false;
-  QFileInfo info(filename);
-  if (info.exists()) {
-    ext = info.suffix();
+  IEBookDocument* ebook_document;
+  // load the supplied ebook.
+  ebook_document = ebook_plugin->createDocument(filename);
+  QStringList authorlist = ebook_document->creators();
+  QString concat_authors;
+  QString newpath = m_library_directory + QDir::separator();
+  QDir dir;
+  QFile in_file(filename);
+  QFileInfo in_file_info(in_file);
+  QString ext = in_file_info.suffix();
+  is_in_temp_store = false;
+
+  // if there is no author information attempt to get it elsewhere.
+  if (authorlist.isEmpty()) {
+    SharedAuthorList authors = selectAuthorNames(filename, ebook_document->title());
+    setModifiedAuthors(ebook_document, authors);
+
+    foreach (SharedAuthor author, authors) {
+      authorlist << author->name();
+    }
   }
 
-  if (filename.startsWith(m_data_directory)) {
-    is_a_library_book = true;
+  if (authorlist.isEmpty()) {
+    // temporary library store.
+    newpath += "temp";
+    dir.mkpath(newpath);
+    is_in_temp_store = true;
+  } else {
+    // authors directory name.
+    concat_authors = ebook_document->creatorNames(authorlist);
+    newpath = newpath + "library" + QDir::separator() + concat_authors;
+    dir.mkpath(newpath);
   }
+
+  // The book will be stored in two forms, an original form and a modified form.
+  QFile out_file(newpath + QDir::separator() + in_file_info.baseName() + "." +
+                 in_file_info.suffix());
+  QFile out_file_original(newpath + QDir::separator() + in_file_info.baseName() + "." +
+                          "original." + in_file_info.suffix());
+  QFileInfo out_file_info(out_file);
+
+  if (in_file.exists()) {
+    if (!out_file.exists()) {
+      in_file.copy(out_file.fileName());
+      in_file.copy(out_file_original.fileName());
+      filename = out_file.fileName();
+    } else {
+      QMessageBox* box = new QMessageBox(
+        QMessageBox::Warning, tr("Overwriting existing file!"),
+        tr("You are attempting to overwrite an existing library file.\n"
+           "Please Note :\n"
+           "If you choose Overwrite then the Library file will be\n"
+           "removed and this cannot be undone!\n"
+           "Are you sure?"),
+        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Ok, this);
+      box->setDefaultButton(QMessageBox::Open);
+      box->setButtonText(QMessageBox::Open, tr("Use Library Version"));
+      box->setButtonText(QMessageBox::Save, tr("Save As.."));
+      box->setButtonText(QMessageBox::Ok, tr("Overwrite Existing Library Version"));
+      int btn = box->exec();
+      if (btn == QMessageBox::Ok) { // Overwrite.
+        bool success = in_file.copy(out_file.fileName());
+        if (!success) { // file exists
+          out_file.remove();
+          in_file.copy(out_file.fileName());
+        }
+        in_file.copy(out_file_original.fileName());
+        if (!success) { // original file exists
+          out_file_original.remove();
+          in_file.copy(out_file_original.fileName());
+        }
+        filename = out_file.fileName();
+      } else if (btn == QMessageBox::Open) { // Use Library Version.
+        filename = out_file.fileName();
+      } else if (btn == QMessageBox::Save) { // Save As.
+        bool ok;
+        QString text =
+          QInputDialog::getText(this, tr("Save file as.."), tr("Enter the new file name : "),
+                                QLineEdit::Normal, out_file_info.fileName(), &ok);
+        if (ok && !text.isEmpty()) {
+          out_file.setFileName(out_file_info.filePath() + "/" + text + "." + ext);
+          bool success = in_file.copy(out_file.fileName());
+          if (!success) { // file exists
+            out_file.remove();
+            in_file.copy(out_file.fileName());
+          }
+
+          out_file_original.setFileName(out_file_info.filePath() + "/" + text + "." + "original." +
+                                        ext);
+          in_file.copy(out_file_original.fileName());
+          if (!success) { // original file exists
+            out_file_original.remove();
+            in_file.copy(out_file_original.fileName());
+          }
+          filename = out_file.fileName();
+        }
+      }
+    }
+  }
+  return ebook_document;
+}
+
+void MainWindow::loadDocument(QString file_name, bool from_library)
+{
+  m_loading = true;
+  QString filename = file_name;
+  EBookType ebook_type = checkMimetype(filename);
 
   // get the correct plugin.
   IEBookInterface* ebook_plugin = Q_NULLPTR;
   foreach (IPluginInterface* plugin, m_plugins) {
     ebook_plugin = dynamic_cast<IEBookInterface*>(plugin);
     if (ebook_plugin) {
-      QString filter = ebook_plugin->fileFilter();
-      if (filter.endsWith(ext))
+      if (ebook_type == ebook_plugin->type())
         break;
     }
   }
 
-  // there is an ebook plugin for this file type.
+  IEBookDocument* ebook_document;
   if (ebook_plugin) {
-    m_loading = true;
-    IEBookDocument* htmldocument;
+    if (!from_library) {
+      ebook_document = copyToLibraryAndOpen(filename, ebook_plugin);
+    } // end of if (from_library)
+
+    // reload the ebook document from the library version of the file.
+    ebook_document = ebook_plugin->createDocument(filename);
     ITextDocument* itextdocument;
     EBookWrapper* wrapper;
     QString tabname;
-    htmldocument = ebook_plugin->createDocument(filename);
-    itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
+    itextdocument = dynamic_cast<ITextDocument*>(ebook_document);
     //    htmldocument->setPlugin(ebook_plugin);
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
     wrapper = new EBookWrapper(m_options, this);
-    wrapper->editor()->setDocument(htmldocument);
-    if (is_a_library_book) {
-      m_toc->setDocument(htmldocument->toc());
-      tabname = QString(tr("%1, (%2)")
-                        .arg(htmldocument->title())
-                        .arg(htmldocument->creatorNames(htmldocument->creators())));
-      m_tabs->addTab(wrapper, tabname);
-      m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
-      connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
-    } else {
-      // TODO check if there is a library copy.
-      QStringList authorlist = htmldocument->creators();
-      QString authors_name;
-      if (authorlist.isEmpty()) {
-        SharedAuthorList authors = selectAuthorNames(filename, htmldocument->title());
-        setModifiedAuthors(htmldocument, authors);
+    wrapper->editor()->setDocument(ebook_document);
 
-        foreach (SharedAuthor author, authors) {
-          authorlist << authors_name;
-        }
-      }
+    EBookTOCWidget* toc = new EBookTOCWidget(this);
+    toc->setOpenLinks(false);
+    //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
+    connect(toc, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
+    connect(toc, &EBookTOCWidget::buildTocFromHtmlFiles, this, &MainWindow::buildTocFromData);
+    connect(toc, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
+    connect(toc, &EBookTOCWidget::addAnchorsToToc, this, &MainWindow::addTocAnchors);
+    toc->setDocument(ebook_document->toc());
+    m_toc_stack->addWidget(toc);
 
-      authors_name = htmldocument->creatorNames(authorlist);
-      if (m_options->copyBooksToStore()) {
-        filename = copyBookToStore(filename, authors_name);
-      }
-
-      // to copy it we need the authors.
-    }
-
-    htmldocument = ebook_plugin->createDocument(filename);
-    itextdocument = dynamic_cast<ITextDocument*>(htmldocument);
-    //    htmldocument->setPlugin(ebook_plugin);
-    //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    wrapper = new EBookWrapper(m_options, this);
-    wrapper->editor()->setDocument(htmldocument);
-    m_toc->setDocument(htmldocument->toc());
-    //      tabname =
-    //        QString(tr("%1,
-    //        (%2)").arg(htmldocument->title()).arg(htmldocument->creatorNames()));
-    tabname = tr("%1").arg(htmldocument->title());
-    m_tabs->addTab(wrapper, tabname);
-    m_current_document = dynamic_cast<QTextDocument*>(htmldocument);
+    tabname = QString(tr("%1, (%2)")
+                      .arg(ebook_document->title())
+                      .arg(ebook_document->creatorNames(ebook_document->creators())));
+    m_doc_tabs->addTab(wrapper, tabname);
+    m_current_document = dynamic_cast<QTextDocument*>(ebook_document);
     connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
-  }
+
+    // set up the editor state correctly (editor visible, show_library btn visible)
+    m_doc_stack->setCurrentIndex(m_stack_editor);
+    m_doc_tabs->setEnabled(true);
+    m_show_library->setVisible(true);
+    m_show_editor->setVisible(false);
+    m_options->appendCurrentFile(filename);
+    saveOptions();
+
+  } // end of is(ebook_plugin)
 
   m_loading = false;
-  // set up the ditor state correctly (editor visible, show_library btn visible)
-  m_stack->setCurrentIndex(m_stack_editor);
-  m_show_library->setVisible(true);
-  m_show_editor->setVisible(false);
-  m_options->appendCurrentFile(filename);
-  saveOptions();
-}
-
-if (m_tabs->count() > 0)
-  m_tabs->setEnabled(true);
-
-setObjectVisibility();
 }
 
 QString MainWindow::concatenateAuthorNames(SharedAuthorList authors)
@@ -877,7 +999,7 @@ void MainWindow::documentChanged(int index)
   if (!m_loading) {
     if (index >= 0) {
       m_options->setCurrentIndex(index);
-      EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->widget(index));
+      EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
       QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
       IEBookDocument* iebookdocument = dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
 
@@ -907,11 +1029,14 @@ void MainWindow::documentChanged(int index)
       // TODO - no documents selected.
     }
   }
+
+  // toc matches document.
+  m_toc_stack->setCurrentIndex(index);
 }
 
 void MainWindow::tabClosing(int index)
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->widget(index));
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
   QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
   if (textdocument->isModified()) {
     // TODO - Check if the user wants to save the document.
@@ -920,10 +1045,10 @@ void MainWindow::tabClosing(int index)
       saveDocument(itextdocument);
     }
   }
-  m_tabs->removeTab(index);
+  m_doc_tabs->removeTab(index);
 
   // load next document from m_tabs;
-  wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
   if (wrapper) {
     if (textdocument) {
@@ -971,8 +1096,8 @@ void MainWindow::fileOpen()
 void MainWindow::fileSave()
 {
   // TODO
-  EBookWrapper* wrapper = dynamic_cast<EBookWrapper*>(m_tabs->currentWidget());
-  QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  QTextDocument* textdocument = qobject_cast<QTextDocument*>(wrapper->editor()->document());
   IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
   if (textdocument->isModified()) {
     saveDocument(itextdocument);
@@ -1129,14 +1254,14 @@ void MainWindow::setLibraryToolbarState()
 
 void MainWindow::viewShowLibrary()
 {
-  m_stack->setCurrentIndex(m_stack_library);
+  m_doc_stack->setCurrentIndex(m_stack_library);
   m_lib_type_toolbar->setEnabled(true);
   setLibraryToolbarState();
 }
 
 void MainWindow::viewShowEditor()
 {
-  m_stack->setCurrentIndex(m_stack_editor);
+  m_doc_stack->setCurrentIndex(m_stack_editor);
   m_lib_type_toolbar->setEnabled(false);
 }
 
@@ -1206,7 +1331,7 @@ void MainWindow::openWindow()
 {
   QObject* obj = sender();
   QAction* act = qobject_cast<QAction*>(obj);
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   if (wrapper) {
     if (act == m_open_editor) {
       wrapper->setToEditor();
@@ -1220,9 +1345,14 @@ void MainWindow::openWindow()
 
 void MainWindow::tocAnchorClicked(QUrl url)
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   EBookEditor* editor = wrapper->editor();
-  editor->scrollToAnchor(url.fragment());
+  QString fragment = url.fragment();
+  if (fragment.isEmpty()) {
+    editor->scrollToAnchor(url.path());
+  } else {
+    editor->scrollToAnchor(fragment);
+  }
 }
 
 void MainWindow::setObjectVisibility(int index)
@@ -1242,21 +1372,65 @@ void MainWindow::setObjectVisibility(int index)
       Options::ViewState state = Options::ViewState(index);
       switch (state) {
       case Options::VIEW_EDITOR:
-        m_stack->setCurrentIndex(m_stack_editor);
+        m_doc_stack->setCurrentIndex(m_stack_editor);
         break;
       case Options::VIEW_LIBRARY_TREE:
-        m_stack->setCurrentIndex(m_stack_library);
+        m_doc_stack->setCurrentIndex(m_stack_library);
         m_library->setToTree();
         setLibraryToolbarState();
         break;
       case Options::VIEW_LIBRARY_SHELF:
-        m_stack->setCurrentIndex(m_stack_library);
+        m_doc_stack->setCurrentIndex(m_stack_library);
         m_library->setToShelf();
         setLibraryToolbarState();
         break;
       }
     }
   }
+}
+
+void MainWindow::buildTocFromData()
+{
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  int index = m_doc_tabs->currentIndex();
+  EBookEditor* editor = wrapper->editor();
+  // get new toc data
+  QString toc_string = editor->buildTocFromData();
+  // create new data widget
+  EBookTOCWidget* new_toc_widget = new EBookTOCWidget(this);
+  new_toc_widget->setDocumentString(toc_string);
+  // get current toc widget
+  QWidget* toc_widget = m_toc_stack->currentWidget();
+  // back it up
+  m_toc_backup.insert(index, toc_widget);
+  // replace it with the new toc data
+  m_toc_stack->removeWidget(toc_widget);
+  m_toc_stack->insertWidget(index, new_toc_widget);
+}
+
+void MainWindow::builManualToc()
+{
+  int index = m_doc_tabs->currentIndex();
+
+  // create new data editor
+  EBookTocEditor* toceditor = new EBookTocEditor(this);
+  // get current toc widget
+  EBookTOCWidget* toc_widget = qobject_cast<EBookTOCWidget*>(m_toc_stack->currentWidget());
+  // back it up
+  m_toc_backup.insert(index, toc_widget);
+  // replace it with the new toc data
+  m_toc_stack->removeWidget(toc_widget);
+  toceditor->setDocument(toc_widget->document());
+  m_toc_stack->insertWidget(index, toceditor);
+
+  if (toceditor->exec() == QDialog::Accepted) {
+
+  } else {
+  }
+}
+
+void MainWindow::addTocAnchors()
+{
 }
 
 void MainWindow::fileNew()

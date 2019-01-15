@@ -45,18 +45,6 @@ QFrame* OptionsDialog::initMiscTab()
   QFormLayout* l = new QFormLayout;
   miscFrame->setLayout(l);
 
-//  QCheckBox* enablePopupBox = new QCheckBox(this);
-//  enablePopupBox->setChecked(m_options->enablepopup);
-//  connect(enablePopupBox, &QCheckBox::clicked, this,
-//          &OptionsDialog::changeEnablePopup);
-//  l->addRow(tr("Enable information popup's"), enablePopupBox);
-
-//  QSpinBox* popupTimeoutBox = new QSpinBox(this);
-//  popupTimeoutBox->setValue(m_options->popuptimeout / 1000);
-//  connect(popupTimeoutBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
-//          &OptionsDialog::changePopupTimeout);
-//  l->addRow(tr("Information popup timeout (Secs)"), popupTimeoutBox);
-
   return miscFrame;
 }
 
@@ -65,30 +53,6 @@ QFrame* OptionsDialog::initEditorTab()
   QFrame* f = new QFrame(this);
   QFormLayout* l = new QFormLayout;
   f->setLayout(l);
-
-  copy_book_to_store_box = new QCheckBox(this);
-  copy_book_to_store_box->setChecked(m_options->copyBooksToStore());
-  copy_book_to_store_box->setToolTip(
-    tr("Copy the book to the book store before"
-       "you start to edit it. This allows the "
-       "original copy to be retained unmodified."));
-  connect(copy_book_to_store_box, &QCheckBox::clicked, this,
-          &OptionsDialog::setCopyBookToStore);
-  l->addRow(tr("Copy Books to Book Store Before Editing"),
-            copy_book_to_store_box);
-
-  delete_old_book_box = new QCheckBox(this);
-  if (!m_options->copyBooksToStore())
-    delete_old_book_box->setEnabled(false);
-  else
-    delete_old_book_box->setEnabled(true);
-  delete_old_book_box->setChecked(m_options->deleteOldBook());
-  delete_old_book_box->setToolTip(tr("Delete the original copy of the book "
-                                     "when the book has been copied to the "
-                                     "book store."));
-  connect(delete_old_book_box, &QCheckBox::clicked, this,
-          &OptionsDialog::setDeleteOldBook);
-  l->addRow(tr("Delete the old copy of the stored book"), delete_old_book_box);
 
   toc_visible_box = new QCheckBox(this);
   toc_visible_box->setChecked(m_options->tocVisible());
@@ -104,21 +68,6 @@ QFrame* OptionsDialog::initEditorTab()
   }
   connect(toc_position_btn, &QPushButton::clicked, this,
           &OptionsDialog::setTocPosition);
-
-  never_confirm_delete_box = new QCheckBox(this);
-  if (!m_options->copyBooksToStore())
-    never_confirm_delete_box->setEnabled(false);
-  else
-    never_confirm_delete_box->setEnabled(true);
-  never_confirm_delete_box->setChecked(m_options->neverConfirmDelete());
-  never_confirm_delete_box->setToolTip(
-    tr("Delete the original copy of the book "
-       "when the book has been copied to the "
-       "book store."));
-  connect(never_confirm_delete_box, &QCheckBox::clicked, this,
-          &OptionsDialog::setNeverConfirmDelete);
-  l->addRow(tr("Never Confirm Deleteion of Old Book"),
-            never_confirm_delete_box);
 
   return f;
 }
@@ -794,31 +743,6 @@ void OptionsDialog::setScriptItalic(bool state)
 void OptionsDialog::setScriptWeight(int index)
 {
   m_options->setWeight(Options::SCRIPT, QFont::Weight(index));
-  emit codeChanged();
-  m_modified = true;
-}
-
-void OptionsDialog::setCopyBookToStore(bool state)
-{
-  m_options->setCopyBooksToStore(state);
-  emit codeChanged();
-  m_modified = true;
-  if (state)
-    delete_old_book_box->setEnabled(true);
-  else
-    delete_old_book_box->setEnabled(false);
-}
-
-void OptionsDialog::setDeleteOldBook(bool state)
-{
-  m_options->setDeleteOldBook(state);
-  emit codeChanged();
-  m_modified = true;
-}
-
-void OptionsDialog::setNeverConfirmDelete(bool state)
-{
-  m_options->setNeverConfirmDelete(state) ;
   emit codeChanged();
   m_modified = true;
 }

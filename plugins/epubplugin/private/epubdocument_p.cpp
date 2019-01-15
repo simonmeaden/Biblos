@@ -5,13 +5,16 @@
 using namespace qlogger;
 
 EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) :
-    q_ptr(parent), m_container(nullptr), m_loaded(false)
+  q_ptr(parent), m_container(nullptr), m_loaded(false)
 {
 }
 
 EPubDocumentPrivate::~EPubDocumentPrivate() {}
 
-bool EPubDocumentPrivate::loaded() { return m_loaded; }
+bool EPubDocumentPrivate::loaded()
+{
+  return m_loaded;
+}
 
 void EPubDocumentPrivate::openDocument(const QString& path)
 {
@@ -22,13 +25,21 @@ void EPubDocumentPrivate::openDocument(const QString& path)
   //    m_data->toc = m_container->toc();
 }
 
-void EPubDocumentPrivate::saveDocument() { m_container->saveFile(); }
+void EPubDocumentPrivate::saveDocument()
+{
+  m_container->saveFile();
+}
 
 // void EPubDocumentPrivate::clearCache() { /*m_renderedSvgs.clear();*/ }
 
 void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
 {
   m_documentPath = documentPath;
+}
+
+QString EPubDocumentPrivate::buildTocFromFiles()
+{
+  return m_container->buildTocfromHtml();
 }
 
 void EPubDocumentPrivate::loadDocument()
@@ -74,8 +85,9 @@ void EPubDocumentPrivate::loadDocument()
   pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
   for (const QString& chapter : spine_items) {
     SharedManifestItem item = m_container->item(chapter);
-    SharedDomDocument shared_domdocument = item->dom_document;
-    if (shared_domdocument.isNull()) {
+//    SharedDomDocument shared_domdocument = item->dom_document;
+    QString document = item->document_string;
+    if (document.isEmpty()) {
       QLOG_WARN(QString("Got an empty document"))
       continue;
     }
@@ -84,8 +96,8 @@ void EPubDocumentPrivate::loadDocument()
     int start = cursor.position();
     //    item->start = SharedTextCursor(new QTextCursor(*cursor.data()));
 
-    QString data = shared_domdocument->toString();
-    cursor.insertHtml(data);
+//    QString data = shared_domdocument->toString();
+    cursor.insertHtml(document);
     cursor.insertBlock(pageBreak);
 
     // mark the end of the block
@@ -103,7 +115,10 @@ void EPubDocumentPrivate::loadDocument()
   emit q->loadCompleted();
 }
 
-QTextDocument* EPubDocumentPrivate::toc() { return m_container->toc(); }
+QTextDocument* EPubDocumentPrivate::toc()
+{
+  return m_container->toc();
+}
 
 // QVariant EPubDocumentPrivate::loadResource(int type, const QUrl& url)
 //{
@@ -135,7 +150,6 @@ EPubContents* EPubDocumentPrivate::cloneData()
 {
   EPubContents* contents = new EPubContents();
   contents->m_container = m_container;
-  contents->m_currentItem = m_currentItem;
   contents->m_loaded = m_loaded;
 
   return contents;
@@ -203,7 +217,10 @@ void EPubDocumentPrivate::setClonedData(EPubContents* clone)
   //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
-QStringList EPubDocumentPrivate::creators() { return m_container->creators(); }
+QStringList EPubDocumentPrivate::creators()
+{
+  return m_container->creators();
+}
 
 QString EPubDocumentPrivate::title()
 {

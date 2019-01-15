@@ -55,7 +55,9 @@ SOURCES += \
     plugindialog.cpp \
     libraryframe.cpp \
     libraryshelf.cpp \
-    aboutdialog.cpp
+    aboutdialog.cpp \
+    ebooktocwidget.cpp \
+    ebooktoceditor.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -73,7 +75,9 @@ HEADERS += \
     plugindialog.h \
     libraryframe.h \
     libraryshelf.h \
-    aboutdialog.h
+    aboutdialog.h \
+    ebooktocwidget.h \
+    ebooktoceditor.h
 
 FORMS += \
         mainwindow.ui
