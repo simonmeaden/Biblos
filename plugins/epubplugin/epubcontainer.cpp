@@ -30,8 +30,8 @@ const QString EPubContainer::IDENTIFIER = "identifier";
 const QString EPubContainer::LANGUAGE = "language";
 
 const QString EPubContainer::TOC_TITLE = "<h2>%1</h2>";
-const QString EPubContainer::LIST_START = "<ul>";
-const QString EPubContainer::LIST_END = "</ul>";
+const QString EPubContainer::LIST_START = "<html><body><ul>";
+const QString EPubContainer::LIST_END = "</ul></body></html>";
 const QString EPubContainer::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
 const QString EPubContainer::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>";
 const QString EPubContainer::LIST_FILEPOS = "position%1";
@@ -1180,6 +1180,59 @@ void EPubContainer::handleSubNavpoints(QDomElement elem, QString& formatted_toc_
   }
 }
 
+QString EPubContainer::extractTagText(int anchor_start, QString document_string)
+{
+  int i = anchor_start;
+  bool in_dquotes = false, in_squotes = false, in_tag = false, in_close_tag = false;
+  QChar first;
+  QString text;
+  while (i < document_string.length()) {
+    first = document_string.at(i);
+    if (first == '<') {
+      if (!in_dquotes && !in_squotes) {
+        in_tag = true;
+      }
+    } else if (first == '>') {
+      if (!in_dquotes && !in_squotes) {
+        if (in_tag) {
+          in_tag = false;
+        } else if (in_close_tag) {
+          in_close_tag = false;
+        }
+      }
+    } else if (first == '\"') {
+      if (in_dquotes)
+        in_dquotes = false;
+      else {
+        in_dquotes = true;
+      }
+    } else if (first == '\'') {
+      if (in_squotes)
+        in_squotes = false;
+      else {
+        in_squotes = true;
+      }
+    } else if (first == '/') {
+      if (in_tag) {
+        in_close_tag = true;
+        in_tag = false;
+      }
+    } else {
+      if (!in_tag && !in_close_tag) {
+        // store everything if not in_quotes and not in_tag
+        text += first;
+      }
+      if (in_close_tag) {
+        if (first == 'a') { // end of the anchor tag.
+          break;
+        }
+      }
+    }
+    i++;
+  }
+  return text;
+}
+
 QString EPubContainer::buildTocfromHtml()
 {
   QString formatted_toc_string = LIST_START;
@@ -1206,6 +1259,8 @@ QString EPubContainer::buildTocfromHtml()
           anchor_tag = anchor_tag_match.captured(0);
           anchor_start += anchor_tag_match.capturedLength(0); // end of open anchor tag
 
+          QString text = extractTagText(anchor_start, document_string);
+
           href_match = re_href.match(anchor_tag);
           if (href_match.hasMatch()) {
             href_attr = href_match.captured(0);
@@ -1222,11 +1277,11 @@ QString EPubContainer::buildTocfromHtml()
               }
             } else if (!splits.at(0).isEmpty() && !splits.at(1).isEmpty()) {
               // existing file + anchor points exist.
-              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(splits.at(1)).arg("");
+              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(splits.at(1)).arg(text);
             } else if (!splits.at(0).isEmpty() && splits.at(1).isEmpty()) {
               // existing file but no anchor point.
               QString pos_tag = LIST_FILEPOS.arg(pos++);
-              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(pos_tag).arg("");
+              formatted_toc_string += LIST_BUILD_ITEM.arg(splits.at(0)).arg(pos_tag).arg(text);
               // TODO introduce anchor tag
             } else if (splits.at(0).isEmpty() && !splits.at(1).isEmpty()) {
               // existing anchor tag but no file.

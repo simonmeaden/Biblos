@@ -874,15 +874,15 @@ void MainWindow::loadDocument(QString file_name, bool from_library)
     wrapper = new EBookWrapper(m_options, this);
     wrapper->editor()->setDocument(ebook_document);
 
-    EBookTOCWidget* toc = new EBookTOCWidget(this);
-    toc->setOpenLinks(false);
+    EBookTOCWidget* toc_widget = new EBookTOCWidget(this);
+    toc_widget->setOpenLinks(false);
     //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
-    connect(toc, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
-    connect(toc, &EBookTOCWidget::buildTocFromHtmlFiles, this, &MainWindow::buildTocFromData);
-    connect(toc, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
-    connect(toc, &EBookTOCWidget::addAnchorsToToc, this, &MainWindow::addTocAnchors);
-    toc->setDocument(ebook_document->toc());
-    m_toc_stack->addWidget(toc);
+    connect(toc_widget, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
+    connect(toc_widget, &EBookTOCWidget::buildTocFromHtmlFiles, this, &MainWindow::buildTocFromData);
+    connect(toc_widget, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
+    connect(toc_widget, &EBookTOCWidget::addAnchorsToToc, this, &MainWindow::addTocAnchors);
+    toc_widget->setDocument(ebook_document->toc());
+    m_toc_stack->addWidget(toc_widget);
 
     tabname = QString(tr("%1, (%2)")
                       .arg(ebook_document->title())
@@ -1398,6 +1398,9 @@ void MainWindow::buildTocFromData()
   QString toc_string = editor->buildTocFromData();
   // create new data widget
   EBookTOCWidget* new_toc_widget = new EBookTOCWidget(this);
+  new_toc_widget->setOpenLinks(false);
+  connect(new_toc_widget, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
+  connect(new_toc_widget, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
   new_toc_widget->setDocumentString(toc_string);
   // get current toc widget
   QWidget* toc_widget = m_toc_stack->currentWidget();
@@ -1406,6 +1409,9 @@ void MainWindow::buildTocFromData()
   // replace it with the new toc data
   m_toc_stack->removeWidget(toc_widget);
   m_toc_stack->insertWidget(index, new_toc_widget);
+  m_toc_stack->setCurrentIndex(index);
+
+  new_toc_widget->enableHtmlMenuItem(false);
 }
 
 void MainWindow::builManualToc()
@@ -1417,11 +1423,12 @@ void MainWindow::builManualToc()
   // get current toc widget
   EBookTOCWidget* toc_widget = qobject_cast<EBookTOCWidget*>(m_toc_stack->currentWidget());
   // back it up
-  m_toc_backup.insert(index, toc_widget);
-  // replace it with the new toc data
-  m_toc_stack->removeWidget(toc_widget);
+//  m_toc_backup.insert(index, toc_widget);
+//  // replace it with the new toc data
+//  m_toc_stack->removeWidget(toc_widget);
   toceditor->setDocument(toc_widget->document());
-  m_toc_stack->insertWidget(index, toceditor);
+//  m_toc_stack->insertWidget(index, toceditor);
+//  m_toc_stack->setCurrentIndex(index);
 
   if (toceditor->exec() == QDialog::Accepted) {
 

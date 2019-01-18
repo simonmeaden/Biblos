@@ -549,6 +549,7 @@ protected:
   void createAnchorPointForChapter(SharedTocItem toc_item, SharedManifestItem manifest_item);
   void createChapterAnchorPoints(SharedSpineItem spine_item);
   void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);
+  QString extractTagText(int anchor_start, QString document_string);
 
   static const QString MIMETYPE_FILE;
   static const QByteArray MIMETYPE;
