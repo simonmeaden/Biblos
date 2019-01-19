@@ -83,7 +83,7 @@ void EPubDocument::setFilename(const QString& filename)
   d->setFilename(filename);
 }
 
-QTextDocument* EPubDocument::toc()
+QString EPubDocument::tocAsString()
 {
   Q_D(EPubDocument);
   return d->toc();

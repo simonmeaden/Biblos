@@ -53,7 +53,7 @@ protected:
 
   EPubDocumentPrivate(EPubDocumentPrivate& d);
   void loadDocument();
-  QTextDocument* toc();
+  QString toc();
   //  virtual QVariant loadResource(int, const QUrl&);
   //  void fixImages(SharedDomDocument newDocument);
   //  const QImage& getSvgImage(const QString& id);

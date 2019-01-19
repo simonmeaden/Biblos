@@ -456,7 +456,7 @@ public:
   QStringList imageKeys();
   QStringList cssKeys();
   QStringList jsKeys();
-  QTextDocument* toc();
+  QString tocAsString();
   QStringList creators();
 
   SharedMetadata metadata()

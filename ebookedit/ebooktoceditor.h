@@ -19,7 +19,6 @@ protected:
   EBookTOCWidget* m_toc_display;
   QTableWidget* m_toc_editor;
   QString m_original_string, m_result_string;
-  TocDisplayDocument* m_display_document;
   bool m_modified, m_loaded, m_initialised;
 
   void initGui();

@@ -56,7 +56,7 @@ public:
   QString filename() override;
   void setFilename(const QString& filename) override;
 
-  QTextDocument* toc() override;
+  QString tocAsString() override;
 
   // IEBookDocument interface
   IEBookInterface* plugin() override;

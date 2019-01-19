@@ -210,11 +210,12 @@ QStringList EPubContainer::jsKeys()
   return m_manifest.javascript.keys();
 }
 
-QTextDocument* EPubContainer::toc()
+QString EPubContainer::tocAsString()
 {
-  QTextDocument* toc_document = new QTextDocument(this);
-  toc_document->setHtml(m_manifest.formatted_toc_string);
-  return toc_document;
+//  TocDisplayDocument* toc_document = new TocDisplayDocument(this);
+//  toc_document->setHtml(m_manifest.formatted_toc_string);
+//  return toc_document;
+  return m_manifest.formatted_toc_string;
 }
 
 QStringList EPubContainer::creators()

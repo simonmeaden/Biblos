@@ -3,6 +3,7 @@
 EBookTOCWidget::EBookTOCWidget(QWidget* parent)
   : QTextBrowser(parent)
 {
+  setDocument(new TocDisplayDocument(this));
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &QWidget::customContextMenuRequested, this, &EBookTOCWidget::showContextMenu);
 }
@@ -71,12 +72,12 @@ TocDisplayDocument::~TocDisplayDocument()
 {
 }
 
-void TocDisplayDocument::addPosition(int line_index, TocPosition& position)
+void TocDisplayDocument::addLinePosition(int line_index, QTextCursor& line_position)
 {
-  m_positioning.insert(line_index, position);
+  m_positioning.insert(line_index, line_position);
 }
 
-TocPosition TocDisplayDocument::position(int index)
+QTextCursor TocDisplayDocument::linePosition(int index)
 {
   return m_positioning.value(index);
 }

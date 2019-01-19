@@ -4,7 +4,7 @@ const QString EBookTocEditor::TOC_TITLE = "<h2>%1</h2>";
 const QString EBookTocEditor::LIST_START = "<html><body><ul>";
 const QString EBookTocEditor::LIST_END = "</ul></body></html>";
 const QString EBookTocEditor::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
-const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>";
+const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>\n";
 const QString EBookTocEditor::LIST_FILEPOS = "position%1";
 
 EBookTocEditor::EBookTocEditor(QWidget* parent)
@@ -31,9 +31,7 @@ void EBookTocEditor::setDocumentString(QString document_string)
   m_modified = false;
   m_initialised = false;
 
-  m_display_document = new TocDisplayDocument(m_toc_display);
-  m_toc_display->setDocument(m_display_document);
-
+  TocDisplayDocument* m_display_document = m_toc_display->document();
   QTextCursor cursor(m_display_document);
   cursor.insertHtml(LIST_START);
 
@@ -82,11 +80,12 @@ void EBookTocEditor::setDocumentString(QString document_string)
                 m_toc_editor->setItem(row, 2, anchor_item);
                 m_toc_editor->setItem(row, 3, contents_item);
 
-                TocPosition* toc_position = new TocPosition;
-                toc_position->start = QTextCursor(m_display_document);
                 doc_line = LIST_BUILD_ITEM.arg(file).arg(anchor).arg(contents);
+                int start_position = cursor.position();
                 cursor.insertHtml(doc_line);
-                toc_position->end = QTextCursor(m_display_document);
+                QTextCursor start = QTextCursor(m_display_document);
+                start.setPosition(start_position);
+                m_display_document->addLinePosition(row, start);
               }
             }
           }
@@ -94,8 +93,12 @@ void EBookTocEditor::setDocumentString(QString document_string)
       }
     }
   }
+  int end_position = cursor.position();
+  QTextCursor end = QTextCursor(m_display_document);
+  end.setPosition(end_position);
+  m_display_document->setEndOfListItems(end);
+
   cursor.insertHtml(LIST_END);
-  m_toc_display->setHtml(document_string);
   m_initialised = true;
 }
 
@@ -148,9 +151,15 @@ void EBookTocEditor::initGui()
 
 void EBookTocEditor::updateLine(int row, bool enabled)
 {
-  TocPosition position = m_toc_display->document()->position(row);
+  QTextCursor start = m_toc_display->document()->linePosition(row);
+  QTextCursor end;
+  if (row < m_toc_display->document()->lineCount())
+    end = m_toc_display->document()->linePosition(row + 1);
+  else {
+    end = m_toc_display->document()->endOfListItems();
+  }
 
-  if (position.isValid()) {
+  if (!start.isNull()) {
     QString line;
     if (enabled) {
       QString file = m_toc_editor->item(row, 1)->text();
@@ -161,10 +170,11 @@ void EBookTocEditor::updateLine(int row, bool enabled)
       line = "";
     }
 
-    QTextCursor cursor = QTextCursor(position.start);
-    cursor.setPosition(position.end.position(), QTextCursor::KeepAnchor);
+    QTextCursor cursor = QTextCursor(m_toc_display->document());
+    cursor.setPosition(start.position());
+    cursor.setPosition(end.position(), QTextCursor::KeepAnchor);
     cursor.removeSelectedText();
-    cursor.insertText(line);
+    cursor.insertHtml(line);
   }
 }
 

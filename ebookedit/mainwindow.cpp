@@ -550,6 +550,7 @@ EBookType MainWindow::checkMimetype(QString filename)
   if (mime.name() == "application/epub+zip")
     return EPUB;
   // TODO add further mime types.
+  return UNSUPPORTED_TYPE;
 }
 
 void MainWindow::loadOptions()
@@ -881,7 +882,7 @@ void MainWindow::loadDocument(QString file_name, bool from_library)
     connect(toc_widget, &EBookTOCWidget::buildTocFromHtmlFiles, this, &MainWindow::buildTocFromData);
     connect(toc_widget, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
     connect(toc_widget, &EBookTOCWidget::addAnchorsToToc, this, &MainWindow::addTocAnchors);
-    toc_widget->setDocument(ebook_document->toc());
+    toc_widget->setDocumentString(ebook_document->tocAsString());
     m_toc_stack->addWidget(toc_widget);
 
     tabname = QString(tr("%1, (%2)")

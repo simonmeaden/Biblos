@@ -115,9 +115,9 @@ void EPubDocumentPrivate::loadDocument()
   emit q->loadCompleted();
 }
 
-QTextDocument* EPubDocumentPrivate::toc()
+QString EPubDocumentPrivate::toc()
 {
-  return m_container->toc();
+  return m_container->tocAsString();
 }
 
 // QVariant EPubDocumentPrivate::loadResource(int type, const QUrl& url)

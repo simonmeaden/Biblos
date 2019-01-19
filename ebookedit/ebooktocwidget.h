@@ -4,29 +4,7 @@
 #include <QMenu>
 #include <QTextBrowser>
 
-struct TocPosition {
-  QTextCursor start;
-  QTextCursor end;
-
-  bool isValid()
-  {
-    return (start.position() != end.position());
-  }
-};
-
-class TocDisplayDocument : public QTextDocument
-{
-  Q_OBJECT
-public:
-  TocDisplayDocument(QObject* parent);
-  ~TocDisplayDocument();
-
-  void addPosition(int line_index, TocPosition& position);
-  TocPosition position(int index);
-
-protected:
-  QMap<int, TocPosition> m_positioning;
-};
+#include <ebookcommon.h>
 
 class EBookTOCWidget : public QTextBrowser
 {

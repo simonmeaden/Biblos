@@ -238,3 +238,18 @@ QList<SharedBook>* Author::books() const
 {
   return m_books;
 }
+
+QTextCursor TocDisplayDocument::endOfListItems()
+{
+  return m_end_of_listitems;
+}
+
+int TocDisplayDocument::lineCount()
+{
+  return m_positioning.size();
+}
+
+void TocDisplayDocument::setEndOfListItems(QTextCursor &line_position)
+{
+  m_end_of_listitems = line_position;
+}

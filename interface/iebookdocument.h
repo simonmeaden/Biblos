@@ -28,7 +28,7 @@ public:
   //  virtual bool readOnly() = 0;
   //  virtual void setReadOnly(const bool readonly) = 0;
 
-  virtual QTextDocument* toc() = 0;
+  virtual QString tocAsString() = 0;
 
   virtual QString title() = 0;
   //  virtual void setTitle(const QString& title) = 0;

@@ -63,7 +63,7 @@ public:
     return MOBI;
   }
 
-  QTextDocument* toc() override {}
+  QString tocAsString() override {}
 
   QString buildTocFromData() override;
 

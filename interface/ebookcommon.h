@@ -11,6 +11,8 @@
 #include <QPoint>
 #include <QSharedPointer>
 #include <QtPlugin>
+#include <QTextCursor>
+#include <QTextDocument>
 
 // struct EPubPageReference {
 //  enum StandardType {
@@ -40,6 +42,36 @@
 //  QString title;
 //};
 
+struct TocLinePosition {
+  QTextCursor start;
+  QTextCursor end;
+
+  bool isValid()
+  {
+    return (start.position() != end.position());
+  }
+};
+
+class TocDisplayDocument : public QTextDocument
+{
+  Q_OBJECT
+public:
+  TocDisplayDocument(QObject* parent);
+  ~TocDisplayDocument();
+
+  void addLinePosition(int line_index, QTextCursor& line_position);
+  QTextCursor linePosition(int index);
+  void setEndOfListItems(QTextCursor& line_position);
+  QTextCursor endOfListItems();
+  int lineCount();
+
+protected:
+  QMap<int, QTextCursor> m_positioning;
+  QTextCursor m_end_of_listitems;
+};
+
+
+
 struct EPubNavPoint {
   EPubNavPoint(QString classname, QString id, QString label, QString src)
   {
@@ -56,7 +88,7 @@ struct EPubNavPoint {
 typedef QSharedPointer<EPubNavPoint> navpoint_t;
 
 enum DocumentType { PLAINTEXT, HTML };
-enum EBookType { EPUB, MOBI, AZW, PDF, };
+enum EBookType { UNSUPPORTED_TYPE, EPUB, MOBI, AZW, PDF, };
 
 class Author;
 class Book : public QObject
