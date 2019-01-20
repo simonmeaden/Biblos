@@ -4,8 +4,9 @@ const QString EBookTocEditor::TOC_TITLE = "<h2>%1</h2>";
 const QString EBookTocEditor::LIST_START = "<html><body><ul>";
 const QString EBookTocEditor::LIST_END = "</ul></body></html>";
 const QString EBookTocEditor::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
-const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>\n";
+const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li><br>";
 const QString EBookTocEditor::LIST_FILEPOS = "position%1";
+const QString EBookTocEditor::LIST_SEPARATOR = " ";
 
 EBookTocEditor::EBookTocEditor(QWidget* parent)
   : QDialog(parent)
@@ -32,12 +33,10 @@ void EBookTocEditor::setDocumentString(QString document_string)
   m_initialised = false;
 
   TocDisplayDocument* m_display_document = m_toc_display->document();
-  QTextCursor cursor(m_display_document);
-  cursor.insertHtml(LIST_START);
+  QString toc_string = LIST_START;
 
   QDomDocument* doc = new QDomDocument;
   doc->setContent(document_string);
-  //  m_toc_display->setHtml(document_string);
   m_toc_editor->clearContents();
   m_toc_editor->setRowCount(0);
 
@@ -80,12 +79,10 @@ void EBookTocEditor::setDocumentString(QString document_string)
                 m_toc_editor->setItem(row, 2, anchor_item);
                 m_toc_editor->setItem(row, 3, contents_item);
 
+                int start_position = toc_string.length();
                 doc_line = LIST_BUILD_ITEM.arg(file).arg(anchor).arg(contents);
-                int start_position = cursor.position();
-                cursor.insertHtml(doc_line);
-                QTextCursor start = QTextCursor(m_display_document);
-                start.setPosition(start_position);
-                m_display_document->addLinePosition(row, start);
+                toc_string.append(doc_line);
+                m_display_document->addLinePosition(row, start_position, doc_line.length());
               }
             }
           }
@@ -93,12 +90,9 @@ void EBookTocEditor::setDocumentString(QString document_string)
       }
     }
   }
-  int end_position = cursor.position();
-  QTextCursor end = QTextCursor(m_display_document);
-  end.setPosition(end_position);
-  m_display_document->setEndOfListItems(end);
 
-  cursor.insertHtml(LIST_END);
+  toc_string += LIST_END;
+  m_display_document->setTocString(toc_string);
   m_initialised = true;
 }
 
@@ -151,31 +145,36 @@ void EBookTocEditor::initGui()
 
 void EBookTocEditor::updateLine(int row, bool enabled)
 {
-  QTextCursor start = m_toc_display->document()->linePosition(row);
-  QTextCursor end;
-  if (row < m_toc_display->document()->lineCount())
-    end = m_toc_display->document()->linePosition(row + 1);
-  else {
-    end = m_toc_display->document()->endOfListItems();
+  /* I initially used QTextCusrors to store line positions to allow modification of
+   * the toc display document but this QTextCursors ignore all of the html tags
+   * and only handles the text so these were all wrong. I now manage points in a
+   * QString which is modified and passed to the document.
+   */
+  TocDisplayDocument* toc_document = m_toc_display->document();
+  QPair<int, int> position = toc_document->linePosition(row);
+  QString toc_string = toc_document->tocString();
+  // remove the old line values.
+  toc_string.remove(position.first, position.second);
+  int old_line_length = position.second;
+
+  QString doc_line;
+  if (enabled) {
+    QString file = m_toc_editor->item(row, 1)->text();
+    QString anchor = m_toc_editor->item(row, 2)->text();
+    QString contents = m_toc_editor->item(row, 3)->text();
+    doc_line = LIST_BUILD_ITEM.arg(file).arg(anchor).arg(contents);
+    position.second = doc_line.length();
+  } else {
+    doc_line = "";
+    position.second = 0;
   }
 
-  if (!start.isNull()) {
-    QString line;
-    if (enabled) {
-      QString file = m_toc_editor->item(row, 1)->text();
-      QString anchor = m_toc_editor->item(row, 2)->text();
-      QString contents = m_toc_editor->item(row, 3)->text();
-      QString line = LIST_BUILD_ITEM.arg(file).arg(anchor).arg(contents);
-    } else {
-      line = "";
-    }
-
-    QTextCursor cursor = QTextCursor(m_toc_display->document());
-    cursor.setPosition(start.position());
-    cursor.setPosition(end.position(), QTextCursor::KeepAnchor);
-    cursor.removeSelectedText();
-    cursor.insertHtml(line);
-  }
+  // update offsets for new line length.
+  toc_document->updateLinePosition(row, position, position.second - old_line_length);
+  // insert the modified line (possibly empty).
+  toc_string.insert(position.first, doc_line);
+  // reset the toc string.
+  m_toc_display->document()->setTocString(toc_string);
 }
 
 void EBookTocEditor::tocEditorCellChanged(int row, int column)

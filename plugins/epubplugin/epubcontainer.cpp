@@ -936,8 +936,6 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node, const QStri
         }
 
         QString container(itemFile.readAll());
-        //        SharedDomDocument item_document = SharedDomDocument(new QDomDocument());
-        //        item_document->setContent(container);
         item->document_string = container;
         m_manifest.html_items.append(item);
       } else if (item->media_type == "text/css") {
@@ -1020,6 +1018,7 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node, const QStri
       item->media_overlay = value;
       m_manifest.media_overlay.insert(item->id, item);
     }
+
     m_manifest.items.insert(item->id, item);
   }
   return true;

@@ -10,9 +10,9 @@
 #include <QPair>
 #include <QPoint>
 #include <QSharedPointer>
-#include <QtPlugin>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QtPlugin>
 
 // struct EPubPageReference {
 //  enum StandardType {
@@ -42,15 +42,13 @@
 //  QString title;
 //};
 
-struct TocLinePosition {
-  QTextCursor start;
-  QTextCursor end;
-
-  bool isValid()
-  {
-    return (start.position() != end.position());
-  }
-};
+//struct TocLinePosition {
+//  int line_start;
+//  int line_length;
+//  QString filename;
+//  QString anchor;
+//  QString contents;
+//};
 
 class TocDisplayDocument : public QTextDocument
 {
@@ -59,18 +57,22 @@ public:
   TocDisplayDocument(QObject* parent);
   ~TocDisplayDocument();
 
-  void addLinePosition(int line_index, QTextCursor& line_position);
-  QTextCursor linePosition(int index);
-  void setEndOfListItems(QTextCursor& line_position);
+  void addLinePosition(int line_index, int start_position,
+                       int length);
+  void updateLinePosition(int line_index, QPair<int, int> data, int old_line_offset);
+  QPair<int, int> linePosition(int index);
+//  void setLinePosition(int line_index, TocLinePosition position);
+//  void setEndOfListItems(QTextCursor& line_position);
   QTextCursor endOfListItems();
   int lineCount();
+  void setTocString(QString toc_string);
+  QString tocString();
 
 protected:
-  QMap<int, QTextCursor> m_positioning;
+  QString m_toc_string;
+  QMap<int, QPair<int, int>> m_toc_positioning;
   QTextCursor m_end_of_listitems;
 };
-
-
 
 struct EPubNavPoint {
   EPubNavPoint(QString classname, QString id, QString label, QString src)
@@ -88,7 +90,13 @@ struct EPubNavPoint {
 typedef QSharedPointer<EPubNavPoint> navpoint_t;
 
 enum DocumentType { PLAINTEXT, HTML };
-enum EBookType { UNSUPPORTED_TYPE, EPUB, MOBI, AZW, PDF, };
+enum EBookType {
+  UNSUPPORTED_TYPE,
+  EPUB,
+  MOBI,
+  AZW,
+  PDF,
+};
 
 class Author;
 class Book : public QObject

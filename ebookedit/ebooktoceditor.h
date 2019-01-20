@@ -34,6 +34,7 @@ protected:
   static const QString LIST_ITEM;
   static const QString LIST_BUILD_ITEM;
   static const QString LIST_FILEPOS;
+  static const QString LIST_SEPARATOR;
 
   //  void rebuildTocString(int row);
   void updateLine(int row, bool enabled = true);

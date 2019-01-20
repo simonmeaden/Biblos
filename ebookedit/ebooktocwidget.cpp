@@ -18,12 +18,12 @@ void EBookTOCWidget::enableHtmlMenuItem(bool enable)
   m_enable_html = enable;
 }
 
-TocDisplayDocument *EBookTOCWidget::document()
+TocDisplayDocument* EBookTOCWidget::document()
 {
   return qobject_cast<TocDisplayDocument*>(QTextBrowser::document());
 }
 
-void EBookTOCWidget::setDocument(TocDisplayDocument *document)
+void EBookTOCWidget::setDocument(TocDisplayDocument* document)
 {
   QTextBrowser::setDocument(document);
 }
@@ -72,12 +72,19 @@ TocDisplayDocument::~TocDisplayDocument()
 {
 }
 
-void TocDisplayDocument::addLinePosition(int line_index, QTextCursor& line_position)
+void TocDisplayDocument::addLinePosition(int line_index, int start_position, int length)
 {
-  m_positioning.insert(line_index, line_position);
+  QPair<int, int> data = qMakePair<int,int>(start_position, length);
+//  TocLinePosition line_position;
+//  line_position.line_start = start_position;
+//  line_position.filename = filename;
+//  line_position.anchor = anchor;
+//  line_position.contents = contents;
+//  line_position.line_length = length;
+  m_toc_positioning.insert(line_index, data);
 }
 
-QTextCursor TocDisplayDocument::linePosition(int index)
+QPair<int, int> TocDisplayDocument::linePosition(int index)
 {
-  return m_positioning.value(index);
+  return m_toc_positioning.value(index);
 }
