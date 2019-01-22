@@ -14,6 +14,7 @@ public:
 
   void setDocument(QTextDocument* document);
   void setDocumentString(QString document_string);
+  QString documentString();
 
 protected:
   EBookTOCWidget* m_toc_display;
@@ -27,6 +28,7 @@ protected:
   void cancelClicked();
   void acceptClicked();
   void helpClicked();
+
 
   static const QString TOC_TITLE;
   static const QString LIST_START;

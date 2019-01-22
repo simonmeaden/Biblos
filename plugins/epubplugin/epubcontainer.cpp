@@ -38,7 +38,8 @@ const QString EPubContainer::LIST_FILEPOS = "position%1";
 
 EPubContainer::EPubContainer(QObject* parent)
   : QObject(parent)
-  , m_archive(Q_NULLPTR) /*, m_toc(new EPubToc())*/
+  , m_save_type(EPUB_2_0)
+  , m_archive(Q_NULLPTR)
   , m_metadata(new EPubMetadata())
 {
 }
@@ -76,56 +77,6 @@ bool EPubContainer::loadFile(const QString path)
 
   return true;
 }
-
-bool EPubContainer::saveFile()
-{
-  m_archive = new QuaZip(m_filename);
-  // TODO check if file exists and overwrite it if it does.
-
-  if (!saveMimetype()) {
-    return false;
-  }
-  if (!saveContainer()) {
-    return false;
-  }
-  // TODO the rest
-
-  m_archive->close();
-}
-
-// QByteArray EPubContainer::epubItem(const QString& id) const
-//{
-//  SharedManifestItem item = m_manifest.items.value(id);
-//  if (item) {
-//    m_archive->setCurrentFile(item->href);
-//    QuaZipFile* file = new QuaZipFile(item->href);
-//    file->setZip(m_archive);
-
-//    if (!file->open(QIODevice::ReadOnly)) {
-//      m_archive->getZipError();
-//      QLOG_DEBUG(tr("Unable to open image file %1").arg(item->path));
-//      return QByteArray();
-//    }
-
-//    QByteArray data = file->readAll();
-//    return data;
-//  }
-//  return QByteArray();
-//}
-
-// QSharedPointer<QuaZipFile> EPubContainer::zipFile(const QString& path)
-//{
-//  m_archive->setCurrentFile(path);
-//  QuaZipFile* file = new QuaZipFile(path);
-//  file->setZip(m_archive);
-
-//  if (!file->open(QIODevice::ReadOnly)) {
-//    QLOG_DEBUG(tr("Unable to open file %1").arg(path));
-//    return QSharedPointer<QuaZipFile>();
-//  }
-
-//  return QSharedPointer<QuaZipFile>(file);
-//}
 
 QImage EPubContainer::image(const QString& id, QSize image_size)
 {
@@ -212,9 +163,9 @@ QStringList EPubContainer::jsKeys()
 
 QString EPubContainer::tocAsString()
 {
-//  TocDisplayDocument* toc_document = new TocDisplayDocument(this);
-//  toc_document->setHtml(m_manifest.formatted_toc_string);
-//  return toc_document;
+  //  TocDisplayDocument* toc_document = new TocDisplayDocument(this);
+  //  toc_document->setHtml(m_manifest.formatted_toc_string);
+  //  return toc_document;
   return m_manifest.formatted_toc_string;
 }
 
@@ -230,8 +181,8 @@ bool EPubContainer::parseMimetype()
     QuaZipFile mimetypeFile(m_archive);
 
     if (!mimetypeFile.open(QIODevice::ReadOnly)) {
-      m_archive->getZipError();
-      QLOG_DEBUG(tr("Unable to open mimetype file"));
+      int error = m_archive->getZipError();
+      QLOG_DEBUG(tr("Unable to open mimetype file : error %1").arg(error));
       return false;
     }
 
@@ -241,25 +192,6 @@ bool EPubContainer::parseMimetype()
     }
   } else {
     QLOG_DEBUG(tr("Unable to find mimetype in file"));
-    return false;
-  }
-  return true;
-}
-
-bool EPubContainer::saveMimetype()
-{
-  m_archive->setCurrentFile(MIMETYPE_FILE);
-  QuaZipFile mimetypeFile(m_archive);
-
-  if (!mimetypeFile.open(QIODevice::WriteOnly)) {
-    m_archive->getZipError();
-    QLOG_DEBUG(tr("Unable to open mimetype file"));
-    return false;
-  }
-
-  qint64 size = mimetypeFile.write(m_mimetype);
-  if (size != m_mimetype.size()) {
-    QLOG_DEBUG(tr("Unexpected mimetype size %1 should be %2").arg(size).arg(m_mimetype.size()));
     return false;
   }
   return true;
@@ -279,19 +211,28 @@ bool EPubContainer::parseContainer()
     }
 
     QString container(containerFile.readAll());
-    m_container_document = SharedDomDocument(new QDomDocument());
-    m_container_document->setContent(container);
-    QDomNodeList root_nodes = m_container_document->elementsByTagName("rootfile");
-    for (int i = 0; i < root_nodes.count(); i++) {
-      QDomElement rootElement = root_nodes.at(i).toElement();
-      QString full_path = rootElement.attribute("full-path");
-      QString xmlns = rootElement.attribute("xmlns");
-      if (full_path.isEmpty()) {
-        QLOG_WARN(tr("Invalid root file entry"));
-        continue;
-      }
-      if (parsePackageFile(full_path)) {
-        return true;
+    QDomDocument container_document;
+    container_document.setContent(container);
+    QDomElement root_elem = container_document.documentElement();
+    QDomNamedNodeMap att_map = root_elem.attributes();
+    m_container_version = root_elem.attribute("version");
+    m_container_xmlns = root_elem.attribute("xmlns");
+
+    QDomNodeList root_files = root_elem.elementsByTagName("rootfiles");
+    if (root_files.size() > 0) {
+      QDomElement rootfiles_elem = root_files.at(0).toElement();
+      QDomNodeList root_nodes = root_elem.elementsByTagName("rootfile");
+      for (int i = 0; i < root_nodes.count(); i++) {
+        QDomElement root_element = root_nodes.at(i).toElement();
+        m_container_fullpath = root_element.attribute("full-path");
+        m_container_mediatype = root_element.attribute("media-type");
+        if (m_container_fullpath.isEmpty()) {
+          QLOG_WARN(tr("Invalid root file entry"));
+          continue;
+        }
+        if (parsePackageFile(m_container_fullpath)) {
+          return true;
+        }
       }
     }
 
@@ -313,31 +254,31 @@ bool EPubContainer::parseContainer()
   return false;
 }
 
-void EPubContainer::createChapterAnchorPoints(SharedSpineItem spine_item)
-{
-  SharedManifestItem manifest_item = m_manifest.items.value(spine_item->idref);
-  if (manifest_item) {
-    SharedTocItem toc_item = m_manifest.toc_paths.value(manifest_item->href);
-    if (toc_item) {
-      if (!toc_item->chapter_tag.isEmpty()) {
-        // toc has a label added.
-        QString tag("<a id=\"%1\"></a>");
-        tag = tag.arg(toc_item->chapter_tag);
-        QString document = manifest_item->document_string;
-        QRegularExpression body_tag("<body[^>]*> ");
-        QRegularExpressionMatch match = body_tag.match(document);
-        if (match.hasMatch()) {
-          //        int start = match.capturedStart();
-          int end = match.capturedEnd();
-          document.insert(end, tag);
-        }
-      }
+// void EPubContainer::createChapterAnchorPoints(SharedSpineItem spine_item)
+//{
+//  SharedManifestItem manifest_item = m_manifest.items.value(spine_item->idref);
+//  if (manifest_item) {
+//    SharedTocItem toc_item = m_manifest.toc_paths.value(manifest_item->href);
+//    if (toc_item) {
+//      if (!toc_item->chapter_tag.isEmpty()) {
+//        // toc has a label added.
+//        QString tag("<a id=\"%1\"></a>");
+//        tag = tag.arg(toc_item->chapter_tag);
+//        QString document = manifest_item->document_string;
+//        QRegularExpression body_tag("<body[^>]*> ");
+//        QRegularExpressionMatch match = body_tag.match(document);
+//        if (match.hasMatch()) {
+//          //        int start = match.capturedStart();
+//          int end = match.capturedEnd();
+//          document.insert(end, tag);
+//        }
+//      }
 
-      if (!toc_item->sub_items.isEmpty()) {
-      }
-    }
-  }
-}
+//      if (!toc_item->sub_items.isEmpty()) {
+//      }
+//    }
+//  }
+//}
 
 bool EPubContainer::parsePackageFile(QString& full_path)
 {
@@ -373,26 +314,30 @@ bool EPubContainer::parsePackageFile(QString& full_path)
     if (name == "version") {
       if (value == "2.0") {
         m_version = 2;
+        m_load_type = EPUB_2_0;
       } else if (value == "3.0") {
         m_version = 3;
+        m_load_type = EPUB_3_0;
       }
+    } else if (name == "xmlns") {
+      m_package_xmlns = value;
     } else if (name == "unique-identifier") {
-      m_unique_identifier_name = value;
+      m_package_unique_identifier_name = value;
     } else if (name == "xml:lang") {
-      m_language = value;
-    } else if (name == "prefix") {
+      m_package_language = value;
+    } else if (name == "prefix") { // Only 3.0
       // TODO - handle prefix mapping - may not need this, just store value.
-      m_prefix = value;
-    } else if (name == "dir") {
-      m_dir = value;
-    } else if (name == "id") {
-      m_id = value;
+      m_package_prefix = value;
+    } else if (name == "dir") { // Only 3.0
+      m_package_direction = value;
+    } else if (name == "id") { // Only 3.0
+      m_package_id = value;
     }
   }
 
   // parse metadata.
   QDomNodeList metadata_node_list = package_document->elementsByTagName("metadata");
-  for (int i = 0; i < metadata_node_list.count(); i++) {
+  for (int i = 0; i < metadata_node_list.count(); i++) { // should only be one.
     QDomNodeList metadata_child_list = metadata_node_list.at(i).childNodes();
     for (int j = 0; j < metadata_child_list.count(); j++) {
       parseMetadataItem(metadata_child_list.at(j));
@@ -449,16 +394,16 @@ bool EPubContainer::parsePackageFile(QString& full_path)
     }
 
     if (!m_spine.toc.isEmpty()) { // EPUB2.0 toc
-      parseToc();
+      parseTocFile();
     }
 
-    /*
-     * At this point not all books have anchors added for chapter links. Calibre
-     * adds in anchors at the end of the previous chapter. For simplicitys sake I
-     * am adding them at the start of the new chapter.
-     * Also remember that some
-     */
-    createChapterAnchorPoints(spine_item);
+    //    /*
+    //     * At this point not all books have anchors added for chapter links. Calibre
+    //     * adds in anchors at the end of the previous chapter. For simplicities sake I
+    //     * am adding them at the start of the new chapter.
+    //     * Also remember that some
+    //     */
+    //    createChapterAnchorPoints(spine_item);
   }
 
   //  QDomNodeList guide_node_list =
@@ -617,49 +562,6 @@ void EPubContainer::saveIdentifier(QDomElement metadata_element)
   }
 }
 
-bool EPubContainer::savePackageFile(QString& full_path)
-{
-  QDomDocument doc(full_path);
-  // create the base package tags including optional elements.
-  QDomElement root = doc.createElement("package");
-  root.setAttribute("xmlns", "http://www.idpf.org/2007/opf");
-  root.setAttribute("version", "3.0");
-  if (!m_unique_identifier_name.isEmpty()) { // actually this is a required element
-    root.setAttribute("unique-identifier", m_unique_identifier_name);
-  } else {
-    // TODO create a unique identifier ??
-  }
-  if (!m_language.isEmpty()) {
-    root.setAttribute("xml:lang", m_language);
-  }
-  if (!m_prefix.isEmpty()) {
-    root.setAttribute("prefix", m_prefix);
-  }
-  if (!m_dir.isEmpty()) {
-    root.setAttribute("dir", m_dir);
-  }
-  if (!m_id.isEmpty()) {
-    root.setAttribute("id", m_id);
-  }
-
-  QDomElement metadata_element, elem;
-  metadata_element.setTagName("metadata");
-
-  // add the unique identifier meta. This is basically mandatory because
-  // the unique-identifier attribute of package is mandatory in 2.0 and 3.0.
-  SharedIdentifier unigue_identifier = m_metadata->identifiers.value(m_unique_identifier_name);
-  elem.setTagName("dc:identifier");
-  elem.setAttribute("id", m_unique_identifier_name);
-  elem.setNodeValue(unigue_identifier->uid);
-  metadata_element.appendChild(elem);
-
-  saveTitles(metadata_element);
-  saveCreator(metadata_element);
-  saveIdentifier(metadata_element);
-  // TODO - the rest of the saves.
-  return true;
-}
-
 bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
 {
   QDomElement metadata_element = metadata_node.toElement();
@@ -695,6 +597,7 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
               node = node_map.namedItem("scheme");
               name = node.nodeValue();
               if (name == "marc:relators") {
+                shared_creator->scheme = name;
                 shared_creator->type = EPubCreator::fromCreatorString(metadata_element.text());
                 if (shared_creator->role.isEmpty()) {
                   shared_creator->role = EPubCreator::toCreatorString(shared_creator->type);
@@ -712,29 +615,53 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
           }
         }
       }
-    } else {
-      // metadata elements that do not refine other elements.
-      node = node_map.namedItem("property");
-      if (!node.isNull()) {
-        name = node.nodeValue();
-        if (name == "dcterms:modified") {
-          parseDateModified(node_map, metadata_element.text());
-        } else if (name == "dcterms:source") {
-          if (m_metadata->source.isEmpty()) {
-            m_metadata->source = metadata_element.text();
-          } else {
-            // Not certain whether multi sources are allowed?
-            QLOG_DEBUG(QString("Problem setting document source : %1 when %2 already set.")
-                       .arg(metadata_element.text().arg(m_metadata->source)));
-          }
+    }
+
+    // metadata elements that do not refine other elements.
+    node = node_map.namedItem("property");
+    if (!node.isNull()) {
+      name = node.nodeValue();
+      if (name == "dcterms:modified") {
+        parseDateModified(node_map, metadata_element.text());
+      } else if (name == "dcterms:source") {
+        if (m_metadata->source.isEmpty()) {
+          m_metadata->source = metadata_element.text();
+        } else {
+          // Not certain whether multi sources are allowed?
+          QLOG_DEBUG(QString("Problem setting document source : %1 when %2 already set.")
+                     .arg(metadata_element.text().arg(m_metadata->source)));
         }
       }
     }
+
+    // handle <meta> tags
+    node = node_map.namedItem("name");
+    if (!node.isNull()) {
+      name = node.nodeValue();
+      node = node_map.namedItem("content");
+      if (!node.isNull()) {
+        QString content = node.nodeValue();
+        // Mostly calibre tags - maintain these
+        if (name == "calibre:series")
+          m_metadata->calibre.series_name = name;
+        else if (name == "calibre:series_index")
+          m_metadata->calibre.series_index = content;
+        else if (name == "calibre:title_sort")
+          m_metadata->calibre.title_sort = content;
+        else if (name == "calibre:author_link_map")
+          m_metadata->calibre.author_link_map = content;
+        else if (name == "calibre:timestamp")
+          m_metadata->calibre.timestamp = content;
+        else
+          m_metadata->extra_metadata.insert(name, content);
+      }
+    }
+
   } else if (metadata_element.prefix() == "dc" || metadata_element.prefix() == "opf") {
-    if (tag_name == "creator") {
-      parseCreatorMetadata(metadata_element);
-    } else if (tag_name == "title") {
+    if (tag_name == "title") {
       parseTitleMetadata(metadata_element);
+    } else if (tag_name == "creator") {
+      parseCreatorMetadata(metadata_element);
     } else if (tag_name == "identifier") {
       parseIdentifierMetadata(metadata_element);
     } else if (tag_name == "language") {
@@ -774,7 +701,27 @@ void EPubContainer::parseTitleMetadata(QDomElement metadata_element)
   if (!node.isNull()) { // id element is NOT used in EPUB 2.0
     shared_title->id = node.nodeValue();
   }
-  // TODO optional lang and dir attributes.
+  node = node_map.namedItem("dir");
+  if (!node.isNull()) { // dir element is NOT used in EPUB 2.0
+    shared_title->direction = node.nodeValue();
+  }
+  node = node_map.namedItem("xml:lang");
+  if (!node.isNull()) { // lang element is NOT used in EPUB 2.0
+    shared_title->language = node.nodeValue();
+  }
+  node = node_map.namedItem("opf:alt-rep");
+  if (!node.isNull()) { // alt-rep element is NOT used in EPUB 2.0
+    shared_title->alternative_rep = node.nodeValue();
+  }
+  node = node_map.namedItem("opf:alt-rep-lang");
+  if (!node.isNull()) { // alt-rep-lang element is NOT used in EPUB 2.0
+    shared_title->alternative_rep_lang= node.nodeValue();
+  }
+  node = node_map.namedItem("opf:file-as");
+  if (!node.isNull()) { // file-as element is NOT used in EPUB 2.0
+    shared_title->file_as = node.nodeValue();
+  }
+
   shared_title->title = metadata_element.text();
   m_metadata->titles.insert(shared_title->id, shared_title);
 }
@@ -784,7 +731,7 @@ void EPubContainer::parseCreatorMetadata(QDomElement metadata_element)
   QDomNamedNodeMap node_map = metadata_element.attributes();
   SharedCreator shared_creator = SharedCreator(new EPubCreator());
   QDomNode node = node_map.namedItem("id");
-  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+  if (!node.isNull()) { //  EPUB 3.0 only
     shared_creator->id = node.nodeValue();
   }
   /* Not certain if anybody is using the role information. The EPUB people
@@ -793,7 +740,7 @@ void EPubContainer::parseCreatorMetadata(QDomElement metadata_element)
    * look at marc:role the list is enormous, most of which are irrelevant
    * to an ebook.
    */
-  node = node_map.namedItem("role");
+  node = node_map.namedItem("opf:role"); // 2.0 & 3.0
   if (!node.isNull()) {
     shared_creator->role = node.nodeValue();
     shared_creator->type = EPubCreator::fromCreatorString(node.nodeValue());
@@ -802,10 +749,23 @@ void EPubContainer::parseCreatorMetadata(QDomElement metadata_element)
       QLOG_DEBUG(QString("An unexpected role has come up. %1").arg(node.nodeValue()))
     }
   }
-  node = node_map.namedItem("file-as");
+  node = node_map.namedItem("opf:file-as"); // 2.0 & 3.0
   if (!node.isNull()) {
     shared_creator->file_as = node.nodeValue();
   }
+  QDomNode scheme = node_map.namedItem("opf:scheme"); // 3.0
+  if (!scheme.isNull()) {
+    shared_creator->scheme = scheme.nodeValue();
+  }
+  node = node_map.namedItem("opf:alt-rep"); // 3.0
+  if (!node.isNull()) {
+    shared_creator->alternative_script = node.nodeValue();
+  }
+  node = node_map.namedItem("opf:alt-rep-lang"); // 3.0
+  if (!node.isNull()) {
+    shared_creator->alternative_language = node.nodeValue();
+  }
+
   shared_creator->name = metadata_element.text();
   m_metadata->creators.insert(shared_creator->id, shared_creator);
   m_metadata->creator_list.append(shared_creator->name);
@@ -816,14 +776,21 @@ void EPubContainer::parseIdentifierMetadata(QDomElement metadata_element)
   QDomNamedNodeMap node_map = metadata_element.attributes();
   SharedIdentifier shared_identifier = SharedIdentifier(new EPubIdentifier());
   QDomNode node = node_map.namedItem("id");
-  if (!node.isNull()) {
+  if (!node.isNull()) { // EPUB 3.0
     QString id_value = node.nodeValue();
     shared_identifier->name = id_value;
-    shared_identifier->uid = metadata_element.text();
-    if (id_value == m_unique_identifier_name) {
-      m_unique_identifier = shared_identifier->uid;
+    if (id_value == m_package_unique_identifier_name) {
+      m_package_unique_identifier = shared_identifier->uid;
     }
   }
+
+  QDomNode scheme = node_map.namedItem("opf:scheme");
+  if (!scheme.isNull()) {
+    shared_identifier->scheme = scheme.nodeValue();
+  }
+
+  shared_identifier->uid = metadata_element.text();
+
   m_metadata->identifiers.insert(shared_identifier->uid, shared_identifier);
 }
 
@@ -912,7 +879,7 @@ bool EPubContainer::parseManifestItem(const QDomNode& manifest_node, const QStri
         image_file.setZip(m_archive);
 
         if (!image_file.open(QIODevice::ReadOnly)) {
-          m_archive->getZipError();
+          //          m_archive->getZipError();
           QLOG_DEBUG(tr("Unable to open image file %1").arg(item->path));
         }
 
@@ -1300,7 +1267,7 @@ QString EPubContainer::buildTocfromHtml()
   return formatted_toc_string;
 }
 
-bool EPubContainer::parseToc()
+bool EPubContainer::parseTocFile()
 {
   QString toc_id = m_spine.toc;
   SharedManifestItem toc_item = m_manifest.items.value(toc_id);
@@ -1378,25 +1345,256 @@ bool EPubContainer::saveBindingsItem()
   // TODO save bindings.
 }
 
-bool EPubContainer::saveContainer()
+bool EPubContainer::saveFile()
 {
-  //  m_archive->setCurrentFile(CONTAINER_FILE);
-  //  QuaZipFile containerFile(m_archive);
-  //  containerFile.setZip(m_archive);
+  QFileInfo info(m_filename);
+  QString path = info.path();
+  QString name = info.fileName();
+  path = path + QDir::separator() + "temp";
+  QDir dir;
+  dir.mkpath(path);
 
-  //  if (!containerFile.open(QIODevice::WriteOnly)) {
-  //    int error = m_archive->getZipError();
-  //    QLOG_DEBUG(tr("Unable to open container file error %1").arg(error));
-  //    return false;
-  //  }
+  QuaZip temp_file(path + QDir::separator() + name);
+  if (temp_file.open(QuaZip::mdAdd)) {
 
-  //  QByteArray container = m_container_document->toByteArray();
-  //  qint64 size = containerFile.write(container);
-  //  if (size != container.size()) {
-  //    QLOG_DEBUG(tr("Unexpected container size %1 should be %2")
-  //                   .arg(size)
-  //                   .arg(container.size()));
-  //    return false;
-  //  }
-  //  return true;
+    if (!writeMimetype(&temp_file)) {
+      return false;
+    }
+    if (!writeContainer(&temp_file)) {
+      return false;
+    }
+    // TODO the rest
+  }
+
+  temp_file.close();
+
+  // TODO backup/rename etc.
+  // TODO remove temp file/dir - maybe on application close/cleanup
+
+  return true;
+}
+
+bool EPubContainer::writeMimetype(QuaZip* save_zip)
+{
+  QuaZipFile mimetype_file(save_zip);
+
+  if (!mimetype_file.open(QIODevice::WriteOnly, QuaZipNewInfo(MIMETYPE_FILE, MIMETYPE_FILE))) {
+    int error = save_zip->getZipError();
+    QLOG_DEBUG(tr("Unable to write mimetype file : error %1").arg(error));
+    return false;
+  }
+
+  qint64 size = mimetype_file.write(MIMETYPE);
+  if (size != m_mimetype.size()) {
+    QLOG_DEBUG(tr("Unexpected mimetype size %1 should be %2").arg(size).arg(m_mimetype.size()));
+    return false;
+  }
+  return true;
+}
+
+bool EPubContainer::writeContainer(QuaZip* save_zip)
+{
+  QuaZipFile container_file(save_zip);
+
+  if (!container_file.open(QIODevice::WriteOnly, QuaZipNewInfo(CONTAINER_FILE, CONTAINER_FILE))) {
+    int error = save_zip->getZipError();
+    QLOG_DEBUG(tr("Unable to write container file : error %1").arg(error));
+    return false;
+  }
+
+  QXmlStreamWriter xml_writer(&container_file);
+  xml_writer.setAutoFormatting(true);
+  xml_writer.writeStartDocument("1.0");
+
+  xml_writer.writeStartElement("container");
+  xml_writer.writeAttribute("version", m_container_version);
+  xml_writer.writeAttribute("xmlns", m_container_xmlns);
+
+  xml_writer.writeStartElement("rootfiles");
+  xml_writer.writeStartElement("rootfile");
+  xml_writer.writeAttribute("full-path", m_container_fullpath);
+  xml_writer.writeAttribute("media-type", m_container_mediatype);
+  xml_writer.writeEndElement();
+
+  xml_writer.writeEndElement();
+  xml_writer.writeEndElement();
+
+  container_file.close();
+
+  writePackageFile(save_zip);
+  return true;
+}
+
+bool EPubContainer::writePackageFile(QuaZip* save_zip)
+{
+  QuaZipFile package_file(save_zip);
+
+  if (!package_file.open(QIODevice::WriteOnly,
+                         QuaZipNewInfo(m_container_fullpath, m_container_fullpath))) {
+    int error = save_zip->getZipError();
+    QLOG_DEBUG(tr("Unable to write container file : error %1").arg(error));
+    return false;
+  }
+
+  QXmlStreamWriter xml_writer(&package_file);
+  xml_writer.setAutoFormatting(true);
+  xml_writer.writeStartDocument("1.0");
+
+  xml_writer.writeStartElement("package");
+  xml_writer.writeAttribute("version", (m_save_type == EPUB_2_0 ? "2.0" : "3.0"));
+  xml_writer.writeAttribute("unique-identifier", m_package_unique_identifier_name);
+  xml_writer.writeAttribute("xmlns", m_package_xmlns);
+  if (!m_package_language.isEmpty()) { // Optional in EPUB 2.0
+    xml_writer.writeAttribute("xml:lang", m_package_language);
+  }
+  if (m_save_type == EPUB_3_0) { // Specific to EPUB 3.0
+    if (!m_package_prefix.isEmpty()) {
+      xml_writer.writeAttribute("prefix", m_package_prefix);
+    }
+    if (!m_package_direction.isEmpty()) {
+      xml_writer.writeAttribute("dir", m_package_direction);
+    }
+    if (!m_package_id.isEmpty()) {
+      xml_writer.writeAttribute("id", m_package_id);
+    }
+  }
+
+  writeMetadata(&xml_writer);
+
+  xml_writer.writeEndElement();
+
+  package_file.close();
+
+  // TODO - the rest of the saves.
+  return true;
+}
+
+void EPubContainer::writeCreatorsMetadata(QXmlStreamWriter* xml_writer, QString key)
+{
+  SharedCreator shared_creator = m_metadata->creators.value(key);
+  QString id = shared_creator->id;
+
+  if (!shared_creator->name.isEmpty()) {
+    xml_writer->writeStartElement("creator");
+    // set attributes (all optional)
+    // These are available in both EPUB 2.0 & 3.0
+    if (m_save_type == EPUB_2_0) {
+      if (!shared_creator->role.isEmpty()) {
+        xml_writer->writeAttribute("opf:role", shared_creator->role);
+      }
+      if (!shared_creator->file_as.isEmpty()) {
+        xml_writer->writeAttribute("opf:file-as", shared_creator->file_as);
+      }
+      // These are available ONLY in 3.0
+      if (m_save_type == EPUB_3_0) {
+        if (!id.isEmpty()) { // this will probably have refines attached.
+          xml_writer->writeAttribute("id", id);
+        }
+      }
+    }
+    xml_writer->writeCharacters(shared_creator->name);
+    xml_writer->writeEndElement();
+
+    if (!id.isEmpty()) {
+      xml_writer->writeStartElement("meta");
+      xml_writer->writeAttribute("refines", "#" + id);
+      xml_writer->writeAttribute("property", "role");
+
+      // below are optional attributes for 3.0
+      if (shared_creator->type == EPubCreator::string_creator_type) {
+        xml_writer->writeAttribute("scheme", shared_creator->string_scheme);
+      } else {
+        if (!shared_creator->scheme.isEmpty()) {
+          xml_writer->writeAttribute("scheme", shared_creator->scheme);
+        }
+      }
+      if (!shared_creator->alternative_script.isEmpty()) {
+        xml_writer->writeAttribute("opf:alt-rep", shared_creator->alternative_script);
+      }
+      if (!shared_creator->alternative_language.isEmpty()) {
+        xml_writer->writeAttribute("opf:alt-rep-lang", shared_creator->alternative_language);
+      }
+      if (!shared_creator->file_as.isEmpty()) {
+        xml_writer->writeAttribute("opf:file-as", shared_creator->file_as);
+      }
+
+      xml_writer->writeCharacters(shared_creator->role);
+      xml_writer->writeEndElement();
+    }
+  }
+}
+
+void EPubContainer::writeTitleMetadata(QXmlStreamWriter*xml_writer, QString key)
+{
+  SharedTitle shared_title = m_metadata->titles.value(key);
+  QString id = shared_title->id;
+
+  if (!shared_title->title.isEmpty()) { // 3.0
+    xml_writer->writeStartElement("title");
+
+    if (!id.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("id", id);
+    }
+
+    // these are optional attributes.
+    if (!shared_title->direction.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("dir", shared_title->direction);
+    }
+    if (!shared_title->language.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("xml:lang", shared_title->language);
+    }
+    if (!shared_title->alternative_rep.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("opf:alt-rep", shared_title->alternative_rep);
+    }
+    if (!shared_title->alternative_rep_lang.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("opf:alt-rep-lang", shared_title->alternative_rep_lang);
+    }
+    if (!shared_title->file_as.isEmpty()) { // 3.0
+      xml_writer->writeAttribute("opf:file-as", shared_title->file_as);
+    }
+
+    // these are done as separate refines
+    if (!id.isEmpty()) { // 3.0
+      if (shared_title->type != EPubTitle::no_type) {
+        xml_writer->writeStartElement("meta");
+        xml_writer->writeAttribute("refines", "#" + id);
+        xml_writer->writeAttribute("property", "title-type");
+        xml_writer->writeCharacters(EPubTitle::toString(shared_title->type));
+        xml_writer->writeEndElement();
+      }
+
+      if (shared_title->sequence > 0) { // 0 is default - not sequence set.
+        xml_writer->writeStartElement("meta");
+        xml_writer->writeAttribute("refines", "#" + id);
+        xml_writer->writeAttribute("property", "display-seq");
+        xml_writer->writeCharacters(QString::number(shared_title->sequence));
+        xml_writer->writeEndElement();
+      }
+
+    }
+    xml_writer->writeCharacters(shared_title->title);
+    xml_writer->writeEndElement();
+  }
+}
+
+bool EPubContainer::writeMetadata(QXmlStreamWriter* xml_writer)
+{
+
+  xml_writer->writeStartElement("metadata");
+
+  if (!metadata()->titles.isEmpty()) {
+    QStringList keys = m_metadata->titles.keys();
+    foreach (QString key, keys) {
+      writeTitleMetadata(xml_writer, key);
+    }
+  }
+
+  if (!m_metadata->creators.isEmpty()) {
+    QStringList keys = m_metadata->creators.keys();
+    foreach (QString key, keys) {
+      writeCreatorsMetadata(xml_writer, key);
+    }
+  }
+
+  xml_writer->writeEndElement();
 }

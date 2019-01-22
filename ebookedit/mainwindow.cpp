@@ -514,7 +514,7 @@ void MainWindow::initToolbar()
   m_file_toolbar = addToolBar("file toolbar");
   m_file_toolbar->addAction(m_file_open);
   m_file_toolbar->addAction(m_file_save);
-  m_file_save->setVisible(false);
+// TODO maybe reinstate this ?  m_file_save->setVisible(false);
   m_file_toolbar->setIconSize(QSize(48, 48));
 
   m_editor_toolbar = addToolBar("editor toolbar");
@@ -1431,10 +1431,9 @@ void MainWindow::builManualToc()
 //  m_toc_stack->insertWidget(index, toceditor);
 //  m_toc_stack->setCurrentIndex(index);
 
-  if (toceditor->exec() == QDialog::Accepted) {
-
-  } else {
-  }
+  toceditor->exec();
+  QString toc = toceditor->documentString();
+  toc_widget->setDocumentString(toc);
 }
 
 void MainWindow::addTocAnchors()

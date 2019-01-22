@@ -4,7 +4,7 @@ const QString EBookTocEditor::TOC_TITLE = "<h2>%1</h2>";
 const QString EBookTocEditor::LIST_START = "<html><body><ul>";
 const QString EBookTocEditor::LIST_END = "</ul></body></html>";
 const QString EBookTocEditor::LIST_ITEM = "<li><a href=\"%1\">%2</li>";
-const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li><br>";
+const QString EBookTocEditor::LIST_BUILD_ITEM = "<li><a href=\"%1#%2\">%3</li>";
 const QString EBookTocEditor::LIST_FILEPOS = "position%1";
 const QString EBookTocEditor::LIST_SEPARATOR = " ";
 
@@ -96,6 +96,11 @@ void EBookTocEditor::setDocumentString(QString document_string)
   m_initialised = true;
 }
 
+QString EBookTocEditor::documentString()
+{
+  return m_result_string;
+}
+
 void EBookTocEditor::initGui()
 {
   QGridLayout* layout = new QGridLayout;
@@ -133,12 +138,15 @@ void EBookTocEditor::initGui()
   btn_frame->setLayout(btn_layout);
 
   QPushButton* cancel_btn = new QPushButton(tr("Cancel"), this);
+  connect(cancel_btn, &QPushButton::clicked, this, &EBookTocEditor::cancelClicked);
   btn_layout->addWidget(cancel_btn);
 
   QPushButton* accept_btn = new QPushButton(tr("Accept Canges"), this);
+  connect(accept_btn, &QPushButton::clicked, this, &EBookTocEditor::acceptClicked);
   btn_layout->addWidget(accept_btn);
 
   QPushButton* help_btn = new QPushButton(tr("Help"), this);
+  connect(help_btn, &QPushButton::clicked, this, &EBookTocEditor::helpClicked);
   btn_layout->addWidget(help_btn);
   layout->addWidget(btn_frame, 1, 0);
 }
