@@ -27,7 +27,7 @@ VERSION_MAJOR = 0
 VERSION_MINOR = 1
 VERSION_BUILD = 0
 
-DESTDIR = $$PWD/../../build/scan
+DESTDIR = $$PWD/../../build/manuscript/manuscript
 
 DEFINES += \
        "VERSION_MAJOR=$$VERSION_MAJOR" \

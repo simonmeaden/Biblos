@@ -4,7 +4,7 @@ QT             += widgets
 CONFIG         += c++11
 
 TARGET          = hunspellplugin
-DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
+DESTDIR = $$PWD/../../../build/manuscript/manuscript/plugins
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 1

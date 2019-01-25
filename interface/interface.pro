@@ -20,7 +20,7 @@ CONFIG += c++11
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-DESTDIR = $$PWD/../../build/ebookedit/interface
+DESTDIR = $$PWD/../../build/manuscript/interface
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,7 +29,8 @@ DESTDIR = $$PWD/../../build/ebookedit/interface
 
 SOURCES +=  \
     ebookcommon.cpp \
-    options.cpp
+    options.cpp \
+    marcrelator.cpp
 
 HEADERS += \
     interface_global.h \
@@ -38,7 +39,8 @@ HEADERS += \
     iebookinterface.h \
     ebookcommon.h \
     iebookdocument.h \
-    options.h
+    options.h \
+    marcrelator.h
 
 DISTFILES += \
     spellinterface.json \

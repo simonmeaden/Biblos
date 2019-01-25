@@ -48,6 +48,9 @@ MainWindow::MainWindow(QWidget* parent)
 {
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
+  setWindowTitle("Manuscript");
+//  setWindowIcon(QPixmap(":/icons/library"));
+
   connect(m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
 
   loadPlugins();
@@ -263,7 +266,7 @@ void MainWindow::initFileActions()
   m_file_save = new QAction(save_icon, tr("&Save"), this);
   m_file_save->setShortcut(QKeySequence::Save);
   m_file_save->setStatusTip(tr("Save the current file."));
-  m_file_save->setEnabled(false);
+//  m_file_save->setEnabled(false);
   connect(m_file_save, &QAction::triggered, this, &MainWindow::fileSave);
 
   m_file_save_as = new QAction(tr("Save &As"), this);
@@ -1310,7 +1313,7 @@ void MainWindow::setStatusModified()
 void MainWindow::setStatusNotModified()
 {
   m_modifiedlbl->setText(NOT_MODIFIED);
-  m_file_save->setEnabled(false);
+//  m_file_save->setEnabled(false);
 }
 
 void MainWindow::setStatusReadOnly()

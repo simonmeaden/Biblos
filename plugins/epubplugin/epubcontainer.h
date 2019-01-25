@@ -18,6 +18,7 @@
 #include <quazip5/quazipfile.h>
 
 #include "ebookcommon.h"
+#include "marcrelator.h"
 
 class QXmlStreamReader;
 
@@ -103,6 +104,8 @@ public:
       return "edition";
     case expanded:
       return "expanded";
+    default:
+      return QString();
     }
   }
 };
@@ -133,6 +136,10 @@ class EPubSubject
 public:
   QString id;
   QString subject;
+  QString authority;
+  QString term;
+  QString lang;
+  QString dir;
 };
 typedef QSharedPointer<EPubSubject> SharedSubject;
 typedef QMap<QString, SharedSubject> SharedSubjectMap;
@@ -140,15 +147,6 @@ typedef QMap<QString, SharedSubject> SharedSubjectMap;
 class EPubCreator : public EPubBaseMetadata
 {
 public:
-  enum CreatorType {
-    no_type,
-    author,
-    illustrator,
-    editor,
-    annotator,
-    markup_editor,
-    string_creator_type,
-  };
   enum SchemeType {
     dcterms,
     marc,
@@ -159,7 +157,6 @@ public:
   };
   EPubCreator()
   {
-    type = no_type;
   }
 
   QString name;
@@ -170,26 +167,10 @@ public:
   QString alternative_script;
   QString alternative_language;
 
-  CreatorType type;
+  MarcRelator relator;
   QString string_creator;
   QString string_scheme;
 
-  static CreatorType fromCreatorString(QString type)
-  {
-    if (type == "aut") {
-      return CreatorType::author;
-    } else if (type == "ill") {
-      return CreatorType::illustrator;
-    } else if (type == "edt") {
-      return CreatorType::editor;
-    } else if (type == "ann") {
-      return CreatorType::annotator;
-    } else if (type == "mrk") {
-      return CreatorType::markup_editor;
-    } else {
-      return CreatorType::string_creator_type;
-    }
-  }
   static SchemeType fromSchemeString(QString type)
   {
     if (type == "dcterms") {
@@ -206,28 +187,20 @@ public:
       return SchemeType::string_scheme_type;
     }
   }
-
-  static QString toCreatorString(CreatorType type)
-  {
-    switch (type) {
-    case author:
-      return "aut";
-    case illustrator:
-      return "ill";
-    case annotator:
-      return "ann";
-    case markup_editor:
-      return "mrk";
-    case editor:
-      return "edt";
-    default:
-      return QString();
-    }
-  }
 };
+
 typedef QSharedPointer<EPubCreator> SharedCreator;
 typedef QMultiMap<QString, SharedCreator> SharedCreatorMap;
 typedef QList<QString> CreatorList;
+
+struct EPubDescription {
+  QString id;
+  QString text;
+  QString direction;
+  QString language;
+};
+typedef QSharedPointer<EPubDescription> SharedDescription;
+typedef QMultiMap<QString, SharedDescription> SharedDescriptionMap;
 
 struct Calibre {
   QString series_name;
@@ -243,13 +216,14 @@ public:
   SharedIdentifierMap identifiers;
   SharedTitleMap titles;
   SharedCreatorMap creators;
+  SharedCreatorMap contributors;
+  SharedDescription description;
   CreatorList creator_list;
   SharedLanguageMap languages;
   SharedSubjectMap subjects;
   EPubModified modified;
   QDateTime date;
   QString source;
-  QString description;
   QString publisher;
   QString rights;
   QMap<QString, QString> extra_metadata;
@@ -517,7 +491,7 @@ protected:
   QString m_package_prefix;
   QString m_package_direction; // text direction - overridden  by Undicode values.
   QString m_package_id;        // unique identifier.
-  EPubType m_load_type, m_save_type;
+  EPubType m_load_type;
 
   // only one container per epub.
   QString m_container_version;
@@ -564,6 +538,8 @@ protected:
 
   void parseTitleMetadata(QDomElement metadata_element);
   void parseCreatorMetadata(QDomElement metadata_element);
+  void parseContributorMetadata(QDomElement metadata_element);
+  void parseDescriptionMetadata(QDomElement metadata_element);
   void parseIdentifierMetadata(QDomElement metadata_element);
   void parseLanguageMetadata(QDomElement metadata_element);
   void parseSubjectMetadata(QDomElement metadata_element);
@@ -576,8 +552,12 @@ protected:
   //  void createChapterAnchorPoints(SharedSpineItem spine_item);
   void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);
   QString extractTagText(int anchor_start, QString document_string);
-  void writeTitleMetadata(QXmlStreamWriter *xml_writer, QString key);
+  void writeTitleMetadata(QXmlStreamWriter* xml_writer, QString key);
+  void writeDescriptionMetadata(QXmlStreamWriter* xml_writer);
   void writeCreatorsMetadata(QXmlStreamWriter* xml_writer, QString key);
+  void writeContributorMetadata(QXmlStreamWriter* xml_writer, QString key);
+  void writeLanguageMetadata(QXmlStreamWriter* xml_writer, QString key, bool first=false);
+  void writeSubjectMetadata(QXmlStreamWriter* xml_writer, QString key);
 
   static const QString MIMETYPE_FILE;
   static const QByteArray MIMETYPE;

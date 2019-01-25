@@ -19,7 +19,7 @@ DEFINES += \
        "EPUB_VERSION_BUILD=$$VERSION_BUILD"
 
 TARGET = epubplugin
-DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
+DESTDIR = $$PWD/../../../build/manuscript/manuscript/plugins
 
 SOURCES += \
     epubplugin.cpp \

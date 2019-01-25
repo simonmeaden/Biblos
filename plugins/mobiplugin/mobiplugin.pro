@@ -21,7 +21,7 @@ DEFINES += \
        "MOBI_VERSION_BUILD=$$VERSION_BUILD"
 
 TARGET = mobiplugin
-DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
+DESTDIR = $$PWD/../../../build/manuscript/manuscript/plugins
 
 SOURCES += \
     mobiplugin.cpp \

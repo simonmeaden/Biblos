@@ -8,7 +8,7 @@ QT       += core gui xml svg sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
-TARGET = ebookedit
+TARGET = manuscript
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -34,9 +34,9 @@ VERSION_BUILD = 0
 DEFINES += \
        "VERSION_MAJOR=$$VERSION_MAJOR" \
        "VERSION_MINOR=$$VERSION_MINOR" \
-       "HUNSPELL_VERSION_BUILD=$$VERSION_BUILD"
+       "VERSION_BUILD=$$VERSION_BUILD"
 
-DESTDIR = $$PWD/../../build/ebookedit/ebookedit
+DESTDIR = $$PWD/../../build/manuscript/manuscript
 
 SOURCES += \
     main.cpp \
@@ -119,3 +119,11 @@ DISTFILES += \
     attributions.txt
 
 
+
+#unix|win32: LIBS += -L$$PWD/../../build/manuscript/interface/ -linterface
+
+#INCLUDEPATH += $$PWD/../../build/manuscript/interface
+#DEPENDPATH += $$PWD/../../build/manuscript/interface
+
+#win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../../build/manuscript/interface/interface.lib
+#else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../../build/manuscript/interface/libinterface.a
