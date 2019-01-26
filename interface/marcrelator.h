@@ -286,6 +286,9 @@ public:
   Relator type();
   void setType(Relator type);
 
+  QString code();
+  void setCode(QString code);
+
   QString asString();
 
   static QString toString(Relator relator);
@@ -293,9 +296,13 @@ public:
 
 protected:
   Relator m_type;
+  QString m_code;
 };
 
 #endif // MARCRELATOR_H
+
+// From the MARC:Relator code list <http://www.loc.gov/marc/relators/relacode.html>
+// For more information see <http://www.loc.gov/marc/relators/relaterm.html>
 
 // abr 	Abridger
 // acp 	Art copyist

@@ -43,74 +43,76 @@ class EPubBaseMetadata
 {
   EPubModified modified;
 };
+typedef QSharedPointer<EPubBaseMetadata> SharedBaseMetadata;
 
 class EPubTitle : public EPubBaseMetadata
 {
 public:
-  enum TitleType {
-    no_type,
-    main,
-    subtitle,
-    short_title,
-    collection,
-    edition,
-    expanded,
-  };
+//  enum TitleType {
+//    no_type,
+//    main,
+//    subtitle,
+//    short_title,
+//    collection,
+//    edition,
+//    expanded,
+//  };
   EPubTitle()
   {
-    type = no_type; // default
-    sequence = 0;
+//    type = no_type; // default
+//    sequence = 0;
   }
   //  QString title_type;
   QString id;
   QString title;
-  int sequence = -1;
-  TitleType type;
-  QString direction;
-  QString language;
-  QString alternative_rep;
-  QString alternative_rep_lang;
+//  int sequence = -1; // superceded in 3.1. uses ordered-title instead;
+//  TitleType type;
+  QString dir;
+  QString lang;
+  QString alt_rep;
+  QString alt_rep_lang;
   QString file_as;
 
-  static TitleType fromString(QString type)
-  {
-    if (type == "main") {
-      return TitleType::main;
-    } else if (type == "subtitle") {
-      return TitleType::subtitle;
-    } else if (type == "short") {
-      return TitleType::short_title;
-    } else if (type == "collection") {
-      return TitleType::collection;
-    } else if (type == "edition") {
-      return TitleType::edition;
-    } else {
-      /*if (type == "expanded") { */
-      return TitleType::expanded;
-    }
-  }
-  static QString toString(TitleType type)
-  {
-    switch (type) {
-    case main:
-      return "maintitle";
-    case subtitle:
-      return "subtitle";
-    case short_title:
-      return "short";
-    case collection:
-      return "collection";
-    case edition:
-      return "edition";
-    case expanded:
-      return "expanded";
-    default:
-      return QString();
-    }
-  }
+//  static TitleType fromString(QString type)
+//  {
+//    if (type == "main") {
+//      return TitleType::main;
+//    } else if (type == "subtitle") {
+//      return TitleType::subtitle;
+//    } else if (type == "short") {
+//      return TitleType::short_title;
+//    } else if (type == "collection") {
+//      return TitleType::collection;
+//    } else if (type == "edition") {
+//      return TitleType::edition;
+//    } else {
+//      /*if (type == "expanded") { */
+//      return TitleType::expanded;
+//    }
+//  }
+//  static QString toString(TitleType type)
+//  {
+//    switch (type) {
+//    case main:
+//      return "maintitle";
+//    case subtitle:
+//      return "subtitle";
+//    case short_title:
+//      return "short";
+//    case collection:
+//      return "collection";
+//    case edition:
+//      return "edition";
+//    case expanded:
+//      return "expanded";
+//    default:
+//      return QString();
+//    }
+//  }
 };
 typedef QSharedPointer<EPubTitle> SharedTitle;
 typedef QMap<QString, SharedTitle> SharedTitleMap;
+typedef QMap<int, SharedTitle> OrderedTitleMap;
 
 class EPubIdentifier
 {
@@ -160,12 +162,11 @@ public:
   }
 
   QString name;
-  QString role;
   QString file_as;
   QString scheme;
   QString id;
-  QString alternative_script;
-  QString alternative_language;
+  QString alt_rep;
+  QString alt_rep_lang;
 
   MarcRelator relator;
   QString string_creator;
@@ -189,9 +190,16 @@ public:
   }
 };
 
+class EPubContributor : public EPubCreator
+{
+  // Actually identical - convenience class
+};
+
 typedef QSharedPointer<EPubCreator> SharedCreator;
 typedef QMultiMap<QString, SharedCreator> SharedCreatorMap;
 typedef QList<QString> CreatorList;
+typedef QSharedPointer<EPubContributor> SharedContributor;
+typedef QMultiMap<QString, SharedContributor> SharedContributorMap;
 
 struct EPubDescription {
   QString id;
@@ -214,9 +222,11 @@ class EPubMetadata
 {
 public:
   SharedIdentifierMap identifiers;
-  SharedTitleMap titles;
-  SharedCreatorMap creators;
-  SharedCreatorMap contributors;
+  SharedTitleMap titles_by_id;
+  OrderedTitleMap ordered_titles;
+  SharedCreatorMap creators_by_id;
+//  SharedCreatorMap creators_by_name;
+  SharedContributorMap contributors;
   SharedDescription description;
   CreatorList creator_list;
   SharedLanguageMap languages;
@@ -544,20 +554,30 @@ protected:
   void parseLanguageMetadata(QDomElement metadata_element);
   void parseSubjectMetadata(QDomElement metadata_element);
   void parseDateModified(QDomNamedNodeMap node_map, QString text);
-  void saveTitles(QDomElement metadata_element);
-  void saveCreator(QDomElement metadata_element);
-  void saveIdentifier(QDomElement metadata_element);
+//  void saveTitles(QDomElement metadata_element);
+//  void saveCreator(QDomElement metadata_element);
+//  void saveIdentifier(QDomElement metadata_element);
   SharedTocItem parseNavPoint(QDomElement navpoint, QString& formatted_toc_data);
   void createAnchorPointForChapter(SharedTocItem toc_item, SharedManifestItem manifest_item);
   //  void createChapterAnchorPoints(SharedSpineItem spine_item);
   void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);
   QString extractTagText(int anchor_start, QString document_string);
-  void writeTitleMetadata(QXmlStreamWriter* xml_writer, QString key);
+  void writeTitleMetadata(QXmlStreamWriter* xml_writer, int key);
   void writeDescriptionMetadata(QXmlStreamWriter* xml_writer);
   void writeCreatorsMetadata(QXmlStreamWriter* xml_writer, QString key);
   void writeContributorMetadata(QXmlStreamWriter* xml_writer, QString key);
+  void writeCreatorContibutor(QString tagname, QXmlStreamWriter* xml_writer, QString key);
   void writeLanguageMetadata(QXmlStreamWriter* xml_writer, QString key, bool first=false);
   void writeSubjectMetadata(QXmlStreamWriter* xml_writer, QString key);
+
+  int getNextTitleIndex();
+  void writeIdMetadata(QXmlStreamWriter *xml_writer, QString id);
+  void writeDirMetadata(QXmlStreamWriter *xml_writer, QString dir);
+  void writeLangMetadata(QXmlStreamWriter *xml_writer, QString dir);
+  void writeAuthorityMetadata(QXmlStreamWriter *xml_writer, QString authority, QString term);
+  void writeAltRepMetadata(QXmlStreamWriter *xml_writer, QString alt_rep, QString alt_rep_lang);
+  void writeFileAsMetadata(QXmlStreamWriter *xml_writer, QString file_as);
+
 
   static const QString MIMETYPE_FILE;
   static const QByteArray MIMETYPE;
@@ -576,6 +596,7 @@ protected:
   static const QString LIST_ITEM;
   static const QString LIST_BUILD_ITEM;
   static const QString LIST_FILEPOS;
+  void writeRoleMetadata(QXmlStreamWriter *xml_writer, MarcRelator relator);
 };
 
 #endif // EPUBCONTAINER_H

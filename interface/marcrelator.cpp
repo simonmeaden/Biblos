@@ -16,6 +16,16 @@ void MarcRelator::setType(MarcRelator::Relator type)
   m_type = type;
 }
 
+QString MarcRelator::code()
+{
+  return m_code;
+}
+
+void MarcRelator::setCode(QString code)
+{
+  m_code = code;
+}
+
 QString MarcRelator::asString()
 {
   return MarcRelator::toString(m_type);
@@ -574,6 +584,7 @@ QString MarcRelator::toString(MarcRelator::Relator relator)
 MarcRelator MarcRelator::fromString(QString name)
 {
   MarcRelator relator;
+  relator.setCode(name);
   if (name == "abr") {
     relator.setType( Abridger);
   } else if (name == "acp") {
@@ -920,7 +931,9 @@ MarcRelator MarcRelator::fromString(QString name)
     relator.setType( Organizer);
   } else if (name == "osp") {
     relator.setType( OnscreenPresenter);
-  } else if (name == "oth") {
+  } else if (name.startsWith("oth")) {
+    // starts with because non-standard relators are defined as
+    // Other and start with 'oth.' followed by custon definition.
     relator.setType( Other);
   } else if (name == "own") {
     relator.setType( Owner);

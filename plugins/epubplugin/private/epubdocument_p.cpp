@@ -224,7 +224,7 @@ QStringList EPubDocumentPrivate::creators()
 
 QString EPubDocumentPrivate::title()
 {
-  SharedTitle first = m_container->metadata()->titles.first();
+  SharedTitle first = m_container->metadata()->ordered_titles.first();
   if (!first.isNull())
     return first->title;
   else {

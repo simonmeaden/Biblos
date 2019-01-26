@@ -49,7 +49,8 @@ MainWindow::MainWindow(QWidget* parent)
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
   setWindowTitle("Manuscript");
-//  setWindowIcon(QPixmap(":/icons/library"));
+  QPixmap library_icon(":/icons/library");
+  setWindowIcon(library_icon);
 
   connect(m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
 
@@ -1101,10 +1102,12 @@ void MainWindow::fileSave()
 {
   // TODO
   EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
-  QTextDocument* textdocument = qobject_cast<QTextDocument*>(wrapper->editor()->document());
-  IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
-  if (textdocument->isModified()) {
-    saveDocument(itextdocument);
+  if (wrapper) {
+    QTextDocument* textdocument = qobject_cast<QTextDocument*>(wrapper->editor()->document());
+    IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
+    if (textdocument->isModified()) {
+      saveDocument(itextdocument);
+    }
   }
 }
 
