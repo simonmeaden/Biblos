@@ -313,10 +313,8 @@ bool EPubContainer::parsePackageFile(QString& full_path)
     if (name == "version") {
       if (value == "2.0") {
         m_version = 2;
-        m_load_type = EPUB_2_0;
       } else if (value == "3.0") {
         m_version = 3;
-        m_load_type = EPUB_3_0;
       }
     } else if (name == "xmlns") {
       m_package_xmlns = value;
@@ -437,128 +435,6 @@ bool EPubContainer::parsePackageFile(QString& full_path)
   return true;
 }
 
-// void EPubContainer::saveTitles(QDomElement metadata_element)
-//{
-//  QString id;
-//  SharedTitle shared_title;
-//  QDomElement elem;
-//  QStringList keys = m_metadata->titles.keys();
-//  if (keys.size() == 1) {
-//    shared_title = m_metadata->titles.first();
-//    elem = QDomElement();
-//    elem.setTagName("dc:title");
-//    elem.setNodeValue(shared_title->title);
-//    if (shared_title->id.isEmpty()) {
-//      // no id exists so just create an arbitrary id.
-//      id = "title";
-//    } else {
-//      // otherwise use existing id.
-//      id = shared_title->id;
-//    }
-//    elem.setAttribute("id", id);
-//    id = "#" + id;
-//    // create basic meta refines for title.
-//    metadata_element.appendChild(elem);
-
-//    elem = QDomElement();
-//    elem.setTagName("meta");
-//    elem.setAttribute("refines", id);
-//    elem.setAttribute("title-type", "main");
-//    metadata_element.appendChild(elem);
-//  } else {
-//    for (int i = 0; i < keys.size(); i++) {
-//      QString key = keys.at(i);
-//      shared_title = m_metadata->titles.value(key);
-//      elem = QDomElement();
-//      elem.setNodeValue(shared_title->title);
-//      // ALL of these should have an id.
-//      id = shared_title->id;
-//      elem.setAttribute("id", id);
-//      metadata_element.appendChild(elem);
-
-//      // ALL of these should have a title-type
-//      id = "#" + id;
-//      elem = QDomElement();
-//      elem.setTagName("meta");
-//      elem.setAttribute("refines", id);
-//      elem.setAttribute("title-type", "main");
-
-//      // this is optional
-//      if (shared_title->sequence >= 0) {
-//        elem = QDomElement();
-//        elem.setTagName("meta");
-//        elem.setAttribute("display-seq", QString::number(shared_title->sequence));
-//        metadata_element.appendChild(elem);
-//      }
-//    }
-//  }
-//}
-
-// void EPubContainer::saveCreator(QDomElement metadata_element)
-//{
-//  QStringList keys = m_metadata->creators_by_id.keys();
-//  QString role;
-//  for (int i = 0; i < keys.size(); i++) {
-//    QString key = keys.at(i);
-//    SharedCreator shared_creator = m_metadata->creators_by_id.value(key);
-//    QDomElement elem = QDomElement();
-//    elem.setTagName("dc:creator");
-//    elem.setNodeValue(shared_creator->name);
-//    // ALL of these should have an role.
-//    role = "aut";
-//    if (shared_creator->relator.type()) {
-//      role = shared_creator->relator.asString();
-//    } else {
-//      // TODO ?? maybe nothing
-//    }
-//    elem.setAttribute("id", role);
-//    metadata_element.appendChild(elem);
-
-//    elem = QDomElement();
-//    elem.setTagName("meta");
-//    elem.setAttribute("refines", "#" + role);
-//    elem.setAttribute("property", "role");
-//    elem.setAttribute("scheme", "marc:relators");
-//    elem.setNodeValue(role);
-//    metadata_element.appendChild(elem);
-
-//    if (!shared_creator->file_as.isEmpty()) {
-//      elem = QDomElement();
-//      elem.setTagName("meta");
-//      elem.setAttribute("refines", "#" + role);
-//      elem.setAttribute("property", "file-as");
-//      elem.setNodeValue(shared_creator->file_as);
-//      metadata_element.appendChild(elem);
-//    }
-
-//    if (!shared_creator->file_as.isEmpty()) {
-//      elem = QDomElement();
-//      elem.setTagName("meta");
-//      elem.setAttribute("refines", "#" + role);
-//      elem.setAttribute("property", "file-as");
-//      elem.setNodeValue(shared_creator->file_as);
-//      metadata_element.appendChild(elem);
-//    }
-//  }
-//}
-
-// void EPubContainer::saveIdentifier(QDomElement metadata_element)
-//{
-//  QStringList keys = m_metadata->identifiers.keys();
-//  QString role;
-//  for (int i = 0; i < keys.size(); i++) {
-//    QString key = keys.at(i);
-//    SharedIdentifier shared_identifier = m_metadata->identifiers.value(key);
-//    QDomElement elem = QDomElement();
-//    elem.setTagName("dc:identifier");
-//    elem.setAttribute("id", shared_identifier->name);
-//    elem.setNodeValue(shared_identifier->uid);
-//    // ALL of these should have an role.
-//    elem.setAttribute("id", shared_identifier->uid);
-//    metadata_element.appendChild(elem);
-//  }
-//}
-
 int EPubContainer::getNextTitleIndex()
 {
   int highest = 0;
@@ -568,6 +444,145 @@ int EPubContainer::getNextTitleIndex()
   }
   highest++;
   return highest;
+}
+
+void EPubContainer::parseSourceMetadata(const QDomElement& metadata_element)
+{
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  SharedSource shared_source = SharedSource(new EPubSource());
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_source->id = node.nodeValue();
+  }
+  node = node_map.namedItem("scheme");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_source->scheme = EPubIdentifierScheme::fromString(node.nodeValue());
+  }
+  shared_source->source = metadata_element.text();
+  m_metadata->source = shared_source;
+}
+
+void EPubContainer::parsePublisherMetadata(const QDomElement& metadata_element)
+{
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  SharedPublisher shared_publisher = SharedPublisher(new EPubPublisher());
+  node = node_map.namedItem("id");
+  if (!node.isNull()) {
+    shared_publisher->id = node.nodeValue();
+  }
+  node = node_map.namedItem("lang");
+  if (!node.isNull()) {
+    shared_publisher->lang = node.nodeValue();
+  }
+  node = node_map.namedItem("dir");
+  if (!node.isNull()) {
+    shared_publisher->dir = node.nodeValue();
+  }
+  node = node_map.namedItem("alt-rep");
+  if (!node.isNull()) { // alt-rep element is NOT used in EPUB 2.0
+    shared_publisher->alt_rep = node.nodeValue();
+  }
+  node = node_map.namedItem("alt-rep-lang");
+  if (!node.isNull()) { // alt-rep-lang element is NOT used in EPUB 2.0
+    shared_publisher->alt_rep_lang = node.nodeValue();
+  }
+  node = node_map.namedItem("file-as");
+  if (!node.isNull()) { // file-as element is NOT used in EPUB 2.0
+    shared_publisher->file_as = node.nodeValue();
+  }
+  shared_publisher->name = metadata_element.text();
+  m_metadata->publisher = shared_publisher;
+}
+
+void EPubContainer::parseFormatMetadata(const QDomElement& metadata_element)
+{
+  SharedFormat shared_format = SharedFormat(new EPubFormat());
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_format->id = node.nodeValue();
+  }
+  shared_format->name = metadata_element.text();
+  m_metadata->format = shared_format;
+}
+
+void EPubContainer::parseTypeMetadata(const QDomElement& metadata_element)
+{
+  SharedType shared_type = SharedType(new EPubType());
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_type->id = node.nodeValue();
+  }
+  shared_type->name = metadata_element.text();
+  m_metadata->type = shared_type;
+}
+
+void EPubContainer::parseRelationMetadata(const QDomElement& metadata_element)
+{
+  SharedRelation shared_relation = SharedRelation(new EPubRelation());
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_relation->id = node.nodeValue();
+  }
+  node = node_map.namedItem("lang");
+  if (!node.isNull()) {
+    shared_relation->lang = node.nodeValue();
+  }
+  node = node_map.namedItem("dir");
+  if (!node.isNull()) {
+    shared_relation->dir = node.nodeValue();
+  }
+  shared_relation->name = metadata_element.text();
+  m_metadata->relation = shared_relation;
+}
+
+void EPubContainer::parseCoverageMetadata(const QDomElement& metadata_element)
+{
+  SharedCoverage shared_coverage = SharedCoverage(new EPubCoverage());
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_coverage->id = node.nodeValue();
+  }
+  node = node_map.namedItem("lang");
+  if (!node.isNull()) {
+    shared_coverage->lang = node.nodeValue();
+  }
+  node = node_map.namedItem("dir");
+  if (!node.isNull()) {
+    shared_coverage->dir = node.nodeValue();
+  }
+  shared_coverage->name = metadata_element.text();
+  m_metadata->coverage = shared_coverage;
+}
+
+void EPubContainer::parseRightsMetadata(const QDomElement& metadata_element)
+{
+  SharedRights shared_rights = SharedRights(new EPubRights());
+  QDomNamedNodeMap node_map = metadata_element.attributes();
+  QDomNode node = node_map.namedItem("id");
+  node = node_map.namedItem("id");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_rights->id = node.nodeValue();
+  }
+  node = node_map.namedItem("lang");
+  if (!node.isNull()) {
+    shared_rights->lang = node.nodeValue();
+  }
+  node = node_map.namedItem("dir");
+  if (!node.isNull()) {
+    shared_rights->dir = node.nodeValue();
+  }
+  shared_rights->name = metadata_element.text();
+  m_metadata->rights = shared_rights;
 }
 
 bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
@@ -591,7 +606,8 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
           if (!node.isNull()) {
             id = node.nodeValue();
             // "title-type" is not used in 3.1 so ignore that node.
-            if (id == "display-seq") {
+            if (id == "title-type") {
+            } else if (id == "display-seq") {
               // refines/display-seq has been superceded in 3.1. Titles should
               // appear in the order required so reorder them in display-seq
               // order if these items appear in the metadata.
@@ -645,6 +661,7 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
           }
         }
       }
+      return true;
     }
 
     // metadata elements that do not refine other elements.
@@ -654,12 +671,12 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
       if (id == "dcterms:modified") {
         parseDateModified(node_map, metadata_element.text());
       } else if (id == "dcterms:source") {
-        if (m_metadata->source.isEmpty()) {
-          m_metadata->source = metadata_element.text();
+        if (!m_metadata->source.isNull()) {
+          m_metadata->source->source = metadata_element.text();
         } else {
-          // Not certain whether multi sources are allowed?
-          QLOG_DEBUG(QString("Problem setting document source : %1 when %2 already set.")
-                     .arg(metadata_element.text().arg(m_metadata->source)));
+          SharedSource shared_source = SharedSource(new EPubSource());
+          shared_source->source = metadata_element.text();
+          m_metadata->source = shared_source;
         }
       }
     }
@@ -702,7 +719,7 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
     } else if (tag_name == "description") {
       parseDescriptionMetadata(metadata_element);
     } else if (tag_name == "publisher") {
-      m_metadata->publisher = metadata_element.text();
+      parsePublisherMetadata(metadata_element);
     } else if (tag_name == "date") {
       m_metadata->date = QDateTime::fromString(metadata_element.text(), Qt::ISODate);
       QDomNode node = node_map.namedItem("id");
@@ -710,11 +727,19 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
         m_metadata->modified.id = node.nodeValue();
       }
     } else if (tag_name == "rights") {
-      m_metadata->rights = metadata_element.text();
-    } else if (tag_name == "contributor") {
-      // TODO
+      parseRightsMetadata(metadata_element);
+    } else if (tag_name == "format") {
+      parseFormatMetadata(metadata_element);
+    } else if (tag_name == "relation") {
+      parseRelationMetadata(metadata_element);
+    } else if (tag_name == "coverage") {
+      parseCoverageMetadata(metadata_element);
+    } else if (tag_name == "source") {
+      parseSourceMetadata(metadata_element);
     } else if (tag_name == "subject") {
       parseSubjectMetadata(metadata_element);
+    } else if (tag_name == "type") {
+      parseTypeMetadata(metadata_element);
     } else {
       // TODO
     }
@@ -727,9 +752,9 @@ bool EPubContainer::parseMetadataItem(const QDomNode& metadata_node)
 
 void EPubContainer::parseTitleMetadata(QDomElement metadata_element)
 {
+  SharedTitle shared_title = SharedTitle(new EPubTitle());
   QDomNamedNodeMap node_map = metadata_element.attributes();
   QDomNode node = node_map.namedItem("id");
-  SharedTitle shared_title = SharedTitle(new EPubTitle());
   node = node_map.namedItem("id");
   if (!node.isNull()) { // id element is NOT used in EPUB 2.0
     shared_title->id = node.nodeValue();
@@ -858,7 +883,7 @@ void EPubContainer::parseDescriptionMetadata(QDomElement metadata_element)
   }
   node = node_map.namedItem("dir");
   if (!node.isNull()) { // dir element is NOT used in EPUB 2.0
-    m_metadata->description->direction = node.nodeValue();
+    m_metadata->description->dir = node.nodeValue();
   }
   node = node_map.namedItem("lang");
   if (!node.isNull()) { // lang element is NOT used in EPUB 2.0
@@ -875,20 +900,19 @@ void EPubContainer::parseIdentifierMetadata(QDomElement metadata_element)
   QDomNode node = node_map.namedItem("id");
   if (!node.isNull()) { // EPUB 3.0
     QString id_value = node.nodeValue();
-    shared_identifier->name = id_value;
+    shared_identifier->id = id_value;
     if (id_value == m_package_unique_identifier_name) {
-      m_package_unique_identifier = shared_identifier->uid;
+      m_package_unique_identifier = shared_identifier->id;
     }
   }
-
-  QDomNode scheme = node_map.namedItem("scheme");
-  if (!scheme.isNull()) {
-    shared_identifier->scheme = scheme.nodeValue();
+  node = node_map.namedItem("scheme");
+  if (!node.isNull()) { // id element is NOT used in EPUB 2.0
+    shared_identifier->scheme = EPubIdentifierScheme::fromString(node.nodeValue());
   }
 
-  shared_identifier->uid = metadata_element.text();
+  shared_identifier->name = metadata_element.text();
 
-  m_metadata->identifiers.insert(shared_identifier->uid, shared_identifier);
+  m_metadata->identifiers.insert(shared_identifier->id, shared_identifier);
 }
 
 void EPubContainer::parseLanguageMetadata(QDomElement metadata_element)
@@ -1580,28 +1604,28 @@ bool EPubContainer::writePackageFile(QuaZip* save_zip)
   return true;
 }
 
-void EPubContainer::writeIdMetadata(QXmlStreamWriter* xml_writer, QString id)
+void EPubContainer::writeIdAttribute(QXmlStreamWriter* xml_writer, QString id)
 {
   if (!id.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("id", id);
   }
 }
 
-void EPubContainer::writeDirMetadata(QXmlStreamWriter* xml_writer, QString dir)
+void EPubContainer::writeDirAttribute(QXmlStreamWriter* xml_writer, QString dir)
 {
   if (!dir.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("dir", dir);
   }
 }
 
-void EPubContainer::writeLangMetadata(QXmlStreamWriter* xml_writer, QString lang)
+void EPubContainer::writeLangAttribute(QXmlStreamWriter* xml_writer, QString lang)
 {
   if (!lang.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("xml:lang", lang);
   }
 }
 
-void EPubContainer::writeAuthorityMetadata(QXmlStreamWriter* xml_writer, QString authority,
+void EPubContainer::writeAuthorityAttribute(QXmlStreamWriter* xml_writer, QString authority,
     QString term)
 {
   if (!authority.isEmpty()) { // 3.0.
@@ -1613,8 +1637,8 @@ void EPubContainer::writeAuthorityMetadata(QXmlStreamWriter* xml_writer, QString
   }
 }
 
-void EPubContainer::writeAltRepMetadata(QXmlStreamWriter* xml_writer, QString alt_rep,
-                                        QString alt_rep_lang)
+void EPubContainer::writeAltRepAttribute(QXmlStreamWriter* xml_writer, QString alt_rep,
+    QString alt_rep_lang)
 {
   if (!alt_rep.isEmpty()) { // 3.0
     xml_writer->writeAttribute("opf:alt-rep", alt_rep);
@@ -1624,7 +1648,7 @@ void EPubContainer::writeAltRepMetadata(QXmlStreamWriter* xml_writer, QString al
   }
 }
 
-void EPubContainer::writeFileAsMetadata(QXmlStreamWriter* xml_writer, QString file_as)
+void EPubContainer::writeFileAsAttribute(QXmlStreamWriter* xml_writer, QString file_as)
 {
   if (!file_as.isEmpty()) { // 3.0
     xml_writer->writeAttribute("opf:file-as", file_as);
@@ -1641,7 +1665,7 @@ void EPubContainer::writeContributorMetadata(QXmlStreamWriter* xml_writer, QStri
   writeCreatorContibutor("dc:contributor", xml_writer, key);
 }
 
-void EPubContainer::writeRoleMetadata(QXmlStreamWriter* xml_writer, MarcRelator relator)
+void EPubContainer::writeRoleAttribute(QXmlStreamWriter* xml_writer, MarcRelator relator)
 {
   if (relator.type() != MarcRelator::no_type) {
     xml_writer->writeAttribute("opf:role", relator.code());
@@ -1676,11 +1700,11 @@ void EPubContainer::writeCreatorContibutor(QString tagname, QXmlStreamWriter* xm
     if (!shared_object->name.isEmpty()) {
       xml_writer->writeStartElement(tagname);
 
-      writeFileAsMetadata(xml_writer, shared_object->file_as);
-      writeIdMetadata(xml_writer, shared_object->id);
-      writeAltRepMetadata(xml_writer, shared_object->alt_rep, shared_object->alt_rep_lang);
-      writeFileAsMetadata(xml_writer, shared_object->file_as);
-      writeRoleMetadata(xml_writer, shared_object->relator);
+      writeFileAsAttribute(xml_writer, shared_object->file_as);
+      writeIdAttribute(xml_writer, shared_object->id);
+      writeAltRepAttribute(xml_writer, shared_object->alt_rep, shared_object->alt_rep_lang);
+      writeFileAsAttribute(xml_writer, shared_object->file_as);
+      writeRoleAttribute(xml_writer, shared_object->relator);
 
       xml_writer->writeCharacters(shared_object->name);
       xml_writer->writeEndElement();
@@ -1736,14 +1760,27 @@ void EPubContainer::writeSubjectMetadata(QXmlStreamWriter* xml_writer, QString k
     if (!shared_subject->subject.isEmpty()) {
       xml_writer->writeStartElement("dc:subject");
 
-      writeIdMetadata(xml_writer, shared_subject->id);
-      writeDirMetadata(xml_writer, shared_subject->dir);
-      writeLangMetadata(xml_writer, shared_subject->lang);
-      writeAuthorityMetadata(xml_writer, shared_subject->authority, shared_subject->term);
+      writeIdAttribute(xml_writer, shared_subject->id);
+      writeDirAttribute(xml_writer, shared_subject->dir);
+      writeLangAttribute(xml_writer, shared_subject->lang);
+      writeAuthorityAttribute(xml_writer, shared_subject->authority, shared_subject->term);
 
       xml_writer->writeCharacters(shared_subject->subject);
       xml_writer->writeEndElement();
     }
+  }
+}
+
+void EPubContainer::writeIdentifierMetadata(QXmlStreamWriter* xml_writer, QString key)
+{
+  SharedIdentifier shared_identifier = m_metadata->identifiers.value(key);
+  if (!shared_identifier->name.isEmpty()) {
+    xml_writer->writeStartElement("dc:identifier");
+    writeIdAttribute(xml_writer, shared_identifier->id);
+    writeSchemeAttribute(xml_writer, shared_identifier->scheme);
+
+    xml_writer->writeCharacters(shared_identifier->name);
+    xml_writer->writeEndElement();
   }
 }
 
@@ -1761,10 +1798,10 @@ void EPubContainer::writeTitleMetadata(QXmlStreamWriter* xml_writer, int key)
       }
 
       // these are optional attributes.
-      writeDirMetadata(xml_writer, shared_title->dir);
-      writeLangMetadata(xml_writer, shared_title->lang);
-      writeAltRepMetadata(xml_writer, shared_title->alt_rep, shared_title->alt_rep_lang);
-      writeFileAsMetadata(xml_writer, shared_title->file_as);
+      writeDirAttribute(xml_writer, shared_title->dir);
+      writeLangAttribute(xml_writer, shared_title->lang);
+      writeAltRepAttribute(xml_writer, shared_title->alt_rep, shared_title->alt_rep_lang);
+      writeFileAsAttribute(xml_writer, shared_title->file_as);
 
       xml_writer->writeCharacters(shared_title->title);
       xml_writer->writeEndElement();
@@ -1774,24 +1811,103 @@ void EPubContainer::writeTitleMetadata(QXmlStreamWriter* xml_writer, int key)
 
 void EPubContainer::writeDescriptionMetadata(QXmlStreamWriter* xml_writer)
 {
-  QString id = m_metadata->description->id;
-
   if (!m_metadata->description->text.isEmpty()) {
     xml_writer->writeStartElement("dc:description");
 
-    if (!id.isEmpty()) { // 3.0
-      xml_writer->writeAttribute("id", id);
-    }
-
-    // these are optional attributes.
-    if (!m_metadata->description->direction.isEmpty()) { // 3.0
-      xml_writer->writeAttribute("dir", m_metadata->description->direction);
-    }
-    if (!m_metadata->description->language.isEmpty()) { // 3.0
-      xml_writer->writeAttribute("xml:lang", m_metadata->description->language);
-    }
+    writeIdAttribute(xml_writer, m_metadata->description->id);
+    writeDirAttribute(xml_writer, m_metadata->description->dir);
+    writeLangAttribute(xml_writer, m_metadata->description->language);
 
     xml_writer->writeCharacters(m_metadata->description->text);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writeSchemeAttribute(QXmlStreamWriter* xml_writer, EPubIdentifierScheme scheme)
+{
+  if (scheme.scheme != EPubIdentifierScheme::UNKNOWN_SCHEME) {
+    xml_writer->writeAttribute("opf:scheme", EPubIdentifierScheme::toString(scheme.scheme));
+  }
+}
+
+void EPubContainer::writeSourceMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedSource shared_source = m_metadata->source;
+  if (!shared_source->source.isEmpty()) {
+    xml_writer->writeStartElement("dc:source");
+    writeIdAttribute(xml_writer, shared_source->id);
+    writeSchemeAttribute(xml_writer, shared_source->scheme);
+    xml_writer->writeCharacters(shared_source->source);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writePublisherMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedPublisher shared_publisher = m_metadata->publisher;
+  if (!shared_publisher->name.isEmpty()) {
+
+    writeIdAttribute(xml_writer, shared_publisher->id);
+    writeFileAsAttribute(xml_writer, shared_publisher->file_as);
+    writeDirAttribute(xml_writer, shared_publisher->dir);
+    writeLangAttribute(xml_writer, shared_publisher->lang);
+    writeAltRepAttribute(xml_writer, shared_publisher->alt_rep, shared_publisher->alt_rep_lang);
+
+    xml_writer->writeCharacters(shared_publisher->name);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writeFormatMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedFormat shared_format = m_metadata->format;
+  if (!shared_format->name.isEmpty()) {
+
+    writeIdAttribute(xml_writer, shared_format->id);
+
+    xml_writer->writeCharacters(shared_format->name);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writeRelationMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedRelation shared_publisher = m_metadata->relation;
+  if (!shared_publisher->name.isEmpty()) {
+
+    writeIdAttribute(xml_writer, shared_publisher->id);
+    writeDirAttribute(xml_writer, shared_publisher->dir);
+    writeLangAttribute(xml_writer, shared_publisher->lang);
+
+    xml_writer->writeCharacters(shared_publisher->name);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writeRightsMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedRights shared_rights = m_metadata->rights;
+  if (!shared_rights->name.isEmpty()) {
+
+    writeIdAttribute(xml_writer, shared_rights->id);
+    writeDirAttribute(xml_writer, shared_rights->dir);
+    writeLangAttribute(xml_writer, shared_rights->lang);
+
+    xml_writer->writeCharacters(shared_rights->name);
+    xml_writer->writeEndElement();
+  }
+}
+
+void EPubContainer::writeCoverageMetadata(QXmlStreamWriter* xml_writer)
+{
+  SharedCoverage shared_coverage = m_metadata->coverage;
+  if (!shared_coverage->name.isEmpty()) {
+
+    writeIdAttribute(xml_writer, shared_coverage->id);
+    writeDirAttribute(xml_writer, shared_coverage->dir);
+    writeLangAttribute(xml_writer, shared_coverage->lang);
+
+    xml_writer->writeCharacters(shared_coverage->name);
     xml_writer->writeEndElement();
   }
 }
@@ -1845,6 +1961,43 @@ bool EPubContainer::writeMetadata(QXmlStreamWriter* xml_writer)
     foreach (QString key, keys) {
       writeSubjectMetadata(xml_writer, key);
     }
+  }
+
+  if (!m_metadata->identifiers.isEmpty()) {
+    QStringList keys = m_metadata->identifiers.keys();
+    foreach (QString key, keys) {
+      writeIdentifierMetadata(xml_writer, key);
+    }
+  }
+
+  if (!m_metadata->date.isNull()) {
+    xml_writer->writeStartElement("date");
+    xml_writer->writeCharacters(m_metadata->date.toString(Qt::ISODate));
+    xml_writer->writeEndElement();
+  }
+
+  if (!m_metadata->source.isNull()) {
+    writeSourceMetadata(xml_writer);
+  }
+
+  if (!m_metadata->publisher.isNull()) {
+    writePublisherMetadata(xml_writer);
+  }
+
+  if (!m_metadata->format.isNull()) {
+    writeFormatMetadata(xml_writer);
+  }
+
+  if (!m_metadata->relation.isNull()) {
+    writeRelationMetadata(xml_writer);
+  }
+
+  if (!m_metadata->rights.isNull()) {
+    writeRightsMetadata(xml_writer);
+  }
+
+  if (!m_metadata->coverage.isNull()) {
+    writeCoverageMetadata(xml_writer);
   }
 
   xml_writer->writeEndElement();
