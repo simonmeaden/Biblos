@@ -2,7 +2,7 @@
 AllowShortFunctionsOnASingleLine: None
 BreakBeforeBraces: Linux
 BreakConstructorInitializersBeforeComma: 'true'
-ColumnLimit: '100'
+ColumnLimit: '80'
 ConstructorInitializerIndentWidth: '2'
 ContinuationIndentWidth: '2'
 Cpp11BracedListStyle: 'true'

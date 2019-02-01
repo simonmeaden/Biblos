@@ -30,7 +30,9 @@ DESTDIR = $$PWD/../../build/manuscript/interface
 SOURCES +=  \
     ebookcommon.cpp \
     options.cpp \
-    marcrelator.cpp
+    marcrelator.cpp \
+    dcterms.cpp \
+    foaf.cpp
 
 HEADERS += \
     interface_global.h \
@@ -40,7 +42,9 @@ HEADERS += \
     ebookcommon.h \
     iebookdocument.h \
     options.h \
-    marcrelator.h
+    marcrelator.h \
+    dcterms.h \
+    foaf.h
 
 DISTFILES += \
     spellinterface.json \

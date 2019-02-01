@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.8.0, 2019-01-21T08:49:46. -->
+<!-- Written by QtCreator 4.8.1, 2019-01-29T09:08:35. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -306,7 +306,7 @@
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory"></value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/simonmeaden/workspace/EBookEdit/ebookedit/../../build/ebookedit/ebookedit</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/simonmeaden/workspace/EBookEdit/ebookedit/../../build/manuscript/manuscript</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
