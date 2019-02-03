@@ -40,547 +40,547 @@ bool MarcRelator::isRelator()
 QString MarcRelator::toString(MarcRelator::Relator relator)
 {
   switch (relator) {
-  case ABRIDGER:
+  case MarcRelator::ABRIDGER:
     return "abr";
-  case ART_COPYIST:
+  case MarcRelator::ART_COPYIST:
     return "acp";
-  case ACTOR:
+  case MarcRelator::ACTOR:
     return "act";
-  case ART_DIRECTOR:
+  case MarcRelator::ART_DIRECTOR:
     return "adi";
-  case ADAPTER:
+  case MarcRelator::ADAPTER:
     return "adp";
-  case AUTHOR_OF_AFTERWORD:
+  case MarcRelator::AUTHOR_OF_AFTERWORD:
     return "aft";
-  case ANALYST:
+  case MarcRelator::ANALYST:
     return "anl";
-  case ANIMATOR:
+  case MarcRelator::ANIMATOR:
     return "anm";
-  case ANNOTATOR:
+  case MarcRelator::ANNOTATOR:
     return "ann";
-  case BIBLIOGRAPHIC_ANTECEDENT:
+  case MarcRelator::BIBLIOGRAPHIC_ANTECEDENT:
     return "ant";
-  case APPELLEE:
+  case MarcRelator::APPELLEE:
     return "ape";
-  case APPELLANT:
+  case MarcRelator::APPELLANT:
     return "apl";
-  case APPLICANT:
+  case MarcRelator::APPLICANT:
     return "app";
-  case AUTHOR_IN_QUOTATIONS:
+  case MarcRelator::AUTHOR_IN_QUOTATIONS:
     return "aqt";
-  case ARCHITECT:
+  case MarcRelator::ARCHITECT:
     return "arc";
-  case ARTISTIC_DIRECTOR:
+  case MarcRelator::ARTISTIC_DIRECTOR:
     return "ard";
-  case ARRANGER:
+  case MarcRelator::ARRANGER:
     return "arr";
-  case ARTIST:
+  case MarcRelator::ARTIST:
     return "art";
-  case ASSIGNEE:
+  case MarcRelator::ASSIGNEE:
     return "asg";
-  case ASSOCIATED_NAME:
+  case MarcRelator::ASSOCIATED_NAME:
     return "asn";
-  case AUTOGRAPHER:
+  case MarcRelator::AUTOGRAPHER:
     return "ato";
-  case ATTRIBUTED_NAME:
+  case MarcRelator::ATTRIBUTED_NAME:
     return "att";
-  case AUCTIONEER:
+  case MarcRelator::AUCTIONEER:
     return "auc";
-  case AUTHOR:
+  case MarcRelator::AUTHOR:
     return "aut";
-  case AUTHOR_OF_DIALOG:
+  case MarcRelator::AUTHOR_OF_DIALOG:
     return "aud";
-  case AUTHOR_OF_INTRODUCTION:
+  case MarcRelator::AUTHOR_OF_INTRODUCTION:
     return "aui";
-  case SCREENWRITER:
+  case MarcRelator::SCREENWRITER:
     return "aus";
-  case BINDING_DESIGNER:
+  case MarcRelator::BINDING_DESIGNER:
     return "bdd";
-  case BOOKJACKET_DESIGNER:
+  case MarcRelator::BOOKJACKET_DESIGNER:
     return "bjd";
-  case BOOK_DESIGNER:
+  case MarcRelator::BOOK_DESIGNER:
     return "bkd";
-  case BOOK_PRODUCER:
+  case MarcRelator::BOOK_PRODUCER:
     return "bkp";
-  case BLURB_WRITER:
+  case MarcRelator::BLURB_WRITER:
     return "blw";
-  case BINDER:
+  case MarcRelator::BINDER:
     return "bnd";
-  case BOOKPLATE_DESIGNER:
+  case MarcRelator::BOOKPLATE_DESIGNER:
     return "bpd";
-  case BROADCASTER:
+  case MarcRelator::BROADCASTER:
     return "brd";
-  case BRAILE_EMBOSSER:
+  case MarcRelator::BRAILE_EMBOSSER:
     return "brl";
-  case BOOKSELLER:
+  case MarcRelator::BOOKSELLER:
     return "bsl";
-  case CASTER:
+  case MarcRelator::CASTER:
     return "cas";
-  case CONCEPTOR:
+  case MarcRelator::CONCEPTOR:
     return "ccp";
-  case CHOREOGRAPHER:
+  case MarcRelator::CHOREOGRAPHER:
     return "chr";
-  case COLLABORATOR:
+  case MarcRelator::COLLABORATOR:
     return "clb"; // Discontinued
-  case CLIENT:
+  case MarcRelator::CLIENT:
     return "cli";
-  case CALLIGRAPHER:
+  case MarcRelator::CALLIGRAPHER:
     return "cll";
-  case COLORIST:
+  case MarcRelator::COLORIST:
     return "clr";
-  case COLLOTYPER:
+  case MarcRelator::COLLOTYPER:
     return "clt";
-  case COMMENTATOR:
+  case MarcRelator::COMMENTATOR:
     return "cmm";
-  case COMPOSER:
+  case MarcRelator::COMPOSER:
     return "cmp";
-  case COMPOSITOR:
+  case MarcRelator::COMPOSITOR:
     return "cmt";
-  case CONDUCTOR:
+  case MarcRelator::CONDUCTOR:
     return "cnd";
-  case CINEMATOGRAPHER:
+  case MarcRelator::CINEMATOGRAPHER:
     return "cng";
-  case CENSOR:
+  case MarcRelator::CENSOR:
     return "cns";
-  case CONTESTANT_APPELLEE:
+  case MarcRelator::CONTESTANT_APPELLEE:
     return "coe";
-  case CONTESTOR:
+  case MarcRelator::CONTESTOR:
     return "col";
-  case COMPILER:
+  case MarcRelator::COMPILER:
     return "com";
-  case CONSERVATOR:
+  case MarcRelator::CONSERVATOR:
     return "con";
-  case COLLECTION_REGISTRAR:
+  case MarcRelator::COLLECTION_REGISTRAR:
     return "cor";
-  case CONTESTANT:
+  case MarcRelator::CONTESTANT:
     return "cos";
-  case CONTESTEE_APPELLANT:
+  case MarcRelator::CONTESTEE_APPELLANT:
     return "cot";
-  case COURT_GOVERNED:
+  case MarcRelator::COURT_GOVERNED:
     return "cou";
-  case COVER_DESIGNER:
+  case MarcRelator::COVER_DESIGNER:
     return "cov";
-  case COPYRIGHT_CLAIMANT:
+  case MarcRelator::COPYRIGHT_CLAIMANT:
     return "cpc";
-  case COMPLAINANT_APPELLEE:
+  case MarcRelator::COMPLAINANT_APPELLEE:
     return "cpe";
-  case COPYRIGHT_HOLDER:
+  case MarcRelator::COPYRIGHT_HOLDER:
     return "cph";
-  case COMPLAINANT:
+  case MarcRelator::COMPLAINANT:
     return "cpl";
-  case COMPLAINANT_APPELLANT:
+  case MarcRelator::COMPLAINANT_APPELLANT:
     return "cpt";
-  case CREATOR:
+  case MarcRelator::CREATOR:
     return "cre";
-  case CORRESPONDANT:
+  case MarcRelator::CORRESPONDANT:
     return "crp";
-  case CORRECTOR:
+  case MarcRelator::CORRECTOR:
     return "crr";
-  case COURT_REPORTER:
+  case MarcRelator::COURT_REPORTER:
     return "crt";
-  case CONSULTANT:
+  case MarcRelator::CONSULTANT:
     return "csl";
-  case CONSULTANT_TO_A_PROJECT:
+  case MarcRelator::CONSULTANT_TO_A_PROJECT:
     return "csp";
-  case COSTUME_DESIGNER:
+  case MarcRelator::COSTUME_DESIGNER:
     return "cst";
-  case CONTRIBUTOR:
+  case MarcRelator::CONTRIBUTOR:
     return "ctb";
-  case CONTESTEE_APPELLEE:
+  case MarcRelator::CONTESTEE_APPELLEE:
     return "cte";
-  case CARTOGRAPHER:
+  case MarcRelator::CARTOGRAPHER:
     return "ctg";
-  case CONTRACTOR:
+  case MarcRelator::CONTRACTOR:
     return "ctr";
-  case CONTESTEE:
+  case MarcRelator::CONTESTEE:
     return "cts";
-  case CONTESTANT_APPELLANT:
+  case MarcRelator::CONTESTANT_APPELLANT:
     return "ctt";
-  case CURATOR:
+  case MarcRelator::CURATOR:
     return "cur";
-  case COMMENTATOR_FOR_WRITTEN_TEXT:
+  case MarcRelator::COMMENTATOR_FOR_WRITTEN_TEXT:
     return "cwt";
-  case DISTIBUTION_PLACE:
+  case MarcRelator::DISTIBUTION_PLACE:
     return "dbp";
-  case DEFENDANT:
+  case MarcRelator::DEFENDANT:
     return "dfd";
-  case DEFENDANT_APPELLEE:
+  case MarcRelator::DEFENDANT_APPELLEE:
     return "dfe";
-  case DEFENDANT_APPELLANT:
+  case MarcRelator::DEFENDANT_APPELLANT:
     return "dft";
-  case DEGREE_GRANTING_INSTITUTION:
+  case MarcRelator::DEGREE_GRANTING_INSTITUTION:
     return "dgg";
-  case DEGREE_SUPERVISOR:
+  case MarcRelator::DEGREE_SUPERVISOR:
     return "dgs";
-  case DISSERTANT:
+  case MarcRelator::DISSERTANT:
     return "dis";
-  case DELINEATOR:
+  case MarcRelator::DELINEATOR:
     return "dln";
-  case DANCER:
+  case MarcRelator::DANCER:
     return "dnc";
-  case DONOR:
+  case MarcRelator::DONOR:
     return "dnr";
-  case DEPICTED:
+  case MarcRelator::DEPICTED:
     return "dpc";
-  case DEPOSITOR:
+  case MarcRelator::DEPOSITOR:
     return "dpt";
-  case DRAFTSMAN:
+  case MarcRelator::DRAFTSMAN:
     return "drm";
-  case DIRECTOR:
+  case MarcRelator::DIRECTOR:
     return "drt";
-  case DESIGNER:
+  case MarcRelator::DESIGNER:
     return "dsr";
-  case DISTRIBUTOR:
+  case MarcRelator::DISTRIBUTOR:
     return "dst";
-  case DATA_CONTRIBUTOR:
+  case MarcRelator::DATA_CONTRIBUTOR:
     return "dtc";
-  case DEDICATEE:
+  case MarcRelator::DEDICATEE:
     return "dte";
-  case DATA_MANAGER:
+  case MarcRelator::DATA_MANAGER:
     return "dtm";
-  case DEDICATOR:
+  case MarcRelator::DEDICATOR:
     return "dto";
-  case DUBIOUS_AUTHOR:
+  case MarcRelator::DUBIOUS_AUTHOR:
     return "dub";
-  case EDITOR_OF_COMPILATION:
+  case MarcRelator::EDITOR_OF_COMPILATION:
     return "edc";
-  case EDITOR_OF_MOVING_IMAGE_WORK:
+  case MarcRelator::EDITOR_OF_MOVING_IMAGE_WORK:
     return "edm";
-  case EDITOR:
+  case MarcRelator::EDITOR:
     return "edt";
-  case ENGRAVER:
+  case MarcRelator::ENGRAVER:
     return "egr";
-  case ELECTRICIAN:
+  case MarcRelator::ELECTRICIAN:
     return "elg";
-  case ELECTROTYPER:
+  case MarcRelator::ELECTROTYPER:
     return "elt";
-  case ENGINEER:
+  case MarcRelator::ENGINEER:
     return "eng";
-  case ENACTING_JURISTICTION:
+  case MarcRelator::ENACTING_JURISTICTION:
     return "enj";
-  case ETCHER:
+  case MarcRelator::ETCHER:
     return "etr";
-  case EVENT_PLACE:
+  case MarcRelator::EVENT_PLACE:
     return "evp";
-  case EXPERT:
+  case MarcRelator::EXPERT:
     return "exp";
-  case FACSIMILIST:
+  case MarcRelator::FACSIMILIST:
     return "fac";
-  case FILM_DISTRIBUTOR:
+  case MarcRelator::FILM_DISTRIBUTOR:
     return "fds";
-  case FIELD_DIRECTOR:
+  case MarcRelator::FIELD_DIRECTOR:
     return "fld";
-  case FILM_EDITOR:
+  case MarcRelator::FILM_EDITOR:
     return "flm";
-  case FILM_DIRECTOR:
+  case MarcRelator::FILM_DIRECTOR:
     return "fmd";
-  case FILM_MAKER:
+  case MarcRelator::FILM_MAKER:
     return "fmk";
-  case FORMER_OWNOR:
+  case MarcRelator::FORMER_OWNOR:
     return "fmo";
-  case FILM_PRODUCER:
+  case MarcRelator::FILM_PRODUCER:
     return "fmp";
-  case FUNDER:
+  case MarcRelator::FUNDER:
     return "fnd";
-  case FIRST_PARTY:
+  case MarcRelator::FIRST_PARTY:
     return "fpy";
-  case FORGER:
+  case MarcRelator::FORGER:
     return "frg";
-  case GEOGRAPHIC_INFORMATION_SPECIALIST:
+  case MarcRelator::GEOGRAPHIC_INFORMATION_SPECIALIST:
     return "gis";
-  case GRAPHIC_TECHNICIAN:
+  case MarcRelator::GRAPHIC_TECHNICIAN:
     return "grt"; // Discontinued
-  case HOST_INSTITUTION:
+  case MarcRelator::HOST_INSTITUTION:
     return "his";
-  case HONOREE:
+  case MarcRelator::HONOREE:
     return "hnr";
-  case HOST:
+  case MarcRelator::HOST:
     return "hst";
-  case ILLISTRATOR:
+  case MarcRelator::ILLISTRATOR:
     return "ill";
-  case ILLUMINATOR:
+  case MarcRelator::ILLUMINATOR:
     return "ilu";
-  case INSCRIBER:
+  case MarcRelator::INSCRIBER:
     return "ins";
-  case INVENTOR:
+  case MarcRelator::INVENTOR:
     return "inv";
-  case ISSUING_BODY:
+  case MarcRelator::ISSUING_BODY:
     return "isb";
-  case INSTRUMENTALIST:
+  case MarcRelator::INSTRUMENTALIST:
     return "itr";
-  case INTERVIEWEE:
+  case MarcRelator::INTERVIEWEE:
     return "ive";
-  case INTERVIEWER:
+  case MarcRelator::INTERVIEWER:
     return "ivr";
-  case JUDGE:
+  case MarcRelator::JUDGE:
     return "jud";
-  case JURISTICTION_GOVERNED:
+  case MarcRelator::JURISTICTION_GOVERNED:
     return "jug";
-  case LABORATORY:
+  case MarcRelator::LABORATORY:
     return "lbr";
-  case LIBRETTIST:
+  case MarcRelator::LIBRETTIST:
     return "lbt";
-  case LABORATORY_DIRECTOR:
+  case MarcRelator::LABORATORY_DIRECTOR:
     return "ldr";
-  case LEAD:
+  case MarcRelator::LEAD:
     return "led";
-  case LIBELLEE_APPELEE:
+  case MarcRelator::LIBELLEE_APPELEE:
     return "lee";
-  case LIBELLEE:
+  case MarcRelator::LIBELLEE:
     return "lel";
-  case LENDER:
+  case MarcRelator::LENDER:
     return "len";
-  case LIBELLEE_APPELLANT:
+  case MarcRelator::LIBELLEE_APPELLANT:
     return "let";
-  case LIGHTING_DESIGNER:
+  case MarcRelator::LIGHTING_DESIGNER:
     return "lgd";
-  case LIBELANT_APPELLEE:
+  case MarcRelator::LIBELANT_APPELLEE:
     return "lie";
-  case LIBELLANT:
+  case MarcRelator::LIBELLANT:
     return "lil";
-  case LIBELANT_APPELLANT:
+  case MarcRelator::LIBELANT_APPELLANT:
     return "lit";
-  case LANDSCAPE_ARCHITECT:
+  case MarcRelator::LANDSCAPE_ARCHITECT:
     return "lsa";
-  case LICENSEE:
+  case MarcRelator::LICENSEE:
     return "lse";
-  case LICENSOR:
+  case MarcRelator::LICENSOR:
     return "lso";
-  case LITHOGRAPHER:
+  case MarcRelator::LITHOGRAPHER:
     return "ltg";
-  case LYRICIST:
+  case MarcRelator::LYRICIST:
     return "lyr";
-  case MUSIC_COPYIST:
+  case MarcRelator::MUSIC_COPYIST:
     return "mcp";
-  case METADATA_CONTACT:
+  case MarcRelator::METADATA_CONTACT:
     return "mdc";
-  case MEDIUM:
+  case MarcRelator::MEDIUM:
     return "med";
-  case MANUFACTURE_PLACE:
+  case MarcRelator::MANUFACTURE_PLACE:
     return "mfp";
-  case MANFACTURER:
+  case MarcRelator::MANFACTURER:
     return "mfr";
-  case MODERATOR:
+  case MarcRelator::MODERATOR:
     return "mod";
-  case MONITOR:
+  case MarcRelator::MONITOR:
     return "mon";
-  case MARBLER:
+  case MarcRelator::MARBLER:
     return "mrb";
-  case MARKUP_EDITOR:
+  case MarcRelator::MARKUP_EDITOR:
     return "mrk";
-  case MUSICAL_DIRECTOR:
+  case MarcRelator::MUSICAL_DIRECTOR:
     return "msd";
-  case METAL_ENGRAVER:
+  case MarcRelator::METAL_ENGRAVER:
     return "mte";
-  case MINUTE_TAKER:
+  case MarcRelator::MINUTE_TAKER:
     return "mtk";
-  case MUSICIAN:
+  case MarcRelator::MUSICIAN:
     return "mus";
-  case NARRATOR:
+  case MarcRelator::NARRATOR:
     return "nrt";
-  case OPPONENT:
+  case MarcRelator::OPPONENT:
     return "opn";
-  case ORIGINATOR:
+  case MarcRelator::ORIGINATOR:
     return "org";
-  case ORGANISER:
+  case MarcRelator::ORGANISER:
     return "orm";
-  case ONSCREEN_PRESENTER:
+  case MarcRelator::ONSCREEN_PRESENTER:
     return "osp";
-  case OTHER:
+  case MarcRelator::OTHER:
     return "oth";
-  case OWNER:
+  case MarcRelator::OWNER:
     return "own";
-  case PANELIST:
+  case MarcRelator::PANELIST:
     return "pan";
-  case PATRON:
+  case MarcRelator::PATRON:
     return "pat";
-  case PUBLISHING_DIRECTOR:
+  case MarcRelator::PUBLISHING_DIRECTOR:
     return "pbd";
-  case PUBLISHER:
+  case MarcRelator::PUBLISHER:
     return "pbl";
-  case PROJECT_DIRECTOR:
+  case MarcRelator::PROJECT_DIRECTOR:
     return "pdr";
-  case PROOFREADER:
+  case MarcRelator::PROOFREADER:
     return "pfr";
-  case PHOTOGRAPHER:
+  case MarcRelator::PHOTOGRAPHER:
     return "pht";
-  case PLATEMAKER:
+  case MarcRelator::PLATEMAKER:
     return "plt";
-  case PERMIITIN_AGENCY:
+  case MarcRelator::PERMIITIN_AGENCY:
     return "pma";
-  case PRODUCTION_MANAGER:
+  case MarcRelator::PRODUCTION_MANAGER:
     return "pmn";
-  case PRINTER_OF_PLATES:
+  case MarcRelator::PRINTER_OF_PLATES:
     return "pop";
-  case PAPERMAKE:
+  case MarcRelator::PAPERMAKE:
     return "ppm";
-  case PUPPETEER:
+  case MarcRelator::PUPPETEER:
     return "ppt";
-  case PRAESES:
+  case MarcRelator::PRAESES:
     return "pra";
-  case PROCESS_CONTACT:
+  case MarcRelator::PROCESS_CONTACT:
     return "prc";
-  case PRODUCTION_PERSONNAL:
+  case MarcRelator::PRODUCTION_PERSONNAL:
     return "prd";
-  case PRESENTER:
+  case MarcRelator::PRESENTER:
     return "pre";
-  case PERFORMER:
+  case MarcRelator::PERFORMER:
     return "prf";
-  case PROGRAMMER:
+  case MarcRelator::PROGRAMMER:
     return "prg";
-  case PRINTMAKER:
+  case MarcRelator::PRINTMAKER:
     return "prm";
-  case PRODUCTION_COMPANY:
+  case MarcRelator::PRODUCTION_COMPANY:
     return "prn";
-  case PRODUCER:
+  case MarcRelator::PRODUCER:
     return "pro";
-  case PRODUCTION_PLACE:
+  case MarcRelator::PRODUCTION_PLACE:
     return "prp";
-  case PRODUCTION_DESIGNER:
+  case MarcRelator::PRODUCTION_DESIGNER:
     return "prs";
-  case PRINTER:
+  case MarcRelator::PRINTER:
     return "prt";
-  case PROVIDER:
+  case MarcRelator::PROVIDER:
     return "prv";
-  case PATENT_APPLICATION:
+  case MarcRelator::PATENT_APPLICATION:
     return "pta";
-  case PLAINTIFF_APPELLEE:
+  case MarcRelator::PLAINTIFF_APPELLEE:
     return "pte";
-  case Plaintiff:
+  case MarcRelator::PLAINTIFF:
     return "ptf";
-  case PatentHolder:
+  case MarcRelator::PATENT_HOLDER:
     return "pth";
-  case PlaintiffAppellant:
+  case MarcRelator::PLAINTIFF_APPELLANT:
     return "ptt";
-  case PublicationPlace:
+  case MarcRelator::PUBLICATION_PLACE:
     return "pup";
-  case Rubricator:
+  case MarcRelator::RUBRICATOR:
     return "rbr";
-  case Recordist:
+  case MarcRelator::RECORDIST:
     return "rcd";
-  case RecordingEngineer:
+  case MarcRelator::RECORDING_ENGINEER:
     return "rce";
-  case Addressee:
+  case MarcRelator::ADDRESSEE:
     return "rcp";
-  case RadioDirector:
+  case MarcRelator::RADIO_DIRECTOR:
     return "rdrelatord";
-  case Redaktor:
+  case MarcRelator::REDAKTOR:
     return "red";
-  case Renderer:
+  case MarcRelator::RENDERER:
     return "ren";
-  case Researcher:
+  case MarcRelator::RESEARCHER:
     return "res";
-  case Reviewer:
+  case MarcRelator::REVIEWER:
     return "rev";
-  case RadioProducer:
+  case MarcRelator::RADIO_PRODUCER:
     return "rpc";
-  case Repository:
+  case MarcRelator::REPOSITORY:
     return "rps";
-  case Reporter:
+  case MarcRelator::REPOSRTER:
     return "rpt";
-  case ResponsibleParty:
+  case MarcRelator::RESPONSIBLE_PARTY:
     return "rpy";
-  case RespondentAppellee:
+  case MarcRelator::RESPONDANT_APPELLEE:
     return "rse";
-  case Restager:
+  case MarcRelator::RESTAGER:
     return "rsg";
-  case Respondent:
+  case MarcRelator::RESPONDANT:
     return "rsp";
-  case Restorationist:
+  case MarcRelator::RESTORATIONIST:
     return "rsr";
-  case RespondentAppellant:
+  case MarcRelator::RESPONDANT_APPELLANT:
     return "rst";
-  case ResearchTeamHead:
+  case MarcRelator::RESEARCH_TEAM_HEAD:
     return "rth";
-  case ResearchTeamMember:
+  case MarcRelator::RESEARCH_TEAM_MEMBER:
     return "rtm";
-  case ScientificAdvisor:
+  case MarcRelator::SCIENTIFIC_ADVISOR:
     return "sad";
-  case Scenarist:
+  case MarcRelator::SCENARIST:
     return "sce";
-  case Sculptor:
+  case MarcRelator::SCULPTOR:
     return "scl";
-  case Scribe:
+  case MarcRelator::SCRIBE:
     return "scr";
-  case SoundDesigner:
+  case MarcRelator::SOUND_DESIGNER:
     return "sds";
-  case Secretary:
+  case MarcRelator::SECRETARY:
     return "sec";
-  case StageDirector:
+  case MarcRelator::STAGE_DIRECTOR:
     return "sgd";
-  case Signer:
+  case MarcRelator::SIGNER:
     return "sgn";
-  case SupportingHost:
+  case MarcRelator::SUPPORTING_HOST:
     return "sht";
-  case Seller:
+  case MarcRelator::SELLER:
     return "sll";
-  case Singer:
+  case MarcRelator::SINGER:
     return "sng";
-  case Speaker:
+  case MarcRelator::SPEAKER:
     return "spk";
-  case Sponsor:
+  case MarcRelator::SPONSOR:
     return "spn";
-  case SecondParty:
+  case MarcRelator::SECOND_PARTY:
     return "spy";
-  case Surveyor:
+  case MarcRelator::SURVEYOR:
     return "srv";
-  case SetDesigner:
+  case MarcRelator::SET_DESIGNER:
     return "std";
-  case Setting:
+  case MarcRelator::SETTING:
     return "stg";
-  case Storyteller:
+  case MarcRelator::STORYTELLER:
     return "stl";
-  case StageManager:
+  case MarcRelator::STAGE_MANAGER:
     return "stm";
-  case StandardsBody:
+  case MarcRelator::STANDARDS_BODY:
     return "stn";
-  case Stereotyper:
+  case MarcRelator::STEREOTYPER:
     return "str";
-  case TechnicalDirector:
+  case MarcRelator::TECHNICAL_DIRECTOR:
     return "tcd";
-  case Teacher:
+  case MarcRelator::TEACHER:
     return "tch";
-  case ThesisAdvisor:
+  case MarcRelator::THESIS_ADVISOR:
     return "ths";
-  case TelevisionDirector:
+  case MarcRelator::TELEVISION_DIRECTOR:
     return "tld";
-  case TelevisionProducer:
+  case MarcRelator::TELEVISION_PRODUCER:
     return "tlp";
-  case Transcriber:
+  case MarcRelator::TRANSCRIBER:
     return "trc";
-  case Translator:
+  case MarcRelator::TRANSLATOR:
     return "trl";
-  case TypeDesigner:
+  case MarcRelator::TYPE_DESIGNER:
     return "tyd";
-  case Typographer:
+  case MarcRelator::TYPOGRAPHER:
     return "tyg";
-  case UniversityPlace:
+  case MarcRelator::UNIVERSITY_PLACE:
     return "uvp";
-  case VoiceActor:
+  case MarcRelator::VOICE_ACTOR:
     return "vac";
-  case Videographer:
+  case MarcRelator::VIDEOGRAPHER:
     return "vdg";
-  case Vocalist:
+  case MarcRelator::VOCALIST:
     return "voc"; // Discontinued
-  case WriterOfAddedCommentary:
+  case MarcRelator::WRITER_OF_ADDED_COMMENTARY:
     return "wac";
-  case WriterOfAddedLyrics:
+  case MarcRelator::WRITER_OF_ADDED_LYRICS:
     return "wal";
-  case WriterOfAccompanyingMaterial:
+  case MarcRelator::WRITER_OF_ACCOMPANYING_MATERIAL:
     return "wam";
-  case WriterOfAddedText:
+  case MarcRelator::WRITER_OF_ADDED_TEXT:
     return "wat";
-  case Woodcutter:
+  case MarcRelator::WOODCUTTER:
     return "wdc";
-  case WoodEngraver:
+  case MarcRelator::WOOD_ENGRAVER:
     return "wde";
-  case WriterOfIntroduction:
+  case MarcRelator::WRITER_OF_INTRODUCTION:
     return "win";
-  case Witness:
+  case MarcRelator::WITNESS:
     return "wit";
-  case WriterOfPreface:
+  case MarcRelator::WRITER_OF_PREFACE:
     return "wpr";
-  case WriterOfSupplementaryTextualContent:
+  case MarcRelator::WRITER_OF_SUPPLEMENTARY_TEXTUAL_CONTENT:
     return "wst";
   default:
     return QString();
@@ -999,141 +999,141 @@ MarcRelator MarcRelator::fromString(QString name)
   } else if (name == "pte") {
     relator.setType(MarcRelator::PLAINTIFF_APPELLEE);
   } else if (name == "ptf") {
-    relator.setType(MarcRelator::Plaintiff);
+    relator.setType(MarcRelator::PLAINTIFF);
   } else if (name == "pth") {
-    relator.setType(MarcRelator::PatentHolder);
+    relator.setType(MarcRelator::PATENT_HOLDER);
   } else if (name == "ptt") {
-    relator.setType(MarcRelator::PlaintiffAppellant);
+    relator.setType(MarcRelator::PLAINTIFF_APPELLANT);
   } else if (name == "pup") {
-    relator.setType(MarcRelator::PublicationPlace);
+    relator.setType(MarcRelator::PUBLICATION_PLACE);
   } else if (name == "rbr") {
-    relator.setType(MarcRelator::Rubricator);
+    relator.setType(MarcRelator::RUBRICATOR);
   } else if (name == "rcd") {
-    relator.setType(MarcRelator::Recordist);
+    relator.setType(MarcRelator::RECORDIST);
   } else if (name == "rce") {
-    relator.setType(MarcRelator::RecordingEngineer);
+    relator.setType(MarcRelator::RECORDING_ENGINEER);
   } else if (name == "rcp") {
-    relator.setType(MarcRelator::Addressee);
+    relator.setType(MarcRelator::ADDRESSEE);
   } else if (name == "rdd") {
-    relator.setType(MarcRelator::RadioDirector);
+    relator.setType(MarcRelator::RADIO_DIRECTOR);
   } else if (name == "red") {
-    relator.setType(MarcRelator::Redaktor);
+    relator.setType(MarcRelator::REDAKTOR);
   } else if (name == "ren") {
-    relator.setType(MarcRelator::Renderer);
+    relator.setType(MarcRelator::RENDERER);
   } else if (name == "res") {
-    relator.setType(MarcRelator::Researcher);
+    relator.setType(MarcRelator::RESEARCHER);
   } else if (name == "rev") {
-    relator.setType(MarcRelator::Reviewer);
+    relator.setType(MarcRelator::REVIEWER);
   } else if (name == "rpc") {
-    relator.setType(MarcRelator::RadioProducer);
+    relator.setType(MarcRelator::RADIO_PRODUCER);
   } else if (name == "rps") {
-    relator.setType(MarcRelator::Repository);
+    relator.setType(MarcRelator::REPOSITORY);
   } else if (name == "rpt") {
-    relator.setType(MarcRelator::Reporter);
+    relator.setType(MarcRelator::REPOSRTER);
   } else if (name == "rpy") {
-    relator.setType(MarcRelator::ResponsibleParty);
+    relator.setType(MarcRelator::RESPONSIBLE_PARTY);
   } else if (name == "rse") {
-    relator.setType(MarcRelator::RespondentAppellee);
+    relator.setType(MarcRelator::RESPONDANT_APPELLEE);
   } else if (name == "rsg") {
-    relator.setType(MarcRelator::Restager);
+    relator.setType(MarcRelator::RESTAGER);
   } else if (name == "rsp") {
-    relator.setType(MarcRelator::Respondent);
+    relator.setType(MarcRelator::RESPONDANT);
   } else if (name == "rsr") {
-    relator.setType(MarcRelator::Restorationist);
+    relator.setType(MarcRelator::RESTORATIONIST);
   } else if (name == "rst") {
-    relator.setType(MarcRelator::RespondentAppellant);
+    relator.setType(MarcRelator::RESPONDANT_APPELLANT);
   } else if (name == "rth") {
-    relator.setType(MarcRelator::ResearchTeamHead);
+    relator.setType(MarcRelator::RESEARCH_TEAM_HEAD);
   } else if (name == "rtm") {
-    relator.setType(MarcRelator::ResearchTeamMember);
+    relator.setType(MarcRelator::RESEARCH_TEAM_MEMBER);
   } else if (name == "sad") {
-    relator.setType(MarcRelator::ScientificAdvisor);
+    relator.setType(MarcRelator::SCIENTIFIC_ADVISOR);
   } else if (name == "sce") {
-    relator.setType(MarcRelator::Scenarist);
+    relator.setType(MarcRelator::SCENARIST);
   } else if (name == "scl") {
-    relator.setType(MarcRelator::Sculptor);
+    relator.setType(MarcRelator::SCULPTOR);
   } else if (name == "scr") {
-    relator.setType(MarcRelator::Scribe);
+    relator.setType(MarcRelator::SCRIBE);
   } else if (name == "sds") {
-    relator.setType(MarcRelator::SoundDesigner);
+    relator.setType(MarcRelator::SOUND_DESIGNER);
   } else if (name == "sec") {
-    relator.setType(MarcRelator::Secretary);
+    relator.setType(MarcRelator::SECRETARY);
   } else if (name == "sgd") {
-    relator.setType(MarcRelator::StageDirector);
+    relator.setType(MarcRelator::STAGE_DIRECTOR);
   } else if (name == "sgn") {
-    relator.setType(MarcRelator::Signer);
+    relator.setType(MarcRelator::SIGNER);
   } else if (name == "sht") {
-    relator.setType(MarcRelator::SupportingHost);
+    relator.setType(MarcRelator::SUPPORTING_HOST);
   } else if (name == "sll") {
-    relator.setType(MarcRelator::Seller);
+    relator.setType(MarcRelator::SELLER);
   } else if (name == "sng") {
-    relator.setType(MarcRelator::Singer);
+    relator.setType(MarcRelator::SINGER);
   } else if (name == "spk") {
-    relator.setType(MarcRelator::Speaker);
+    relator.setType(MarcRelator::SPEAKER);
   } else if (name == "spn") {
-    relator.setType(MarcRelator::Sponsor);
+    relator.setType(MarcRelator::SPONSOR);
   } else if (name == "spy") {
-    relator.setType(MarcRelator::SecondParty);
+    relator.setType(MarcRelator::SECOND_PARTY);
   } else if (name == "srv") {
-    relator.setType(MarcRelator::Surveyor);
+    relator.setType(MarcRelator::SURVEYOR);
   } else if (name == "std") {
-    relator.setType(MarcRelator::SetDesigner);
+    relator.setType(MarcRelator::SET_DESIGNER);
   } else if (name == "stg") {
-    relator.setType(MarcRelator::Setting);
+    relator.setType(MarcRelator::SETTING);
   } else if (name == "stl") {
-    relator.setType(MarcRelator::Storyteller);
+    relator.setType(MarcRelator::STORYTELLER);
   } else if (name == "stm") {
-    relator.setType(MarcRelator::StageManager);
+    relator.setType(MarcRelator::STAGE_MANAGER);
   } else if (name == "stn") {
-    relator.setType(MarcRelator::StandardsBody);
+    relator.setType(MarcRelator::STANDARDS_BODY);
   } else if (name == "str") {
-    relator.setType(MarcRelator::Stereotyper);
+    relator.setType(MarcRelator::STEREOTYPER);
   } else if (name == "tcd") {
-    relator.setType(MarcRelator::TechnicalDirector);
+    relator.setType(MarcRelator::TECHNICAL_DIRECTOR);
   } else if (name == "tch") {
-    relator.setType(MarcRelator::Teacher);
+    relator.setType(MarcRelator::TEACHER);
   } else if (name == "ths") {
-    relator.setType(MarcRelator::ThesisAdvisor);
+    relator.setType(MarcRelator::THESIS_ADVISOR);
   } else if (name == "tld") {
-    relator.setType(MarcRelator::TelevisionDirector);
+    relator.setType(MarcRelator::TELEVISION_DIRECTOR);
   } else if (name == "tlp") {
-    relator.setType(MarcRelator::TelevisionProducer);
+    relator.setType(MarcRelator::TELEVISION_PRODUCER);
   } else if (name == "trc") {
-    relator.setType(MarcRelator::Transcriber);
+    relator.setType(MarcRelator::TRANSCRIBER);
   } else if (name == "trl") {
-    relator.setType(MarcRelator::Translator);
+    relator.setType(MarcRelator::TRANSLATOR);
   } else if (name == "tyd") {
-    relator.setType(MarcRelator::TypeDesigner);
+    relator.setType(MarcRelator::TYPE_DESIGNER);
   } else if (name == "tyg") {
-    relator.setType(MarcRelator::Typographer);
+    relator.setType(MarcRelator::TYPOGRAPHER);
   } else if (name == "uvp") {
-    relator.setType(MarcRelator::UniversityPlace);
+    relator.setType(MarcRelator::UNIVERSITY_PLACE);
   } else if (name == "vac") {
-    relator.setType(MarcRelator::VoiceActor);
+    relator.setType(MarcRelator::VOICE_ACTOR);
   } else if (name == "vdg") {
-    relator.setType(MarcRelator::Videographer);
+    relator.setType(MarcRelator::VIDEOGRAPHER);
   } else if (name == "voc") {
-    relator.setType(MarcRelator::Vocalist); // Discontinued
+    relator.setType(MarcRelator::VOCALIST); // Discontinued
   } else if (name == "wac") {
-    relator.setType(MarcRelator::WriterOfAddedCommentary);
+    relator.setType(MarcRelator::WRITER_OF_ADDED_COMMENTARY);
   } else if (name == "wal") {
-    relator.setType(MarcRelator::WriterOfAddedLyrics);
+    relator.setType(MarcRelator::WRITER_OF_ADDED_LYRICS);
   } else if (name == "wam") {
-    relator.setType(MarcRelator::WriterOfAccompanyingMaterial);
+    relator.setType(MarcRelator::WRITER_OF_ACCOMPANYING_MATERIAL);
   } else if (name == "wat") {
-    relator.setType(MarcRelator::WriterOfAddedText);
+    relator.setType(MarcRelator::WRITER_OF_ADDED_TEXT);
   } else if (name == "wdc") {
-    relator.setType(MarcRelator::Woodcutter);
+    relator.setType(MarcRelator::WOODCUTTER);
   } else if (name == "wde") {
-    relator.setType(MarcRelator::WoodEngraver);
+    relator.setType(MarcRelator::WOOD_ENGRAVER);
   } else if (name == "win") {
-    relator.setType(MarcRelator::WriterOfIntroduction);
+    relator.setType(MarcRelator::WRITER_OF_INTRODUCTION);
   } else if (name == "wit") {
-    relator.setType(MarcRelator::Witness);
+    relator.setType(MarcRelator::WITNESS);
   } else if (name == "wpr") {
-    relator.setType(MarcRelator::WriterOfPreface);
+    relator.setType(MarcRelator::WRITER_OF_PREFACE);
   } else if (name == "wst") {
-    relator.setType(MarcRelator::WriterOfSupplementaryTextualContent);
+    relator.setType(MarcRelator::WRITER_OF_SUPPLEMENTARY_TEXTUAL_CONTENT);
   } else {
     relator.setType(MarcRelator::NO_TYPE);
   }
