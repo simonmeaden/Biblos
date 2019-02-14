@@ -26,7 +26,7 @@ signals:
 public slots:
 
 protected:
-  Options *m_options, *m_oldoptions;
+  Options* m_options, *m_oldoptions;
   bool m_modified;
   QPushButton* font_btn;
   QPushButton* normal_color_btn;

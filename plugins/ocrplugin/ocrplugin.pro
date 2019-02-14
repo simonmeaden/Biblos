@@ -4,7 +4,7 @@ QT             += widgets
 CONFIG         += c++11
 
 TARGET          = ocrplugin
-DESTDIR = $$PWD/../../../build/ebookedit/ebookedit/plugins
+DESTDIR = $$OUT_PWD/..
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 1
@@ -17,23 +17,29 @@ DEFINES += \
 
 
 SOURCES += \
-        ocrplugin.cpp \
-    iocrinterface.cpp
+    ocrplugin.cpp \
+    iocrinterface.cpp \
+    scan.cpp
 
 HEADERS += \
-        ocrplugin.h \
-        ocrplugin_global.h \ 
-    iocrinterface.h
+    ocrplugin.h \
+    ocrplugin_global.h \
+    iocrinterface.h \
+    scan.h
 
 DISTFILES += \
     ocrplugin.json
 
-unix|win32: LIBS += -L$$DESTDIR/../../interface/ -linterface
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../interface/release/ -linterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../interface/debug/ -linterface
+else:unix: LIBS += -L$$OUT_PWD/../../interface/ -linterface
+
 INCLUDEPATH += $$PWD/../../interface
+DEPENDPATH += $$PWD/../../interface
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../build/scan/release/ -lscan
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../build/scan/debug/ -lscan
-else:unix: LIBS += -L$$PWD/../../../build/scan/ -lscan
-
-INCLUDEPATH += $$PWD/../../../build/scan
-DEPENDPATH += $$PWD/../../../build/scan
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../interface/release/libinterface.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../interface/debug/libinterface.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../interface/release/interface.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../interface/debug/interface.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../interface/libinterface.a

@@ -10,7 +10,7 @@ class EBookTOCWidget : public QTextBrowser
 {
   Q_OBJECT
 public:
-  EBookTOCWidget(QWidget* parent = Q_NULLPTR);
+  EBookTOCWidget(QWidget* parent = nullptr);
 
   void setDocumentString(QString document_string);
   void enableHtmlMenuItem(bool enable);

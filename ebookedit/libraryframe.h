@@ -7,7 +7,8 @@
 #include <QTreeWidget>
 #include <QWidget>
 
-class Options;
+#include "options.h"
+
 class LibraryShelf;
 
 class LibraryFrame : public QWidget
@@ -15,6 +16,7 @@ class LibraryFrame : public QWidget
   Q_OBJECT
 public:
   explicit LibraryFrame(Options* options, QWidget* parent = nullptr);
+  ~LibraryFrame();
 
   void setToShelf();
   void setToTree();

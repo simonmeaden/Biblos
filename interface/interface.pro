@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += gui
+QT       += gui xml svg
 
 TARGET = interface
 TEMPLATE = lib
@@ -20,7 +20,11 @@ CONFIG += c++11
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-DESTDIR = $$PWD/../../build/manuscript/interface
+#DESTDIR = $$PWD/../../build/biblios
+#OBJECTS_DIR = $$DESTDIR/build/.objd
+#MOC_DIR = $$DESTDIR/build/.mocd
+#RCC_DIR = $$DESTDIR/build/.qrcd
+#UI_DIR = $$DESTDIR/build/.uid
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -32,7 +36,11 @@ SOURCES +=  \
     options.cpp \
     marcrelator.cpp \
     dcterms.cpp \
-    foaf.cpp
+    foaf.cpp \
+    library.cpp \
+    authors.cpp \
+    ebookmetadata.cpp \
+    ebookbasemetadata.cpp
 
 HEADERS += \
     interface_global.h \
@@ -44,7 +52,11 @@ HEADERS += \
     options.h \
     marcrelator.h \
     dcterms.h \
-    foaf.h
+    foaf.h \
+    library.h \
+    authors.h \
+    ebookmetadata.h \
+    ebookbasemetadata.h
 
 DISTFILES += \
     spellinterface.json \
@@ -52,10 +64,6 @@ DISTFILES += \
     plugininterface.json
 
 
-# EBOOK library
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebookd
-else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
+unix|win32: LIBS += -lqyaml-cpp
 
-INCLUDEPATH += $$PWD/../ebook
-DEPENDPATH += $$PWD/../ebook
+unix|win32: LIBS += -lyaml-cpp

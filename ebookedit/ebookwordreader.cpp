@@ -8,7 +8,7 @@ using namespace qlogger;
 
 EBookWordReader::EBookWordReader(EBookEditor *editor, QObject *parent)
     : QThread(parent), m_running(true), m_document_loaded(false),
-      m_editor(editor), m_document(Q_NULLPTR) {}
+      m_editor(editor), m_document(nullptr) {}
 
 EBookWordReader::~EBookWordReader() {}
 

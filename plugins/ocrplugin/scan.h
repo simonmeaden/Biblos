@@ -1,9 +1,9 @@
 #ifndef SCAN_H
 #define SCAN_H
 
-#include "scan_global.h"
+#include "ocrplugin_global.h"
 
-class SCANSHARED_EXPORT Scan
+class OCRPLUGINSHARED_EXPORT Scan
 {
 
 public:

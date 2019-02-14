@@ -3,6 +3,8 @@
 QString Options::POSITION = "window";
 QString Options::DIALOG = "options dialog";
 QString Options::PREF_CURRENT_INDEX = "current book";
+QString Options::PREF_CURRENT_ITEMS = "current book item";
+QString Options::PREF_CURRENT_LINE_NOS = "current book line nos";
 QString Options::PREF_COUNT = "count";
 QString Options::PREF_BOOKLIST = "book list";
 QString Options::PREF_LIBRARY = "library list";
@@ -66,7 +68,7 @@ Options::~Options()
 void Options::save(const QString filename)
 {
   QFile file(filename);
-  if (m_prefchanged) {
+  if (m_pref_changed) {
     if (file.open((QFile::ReadWrite | QFile::Truncate))) {
       YAML::Emitter emitter;
       {
@@ -306,7 +308,7 @@ void Options::load(const QString filename)
     m_rect = QRect(DEF_X, DEF_Y, DEF_WIDTH, DEF_HEIGHT);
     m_currentindex = -1;
     m_current_files = QStringList();
-    m_prefchanged = true;
+    m_pref_changed = true;
   }
 }
 
@@ -318,7 +320,7 @@ Options::TocPosition Options::tocPosition() const
 void Options::setTocPosition(const TocPosition position)
 {
   m_toc_position = position;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::tocVisible() const
@@ -329,7 +331,7 @@ bool Options::tocVisible() const
 void Options::setTocVisible(const bool visible)
 {
   m_toc_visible = visible;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QString Options::codeOptionToString(const CodeOptions options)
@@ -386,7 +388,7 @@ QColor Options::normalColor() const
 void Options::setNormalColor(const QColor& normal_color)
 {
   m_normal_color = normal_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::normalBack() const
@@ -397,7 +399,7 @@ QColor Options::normalBack() const
 void Options::setNormalBack(const QColor& normal_back)
 {
   m_normal_back = normal_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::normalItalic() const
@@ -408,7 +410,7 @@ bool Options::normalItalic() const
 void Options::setNormalItalic(bool normal_italic)
 {
   m_normal_italic = normal_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont Options::codeFont() const
@@ -419,7 +421,7 @@ QFont Options::codeFont() const
 void Options::setCodeFont(const QFont& code_font)
 {
   m_code_font = code_font;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::normalWeight() const
@@ -430,7 +432,7 @@ QFont::Weight Options::normalWeight() const
 void Options::setNormalWeight(const QFont::Weight& normal_weight)
 {
   m_normal_weight = normal_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::attributeColor() const
@@ -441,7 +443,7 @@ QColor Options::attributeColor() const
 void Options::setAttributeColor(const QColor& attribute_color)
 {
   m_attribute_color = attribute_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::attributeBack() const
@@ -452,7 +454,7 @@ QColor Options::attributeBack() const
 void Options::setAttributeBack(const QColor& attribute_back)
 {
   m_attribute_back = attribute_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::attributeItalic() const
@@ -463,7 +465,7 @@ bool Options::attributeItalic() const
 void Options::setAttribute_italic(bool attribute_italic)
 {
   m_attribute_italic = attribute_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::attributeWeight() const
@@ -474,7 +476,7 @@ QFont::Weight Options::attributeWeight() const
 void Options::setAttributeWeight(const QFont::Weight& attribute_weight)
 {
   m_attribute_weight = attribute_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::tagColor() const
@@ -485,7 +487,7 @@ QColor Options::tagColor() const
 void Options::setTagColor(const QColor& tag_color)
 {
   m_tag_color = tag_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::tagBack() const
@@ -496,7 +498,7 @@ QColor Options::tagBack() const
 void Options::setTagBack(const QColor& tag_back)
 {
   m_tag_back = tag_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::tagItalic() const
@@ -507,7 +509,7 @@ bool Options::tagItalic() const
 void Options::setTagItalic(bool tag_italic)
 {
   m_tag_italic = tag_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::tagWeight() const
@@ -518,7 +520,7 @@ QFont::Weight Options::tagWeight() const
 void Options::setTagWeight(const QFont::Weight& tag_weight)
 {
   m_tag_weight = tag_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::stringColor() const
@@ -529,7 +531,7 @@ QColor Options::stringColor() const
 void Options::setStringColor(const QColor& string_color)
 {
   m_string_color = string_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::stringBack() const
@@ -540,7 +542,7 @@ QColor Options::stringBack() const
 void Options::setStringBack(const QColor& string_back)
 {
   m_string_back = string_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::stringItalic() const
@@ -551,7 +553,7 @@ bool Options::stringItalic() const
 void Options::setStringItalic(bool string_italic)
 {
   m_string_italic = string_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::stringWeight() const
@@ -562,7 +564,7 @@ QFont::Weight Options::stringWeight() const
 void Options::setStringWeight(const QFont::Weight& string_weight)
 {
   m_string_weight = string_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::errorColor() const
@@ -573,7 +575,7 @@ QColor Options::errorColor() const
 void Options::setErrorColor(const QColor& error_color)
 {
   m_error_color = error_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::errorBack() const
@@ -584,7 +586,7 @@ QColor Options::errorBack() const
 void Options::setErrorBack(const QColor& error_back)
 {
   m_error_back = error_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::errorItalic() const
@@ -595,7 +597,7 @@ bool Options::errorItalic() const
 void Options::setErrorItalic(bool error_italic)
 {
   m_error_italic = error_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::errorWeight() const
@@ -606,7 +608,7 @@ QFont::Weight Options::errorWeight() const
 void Options::setErrorWeight(const QFont::Weight& error_weight)
 {
   m_error_weight = error_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::scriptColor() const
@@ -617,7 +619,7 @@ QColor Options::scriptColor() const
 void Options::setScriptColor(const QColor& script_color)
 {
   m_script_color = script_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::scriptBack() const
@@ -628,7 +630,7 @@ QColor Options::scriptBack() const
 void Options::setScriptBack(const QColor& script_back)
 {
   m_script_back = script_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::scriptItalic() const
@@ -639,7 +641,7 @@ bool Options::scriptItalic() const
 void Options::setScriptItalic(bool script_italic)
 {
   m_script_italic = script_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::scriptWeight() const
@@ -650,7 +652,7 @@ QFont::Weight Options::scriptWeight() const
 void Options::setScriptWeight(const QFont::Weight& script_weight)
 {
   m_script_weight = script_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::styleColor() const
@@ -661,7 +663,7 @@ QColor Options::styleColor() const
 void Options::setStyleColor(const QColor& style_color)
 {
   m_style_color = style_color;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::styleBack() const
@@ -672,7 +674,7 @@ QColor Options::styleBack() const
 void Options::setStyleBack(const QColor& style_back)
 {
   m_style_back = style_back;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::styleItalic() const
@@ -683,7 +685,7 @@ bool Options::styleItalic() const
 void Options::setStyleItalic(bool style_italic)
 {
   m_style_italic = style_italic;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QFont::Weight Options::styleWeight() const
@@ -694,7 +696,7 @@ QFont::Weight Options::styleWeight() const
 void Options::setStyleWeight(const QFont::Weight& style_weight)
 {
   m_style_weight = style_weight;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QRect Options::rect() const
@@ -705,7 +707,7 @@ QRect Options::rect() const
 void Options::setRect(const QRect& rect)
 {
   m_rect = rect;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QSize Options::optionsDlgSize() const
@@ -716,7 +718,7 @@ QSize Options::optionsDlgSize() const
 void Options::setOptionsDlgSize(const QSize& options_dlg)
 {
   m_options_dlg_size = options_dlg;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 int Options::currentIndex() const
@@ -727,7 +729,7 @@ int Options::currentIndex() const
 void Options::setCurrentIndex(const int index)
 {
   m_currentindex = index;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 bool Options::currentFilesContains(const QString filename)
@@ -739,7 +741,7 @@ void Options::appendCurrentFile(const QString filename)
 {
   if (!m_current_files.contains(filename)) {
     m_current_files.append(filename);
-    m_prefchanged = true;
+    m_pref_changed = true;
   }
 }
 
@@ -761,7 +763,7 @@ Options::ViewState Options::viewState() const
 void Options::setViewState(const Options::ViewState& view_state)
 {
   m_view_state = view_state;
-  m_prefchanged = true;
+  m_pref_changed = true;
 }
 
 QColor Options::color(const CodeOptions options) const
@@ -790,31 +792,31 @@ void Options::setColor(const CodeOptions options, const QColor color)
   switch (options) {
   case Options::NORMAL:
     m_normal_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::TAG:
     m_tag_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ATTRIBUTE:
     m_attribute_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ERROR:
     m_error_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STRING:
     m_string_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::SCRIPT:
     m_script_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STYLE:
     m_style_color = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   }
 }
@@ -845,31 +847,31 @@ void Options::setBackground(const CodeOptions options, const QColor color)
   switch (options) {
   case Options::NORMAL:
     m_normal_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::TAG:
     m_tag_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ATTRIBUTE:
     m_attribute_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ERROR:
     m_error_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STRING:
     m_string_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::SCRIPT:
     m_script_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STYLE:
     m_style_back = color;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   }
 }
@@ -900,31 +902,31 @@ void Options::setItalic(const CodeOptions options, const bool italic)
   switch (options) {
   case Options::NORMAL:
     m_normal_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::TAG:
     m_tag_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ATTRIBUTE:
     m_attribute_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ERROR:
     m_error_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STRING:
     m_string_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::SCRIPT:
     m_script_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STYLE:
     m_style_italic = italic;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   }
 }
@@ -955,31 +957,31 @@ void Options::setWeight(const CodeOptions options, const QFont::Weight weight)
   switch (options) {
   case Options::NORMAL:
     m_normal_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::TAG:
     m_tag_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::ATTRIBUTE:
-    m_prefchanged = true;
+    m_pref_changed = true;
     m_attribute_weight = weight;
     break;
   case Options::ERROR:
     m_error_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STRING:
     m_string_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::SCRIPT:
     m_script_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   case Options::STYLE:
     m_style_weight = weight;
-    m_prefchanged = true;
+    m_pref_changed = true;
     break;
   }
 }

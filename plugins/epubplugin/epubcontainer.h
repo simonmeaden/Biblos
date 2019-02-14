@@ -11,337 +11,64 @@
 #include <QSet>
 #include <QSharedPointer>
 #include <QStringList>
+#include <QStringLiteral>
+#include <QTextStream>
 #include <QVector>
 #include <QtSvg>
 
 #include <quazip5/quazip.h>
 #include <quazip5/quazipfile.h>
 
+#include "authors.h"
 #include "dcterms.h"
 #include "ebookcommon.h"
 #include "foaf.h"
+#include "library.h"
 #include "marcrelator.h"
+
+#include <ebookmetadata.h>
 
 class QXmlStreamReader;
 
-typedef QSharedPointer<QDomDocument> SharedDomDocument;
-typedef QSharedPointer<QImage> SharedImage;
-typedef QMap<QString, SharedImage> SharedImageMap;
-typedef QSharedPointer<QTextCursor> SharedTextCursor;
+// struct EBookMetadata {
 
-class EPubModified
-{
-public:
-  QDateTime date;
-  QString id;
-};
+//  EBookMetadata();
 
-class EPubBaseMetadata
-{
-  EPubModified modified;
-};
-typedef QSharedPointer<EPubBaseMetadata> SharedBaseMetadata;
-
-struct AltRep {
-  QString alt_rep;
-  QString alt_rep_lang;
-};
-typedef QSharedPointer<AltRep> SharedAltRep;
-typedef QList<SharedAltRep> SharedAltRepList;
-
-struct FileAs {
-  QString file_as;
-  QString lang;
-};
-typedef QSharedPointer<FileAs> SharedFileAs;
-typedef QList<SharedFileAs> SharedFileAsList;
-
-struct EPubTitle : public EPubBaseMetadata {
-  EPubTitle()
-  {
-  }
-  //  QString title_type;
-  QString id;
-  QString title;
-  QString dir;
-  QString lang;
-  SharedAltRepList alt_rep_list;
-  SharedFileAsList file_as_list;
-  QDateTime date;
-};
-typedef QSharedPointer<EPubTitle> SharedTitle;
-typedef QMap<QString, SharedTitle> SharedTitleMap;
-typedef QMap<int, SharedTitle> OrderedTitleMap;
-
-class EPubIdentifierScheme
-{
-public:
-  enum IdentifierScheme {
-    DOI,
-    ISBN,
-    JDCN,
-    UUID,
-    AMAZON,
-    CALIBRE,
-    UNKNOWN_SCHEME,
-  };
-
-  EPubIdentifierScheme()
-  {
-    scheme = IdentifierScheme::UNKNOWN_SCHEME;
-  }
-
-  IdentifierScheme scheme;
-
-  static EPubIdentifierScheme fromString(QString scheme_type)
-  {
-    QString type = scheme_type.toLower();
-    EPubIdentifierScheme scheme;
-    if (type == "doi") {
-      scheme.scheme = DOI;
-    } else if (type == "isbn") {
-      scheme.scheme = ISBN;
-    } else if (type == "jdcn") {
-      scheme.scheme = JDCN;
-    } else if (type == "uuid") {
-      scheme.scheme = UUID;
-    } else if (type == "mobi-asin") {
-      scheme.scheme = AMAZON;
-    } else if (type == "calibre") {
-      scheme.scheme = CALIBRE;
-    } else {
-      scheme.scheme = UNKNOWN_SCHEME;
-    }
-    return scheme;
-  }
-  static QString toString(EPubIdentifierScheme::IdentifierScheme scheme)
-  {
-    switch (scheme) {
-    case DOI:
-      return "doi";
-    case ISBN:
-      return "isbn";
-    case JDCN:
-      return "jdcn";
-    case UUID:
-      return "uuid";
-    case AMAZON:
-      return "mobi-asin";
-    case CALIBRE:
-      return "calibre";
-    default:
-      return QString();
-    }
-  }
-};
-
-class EPubIdentifier
-{
-public:
-  QString name;
-  QString id;
-  EPubIdentifierScheme identifier;
-};
-typedef QSharedPointer<EPubIdentifier> SharedIdentifier;
-typedef QMap<EPubIdentifierScheme::IdentifierScheme, SharedIdentifier>
-SharedIdentifierMap;
-
-class EPubLanguage
-{
-public:
-  QString id;
-  QString language;
-};
-typedef QSharedPointer<EPubLanguage> SharedLanguage;
-typedef QMap<QString, SharedLanguage> SharedLanguageMap;
-
-class EPubSubject
-{
-public:
-  QString id;
-  QString subject;
-  QString authority;
-  QString term;
-  QString lang;
-  QString dir;
-};
-typedef QSharedPointer<EPubSubject> SharedSubject;
-typedef QMap<QString, SharedSubject> SharedSubjectMap;
-
-class EPubSource
-{
-public:
-  QString source;
-  QString id;
-  EPubIdentifierScheme scheme;
-};
-typedef QSharedPointer<EPubSource> SharedSource;
-typedef QMap<QString, SharedSource> SharedSourceMap;
-
-struct EPubPublisher {
-  QString name;
-  SharedFileAs file_as;
-  QString dir;
-  QString id;
-  SharedAltRep alt_rep;
-  QString lang;
-};
-typedef QSharedPointer<EPubPublisher> SharedPublisher;
-
-struct EPubRelation {
-  QString name;
-  QString dir;
-  QString id;
-  QString lang;
-};
-typedef QSharedPointer<EPubRelation> SharedRelation;
-
-struct EPubRights {
-  QString name;
-  QString dir;
-  QString id;
-  QString lang;
-};
-typedef QSharedPointer<EPubRights> SharedRights;
-
-struct EPubCoverage {
-  QString name;
-  QString dir;
-  QString id;
-  QString lang;
-};
-typedef QSharedPointer<EPubCoverage> SharedCoverage;
-
-struct EPubFormat {
-  QString name;
-  QString id;
-};
-typedef QSharedPointer<EPubFormat> SharedFormat;
-
-struct EPubType {
-  QString name;
-  QString id;
-};
-typedef QSharedPointer<EPubType> SharedType;
-
-class EPubCreator : public EPubBaseMetadata
-{
-public:
-  enum SchemeType {
-    dcterms,
-    marc,
-    media,
-    onyx,
-    xsd,
-    string_scheme_type,
-  };
-  EPubCreator()
-  {
-  }
-
-  QString name;
-  SharedFileAsList file_as_list;
-  QString id;
-  SharedAltRepList alt_rep_list;
-  QDateTime date;
-
-  MarcRelator relator;
-  QString string_creator;
-  QString string_scheme;
-  QList<Foaf> foaf;
-  //  Foaf foaf;
-
-  static SchemeType fromSchemeString(QString type)
-  {
-    if (type == "dcterms") {
-      return SchemeType::dcterms;
-    } else if (type == "marc") { // TODO - The only one supported at the present
-      return SchemeType::marc;
-    } else if (type == "media") {
-      return SchemeType::media;
-    } else if (type == "onyx") {
-      return SchemeType::onyx;
-    } else if (type == "xsd") {
-      return SchemeType::xsd;
-    } else {
-      return SchemeType::string_scheme_type;
-    }
-  }
-};
-
-class EPubContributor : public EPubCreator
-{
-  // Actually identical - convenience class
-};
-
-typedef QSharedPointer<EPubCreator> SharedCreator;
-typedef QMultiMap<QString, SharedCreator> SharedCreatorMap;
-typedef QList<QString> CreatorList;
-typedef QSharedPointer<EPubContributor> SharedContributor;
-typedef QMultiMap<QString, SharedContributor> SharedContributorMap;
-
-struct EPubDescription {
-  QString id;
-  QString text;
-  QString dir;
-  QString language;
-};
-typedef QSharedPointer<EPubDescription> SharedDescription;
-typedef QMultiMap<QString, SharedDescription> SharedDescriptionMap;
-
-struct Calibre {
-  QString series_name;
-  QString series_index;
-  QString title_sort;
-  QString author_link_map;
-  QString timestamp;
-  QString rating;
-  QString publication_type;
-  QString user_metadata;
-  QString user_categories;
-  QString custom_metadata;
-};
-
-struct EPubMetadata {
-
-  EPubMetadata()
-    : is_foaf(false)
-  {
-  }
-
-  SharedIdentifierMap identifiers;
-  SharedTitleMap titles_by_id;
-  SharedTitleMap titles_by_name;
-  OrderedTitleMap ordered_titles;
-  SharedCreatorMap creators_by_id;
-  SharedCreatorMap creators_by_name;
-  //  SharedCreatorMap creators_by_name;
-  SharedContributorMap contributors_by_id;
-  SharedContributorMap contributors_by_name;
-  SharedDescription description;
-  CreatorList creator_list;
-  SharedLanguageMap languages;
-  SharedSubjectMap subjects;
-  EPubModified modified;
-  QDateTime date;
-  SharedSource source;
-  SharedPublisher publisher;
-  SharedFormat format;
-  SharedRelation relation;
-  SharedCoverage coverage;
-  SharedRights rights;
-  SharedType type;
-  QMap<QString, QString> extra_metas;
-  Calibre calibre;
-  bool is_foaf;
-};
-typedef QSharedPointer<EPubMetadata> SharedMetadata;
+//  SharedIdentifierMap identifiers;
+//  SharedTitleMap titles_by_id;
+//  SharedTitleMap titles_by_name;
+//  OrderedTitleMap ordered_titles;
+//  SharedCreatorMap creators_by_id;
+//  SharedCreatorMap creators_by_name;
+//  //  SharedCreatorMap creators_by_name;
+//  SharedContributorMap contributors_by_id;
+//  SharedContributorMap contributors_by_name;
+//  SharedDescription description;
+//  CreatorList creator_list;
+//  SharedLanguageMap languages;
+//  SharedSubjectMap subjects;
+//  EPubModified modified;
+//  QDateTime date;
+//  SharedSource source;
+//  SharedPublisher publisher;
+//  SharedFormat format;
+//  SharedRelation relation;
+//  SharedCoverage coverage;
+//  SharedRights rights;
+//  SharedType type;
+//  QMap<QString, QString> extra_metas;
+//  Calibre calibre;
+//  bool is_foaf;
+//};
+// typedef QSharedPointer<EBookMetadata> SharedMetadata;
 
 struct EPubManifestItem {
   QString href;
   QString path;
   //  SharedDomDocument dom_document;
   QString document_string;
+  QStringList css_links;
+  QString body_class;
   // these should point to the start and end of each chapter block;
   //  SharedTextCursor start, end;
   QTextCursor start_cursor, end_cursor;
@@ -546,10 +273,12 @@ class EPubContainer : public QObject
 {
   Q_OBJECT
 public:
-  explicit EPubContainer(QObject* parent = Q_NULLPTR);
+  explicit EPubContainer(QObject* parent = nullptr);
   ~EPubContainer();
 
   bool loadFile(const QString path);
+  QString filename();
+  void setFilename(QString filename);
   bool saveFile();
   bool closeFile();
   //  QByteArray epubItem(const QString& id) const;
@@ -573,17 +302,6 @@ public:
   EPubManifest manifest();
 
   QString buildTocfromHtml();
-  void writeCreator(QXmlStreamWriter* xml_writer, SharedCreator shared_creator);
-  void writeContributor(QXmlStreamWriter* xml_writer,
-                        SharedCreator shared_creator);
-
-  void parseTitleDateRefines(SharedTitle shared_title,
-                             QDomElement& metadata_element);
-
-  void parseCreatorContributorRefines(SharedCreator shared_creator,
-                                      QDomElement& metadata_element, QString id,
-                                      QString property,
-                                      QDomNamedNodeMap node_map);
 
 signals:
   void errorHappened(const QString& error);
@@ -593,8 +311,6 @@ public slots:
 protected:
   // Base epub data
   int m_version;
-  QString m_package_unique_identifier_name;
-  QString m_package_unique_identifier;
   QString m_package_xmlns;
   QString m_package_language;
   QString m_package_prefix;
@@ -607,6 +323,8 @@ protected:
   QString m_container_xmlns;
   QString m_container_fullpath;
   QString m_container_mediatype;
+  LibraryDB* m_library;
+  AuthorsDB* m_authors;
 
   bool parseMimetype();
   bool writeMimetype(QuaZip* save_zip);
@@ -614,10 +332,12 @@ protected:
   bool writeContainer(QuaZip* save_zip);
   bool parsePackageFile(QString& full_path);
   bool writePackageFile(QuaZip* save_zip);
-  bool writeMetadata(QXmlStreamWriter* xml_writer);
-  bool parseMetadataItem(const QDomNode& metadata_node);
+
   bool parseManifestItem(const QDomNode& manifest_node,
                          const QString current_folder);
+  void extractHeadInformationFromHtmlFile(SharedManifestItem item,
+                                          QString container);
+
   SharedSpineItem parseSpineItem(const QDomNode& metadata_element,
                                  SharedSpineItem item);
   bool saveSpineItem();
@@ -630,7 +350,7 @@ protected:
 
   const QuaZip* getFile(const QString& path);
 
-  QuaZip* m_archive = Q_NULLPTR;
+  QuaZip* m_archive = nullptr;
   QString m_filename;
   QStringList m_files;
 
@@ -647,65 +367,8 @@ protected:
   QMap<QString, QDomElement*> m_metadata_nodes;
   int m_toc_chapter_index;
 
-  void parseTitleMetadata(QDomElement metadata_element);
-  void parseCreatorMetadata(QDomElement metadata_element);
-  void parseContributorMetadata(QDomElement metadata_element);
-  void parseDescriptionMetadata(QDomElement metadata_element);
-  void parseIdentifierMetadata(QDomElement metadata_element);
-  void parseLanguageMetadata(QDomElement metadata_element);
-  void parseSubjectMetadata(QDomElement metadata_element);
-  void parseDateModified(QDomNamedNodeMap node_map, QString text);
-  void parseSourceMetadata(const QDomElement& metadata_element);
-  void parsePublisherMetadata(const QDomElement& metadata_element);
-  void parseFormatMetadata(const QDomElement& metadata_element);
-  void parseTypeMetadata(const QDomElement& metadata_element);
-  void parseRelationMetadata(const QDomElement& metadata_element);
-  void parseCoverageMetadata(const QDomElement& metadata_element);
-  void parseRightsMetadata(const QDomElement& metadata_element);
   SharedTocItem parseNavPoint(QDomElement navpoint,
                               QString& formatted_toc_data);
-  void parseDublinCoreMeta(QString tag_name, QDomElement& metadata_element,
-                           QDomNamedNodeMap& node_map);
-  void parseOpfMeta(QString tag_name, QDomElement& metadata_element,
-                    QDomNamedNodeMap&);
-  void parseCalibreMetas(QString id, QDomNode& node);
-  void parseRefineMetas(QDomElement& metadata_element, QDomNode& node,
-                        QDomNamedNodeMap& node_map);
-
-  QString writeTitleMetadata(QXmlStreamWriter* xml_writer, int key);
-  void writeDescriptionMetadata(QXmlStreamWriter* xml_writer);
-  QString writeCreatorsMetadata(QXmlStreamWriter* xml_writer, QString key);
-  QString writeContributorMetadata(QXmlStreamWriter* xml_writer, QString key);
-  void writeLanguageMetadata(QXmlStreamWriter* xml_writer, QString key,
-                             bool first = false);
-  void writeSubjectMetadata(QXmlStreamWriter* xml_writer, QString key);
-  void writeIdentifierMetadata(QXmlStreamWriter* xml_writer,
-                               EPubIdentifierScheme::IdentifierScheme key);
-  void writeSourceMetadata(QXmlStreamWriter* xml_writer);
-  void writePublisherMetadata(QXmlStreamWriter* xml_writer);
-  void writeFormatMetadata(QXmlStreamWriter* xml_writer);
-  void writeRelationMetadata(QXmlStreamWriter* xml_writer);
-  void writeRightsMetadata(QXmlStreamWriter* xml_writer);
-  void writeCoverageMetadata(QXmlStreamWriter* xml_writer);
-
-  int getNextTitleIndex();
-  void writetitle(QXmlStreamWriter* xml_writer, SharedTitle shared_title);
-  QString writeCreatorContibutor(QString tag_name, QXmlStreamWriter* xml_writer,
-                                 QString key);
-  void writeCreatorContributor(QString tag_name, QXmlStreamWriter* xml_writer,
-                               SharedCreator shared_creator);
-  void writeIdAttribute(QXmlStreamWriter* xml_writer, QString id);
-  void writeDirAttribute(QXmlStreamWriter* xml_writer, QString dir);
-  void writeLangAttribute(QXmlStreamWriter* xml_writer, QString dir);
-  void writeAuthorityAttribute(QXmlStreamWriter* xml_writer, QString authority,
-                               QString term);
-  void writeAltRepAttribute(QXmlStreamWriter* xml_writer, QString alt_rep,
-                            QString alt_rep_lang);
-  void writeFileAsAttribute(QXmlStreamWriter* xml_writer, QString file_as,
-                            QString lang);
-  void writeRoleAttribute(QXmlStreamWriter* xml_writer, MarcRelator relator);
-  void writeSchemeAttribute(QXmlStreamWriter* xml_writer,
-                            EPubIdentifierScheme scheme);
 
   void createAnchorPointForChapter(SharedTocItem toc_item,
                                    SharedManifestItem manifest_item);
@@ -730,6 +393,11 @@ protected:
   static const QString LIST_ITEM;
   static const QString LIST_BUILD_ITEM;
   static const QString LIST_FILEPOS;
+
+  static const QString HTML_DOCTYPE;
+  static const QString XML_HEADER;
+  static const QString HTML_XMLNS;
+  //  static const QString HEAD_META_CONTENT;
 };
 
 #endif // EPUBCONTAINER_H

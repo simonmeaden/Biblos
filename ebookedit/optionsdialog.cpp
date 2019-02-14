@@ -5,19 +5,19 @@ const QString OptionsDialog::BTN_STYLE =
 
 OptionsDialog::OptionsDialog(Options* options, QWidget* parent) :
   QDialog(parent), m_options(options), m_oldoptions(options),
-  m_modified(false), normal_color_btn(Q_NULLPTR), normalBackBtn(Q_NULLPTR),
-  normalItalicBox(Q_NULLPTR), normalWeightBox(Q_NULLPTR),
-  attColorBtn(Q_NULLPTR), attBackBtn(Q_NULLPTR), attItalicBox(Q_NULLPTR),
-  attWeightBox(Q_NULLPTR), tagColorBtn(Q_NULLPTR), tagBackBtn(Q_NULLPTR),
-  tagItalicBox(Q_NULLPTR), tagWeightBox(Q_NULLPTR), stringColorBtn(Q_NULLPTR),
-  stringBackBtn(Q_NULLPTR), stringItalicBox(Q_NULLPTR),
-  stringWeightBox(Q_NULLPTR), errorColorBtn(Q_NULLPTR),
-  errorBackBtn(Q_NULLPTR), errorItalicBox(Q_NULLPTR),
-  errorWeightBox(Q_NULLPTR), styleColorBtn(Q_NULLPTR),
-  styleBackBtn(Q_NULLPTR), styleItalicBox(Q_NULLPTR),
-  styleWeightBox(Q_NULLPTR), scriptColorBtn(Q_NULLPTR),
-  scriptBackBtn(Q_NULLPTR), scriptItalicBox(Q_NULLPTR),
-  scriptWeightBox(Q_NULLPTR)
+  m_modified(false), normal_color_btn(nullptr), normalBackBtn(nullptr),
+  normalItalicBox(nullptr), normalWeightBox(nullptr),
+  attColorBtn(nullptr), attBackBtn(nullptr), attItalicBox(nullptr),
+  attWeightBox(nullptr), tagColorBtn(nullptr), tagBackBtn(nullptr),
+  tagItalicBox(nullptr), tagWeightBox(nullptr), stringColorBtn(nullptr),
+  stringBackBtn(nullptr), stringItalicBox(nullptr),
+  stringWeightBox(nullptr), errorColorBtn(nullptr),
+  errorBackBtn(nullptr), errorItalicBox(nullptr),
+  errorWeightBox(nullptr), styleColorBtn(nullptr),
+  styleBackBtn(nullptr), styleItalicBox(nullptr),
+  styleWeightBox(nullptr), scriptColorBtn(nullptr),
+  scriptBackBtn(nullptr), scriptItalicBox(nullptr),
+  scriptWeightBox(nullptr)
 {
   initGui();
 
@@ -289,7 +289,7 @@ QPushButton* OptionsDialog::getColorBtn(Options::CodeOptions options)
     return styleColorBtn;
   }
   }
-  return Q_NULLPTR;
+  return nullptr;
 }
 
 QPushButton* OptionsDialog::getBackgroundBtn(Options::CodeOptions options)
@@ -338,7 +338,7 @@ QPushButton* OptionsDialog::getBackgroundBtn(Options::CodeOptions options)
     return styleBackBtn;
   }
   }
-  return Q_NULLPTR;
+  return nullptr;
 }
 
 QCheckBox* OptionsDialog::getItalicBox(Options::CodeOptions options)
@@ -387,7 +387,7 @@ QCheckBox* OptionsDialog::getItalicBox(Options::CodeOptions options)
     return styleItalicBox;
   }
   }
-  return Q_NULLPTR;
+  return nullptr;
 }
 
 QComboBox* OptionsDialog::getWeightBox(Options::CodeOptions options)
@@ -436,7 +436,7 @@ QComboBox* OptionsDialog::getWeightBox(Options::CodeOptions options)
     return styleWeightBox;
   }
   }
-  return Q_NULLPTR;
+  return nullptr;
 }
 
 QString OptionsDialog::convertColorToStyle(QColor color, QColor back)

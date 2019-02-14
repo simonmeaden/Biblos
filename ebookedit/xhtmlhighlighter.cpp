@@ -3,15 +3,15 @@
 using namespace qlogger;
 
 // XhtmlHighlighter::TagNode::TagNode()
-//  : prev_node(Q_NULLPTR)
-//  , next_node(Q_NULLPTR)
+//  : prev_node(nullptr)
+//  , next_node(nullptr)
 //{}
 
 XhtmlHighlighter::XhtmlHighlighter(Options* options, QTextDocument* parent)
   : QSyntaxHighlighter(parent)
   , m_error(false)
   , m_options(options)
-    //  , m_tagnode(Q_NULLPTR)
+    //  , m_tagnode(nullptr)
   , m_normal_format(new QTextCharFormat())
   , m_tag_format(new QTextCharFormat())
   , m_string_format(new QTextCharFormat())

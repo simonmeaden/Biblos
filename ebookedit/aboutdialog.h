@@ -8,7 +8,7 @@
 class AboutDialog : public QDialog
 {
 public:
-  AboutDialog(QWidget* parent = Q_NULLPTR);
+  AboutDialog(QWidget* parent = nullptr);
 
 protected:
   QTabWidget *m_tabs;

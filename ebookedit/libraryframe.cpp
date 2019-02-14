@@ -11,6 +11,8 @@ LibraryFrame::LibraryFrame(Options* options, QWidget* parent)
   initGui();
 }
 
+LibraryFrame::~LibraryFrame() {}
+
 void LibraryFrame::initGui()
 {
   QHBoxLayout* main_layout = new QHBoxLayout;

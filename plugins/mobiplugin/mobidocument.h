@@ -28,8 +28,8 @@ class INTERFACESHARED_EXPORT MobiDocument : public ITextDocument
   Q_DECLARE_PRIVATE(MobiDocument)
 
 public:
-  MobiDocument(QObject* parent = Q_NULLPTR);
-  MobiDocument(MobiDocumentPrivate* doc, QObject* parent = Q_NULLPTR);
+  MobiDocument(QObject* parent = nullptr);
+  MobiDocument(MobiDocumentPrivate* doc, QObject* parent = nullptr);
   MobiDocument(const MobiDocument& doc);
   virtual ~MobiDocument() override;
 
@@ -44,7 +44,7 @@ public:
   //  bool readOnly() override;
   //  void setReadOnly(const bool readonly) override;
   QString title() override;
-  //  void setTitle(const QString& title) override;
+  void setTitle(const QString& title) override;
   QString subject() override;
   void setSubject(const QString& subject) override;
   QString language() override;
@@ -58,12 +58,19 @@ public:
   void setPublisher(const QString& publisher) override;
   QDate published() override;
   void setPublished(const QDate& published) override;
-  EBookType type() const override
+  EBookDocumentType type() const override
   {
     return MOBI;
   }
 
-  QString tocAsString() override {}
+  QString tocAsString() override
+  {
+  }
+
+  // IEBookDocument interface
+  bool isModified() override
+  {
+  }
 
   QString buildTocFromData() override;
 
@@ -82,8 +89,6 @@ protected:
   static bool m_loaded;
   static const QString m_file_filter;
 
-  // IEBookDocument interface
-public:
 };
 
 Q_DECLARE_METATYPE(MobiDocument);

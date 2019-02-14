@@ -1,7 +1,6 @@
 #include "foaf.h"
 
 const QString Foaf::m_prefix = "foaf: http://xmlns.com/foaf/spec/";
-const QString Foaf::m_scheme = "xsd:anyURI";
 
 Foaf::Foaf()
 {
@@ -135,7 +134,7 @@ Foaf Foaf::fromString(QString term_name)
   Foaf terms;
   QString name;
   if (term_name.toLower().startsWith("foaf:")) {
-    QStringList splits = term_name.split(":");
+    QStringList splits = term_name.toLower().split(":");
     if (splits.size() == 2) {
       name = splits.at(1).toLower();
     } else {
@@ -171,21 +170,21 @@ Foaf Foaf::fromString(QString term_name)
     terms.setTerm(MADE);
   } else if (name == "maker") {
     terms.setTerm(MAKER);
-  } else if (name == "primaryTopic") {
+  } else if (name == "primarytopic") {
     terms.setTerm(PRIMARY_TOPIC);
-  } else if (name == "primaryTopicOf") {
+  } else if (name == "primarytopicof") {
     terms.setTerm(PRIMARY_TOPIC_OF);
-  } else if (name == "Project") {
+  } else if (name == "project") {
     terms.setTerm(PROJECT);
-  } else if (name == "Organization") {
+  } else if (name == "organization") {
     terms.setTerm(ORGANISATION);
-  } else if (name == "Group") {
+  } else if (name == "group") {
     terms.setTerm(GROUP);
   } else if (name == "member") {
     terms.setTerm(MEMBER);
-  } else if (name == "Document") {
+  } else if (name == "document") {
     terms.setTerm(DOCUMENT);
-  } else if (name == "Image") {
+  } else if (name == "image") {
     terms.setTerm(IMAGE);
   } else if (name == "nick") {
     terms.setTerm(NICK);
@@ -197,7 +196,7 @@ Foaf Foaf::fromString(QString term_name)
     terms.setTerm(WEBLOG);
   } else if (name == "openid") {
     terms.setTerm(OPENID);
-  } else if (name == "jabberID") {
+  } else if (name == "jabberid") {
     terms.setTerm(JABBER_ID);
   } else if (name == "mbox_sha1sum") {
     terms.setTerm(MBOX_SHA1SUM);
@@ -209,27 +208,27 @@ Foaf Foaf::fromString(QString term_name)
     terms.setTerm(TOPIC);
   } else if (name == "page") {
     terms.setTerm(PAGE);
-  } else if (name == "workplaceHomepage") {
+  } else if (name == "workplacehomepage") {
     terms.setTerm(WORKPLACE_HOMEPAGE);
-  } else if (name == "workInfoHomepage") {
+  } else if (name == "workinfohomepage") {
     terms.setTerm(WORK_INFO_HOMEPAGE);
-  } else if (name == "schoolHomepage") {
+  } else if (name == "schoolhomepage") {
     terms.setTerm(SCHOOL_HOMEPAGE);
   } else if (name == "publications") {
     terms.setTerm(PUBLICATIONS);
-  } else if (name == "currentProject") {
+  } else if (name == "currentproject") {
     terms.setTerm(CURRENT_PROJECT);
-  } else if (name == "pastProject") {
+  } else if (name == "pastproject") {
     terms.setTerm(PAST_PROJECT);
   } else if (name == "account") {
     terms.setTerm(ACCOUNT);
-  } else if (name == "OnlineAccount") {
+  } else if (name == "onlineaccount") {
     terms.setTerm(ONLINE_ACCOUNT);
-  } else if (name == "accountName") {
+  } else if (name == "accountname") {
     terms.setTerm(ACCOUNT_NAME);
-  } else if (name == "accountServiceHomepage") {
+  } else if (name == "accountservicehomepage") {
     terms.setTerm(ACCOUNT_SERVICE_HOMEPAGE);
-  } else if (name == "PersonalProfileDocument") {
+  } else if (name == "personalprofiledocument") {
     terms.setTerm(PERSONAL_PROFILE_DOCUMENT);
   } else if (name == "tipjar") {
     terms.setTerm(TIPJAR);
@@ -240,6 +239,8 @@ Foaf Foaf::fromString(QString term_name)
   } else if (name == "logo") {
     terms.setTerm(LOGO);
   }
+  terms.setCode(name);
+  return terms;
 }
 
 bool Foaf::isFoaf(QString tag_name)
@@ -258,10 +259,56 @@ QString Foaf::prefix()
   return m_prefix;
 }
 
+QString Foaf::lang() const
+{
+  return m_lang;
+}
+
+void Foaf::setLang(const QString &lang)
+{
+  m_lang = lang;
+}
+
+QString Foaf::id() const
+{
+  return m_id;
+}
+
+void Foaf::setId(const QString &id)
+{
+  m_id = id;
+}
+
+QString Foaf::content() const
+{
+  return m_content;
+}
+
+void Foaf::setContent(const QString &content)
+{
+  m_content = content;
+}
+
+QString Foaf::about() const
+{
+  return m_about;
+}
+
+void Foaf::setAbout(const QString &about)
+{
+  m_about = about;
+}
+
 QString Foaf::scheme()
 {
   return m_scheme;
 }
+
+void Foaf::setScheme(QString scheme)
+{
+  m_scheme = scheme;
+}
+
 
 QString Foaf::code() const
 {

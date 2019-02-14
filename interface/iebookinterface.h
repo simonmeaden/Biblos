@@ -3,9 +3,12 @@
 
 #include <QtPlugin>
 
+#include "authors.h"
 #include "iebookdocument.h"
 #include "interface_global.h"
 #include "iplugininterface.h"
+#include "library.h"
+#include "options.h"
 
 class EBookDocument;
 
@@ -25,7 +28,7 @@ public:
 
   virtual QString fileFilter() = 0;
   virtual QString fileDescription() = 0;
-  virtual EBookType type() const = 0;
+  virtual EBookDocumentType type() const = 0;
 };
 #define IEBookInterface_iid "uk.org.smelecomp.IEBookInterface/0.1.0"
 Q_DECLARE_INTERFACE(IEBookInterface, IEBookInterface_iid)

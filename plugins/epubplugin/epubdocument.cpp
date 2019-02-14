@@ -37,6 +37,12 @@ QString EPubDocument::buildTocFromData()
   return d->buildTocFromFiles();
 }
 
+bool EPubDocument::isModified()
+{
+  Q_D(EPubDocument);
+  return d->isModified();
+}
+
 EPubDocument::~EPubDocument()
 {
 }
@@ -95,11 +101,11 @@ QString EPubDocument::title()
   return d->title();
 }
 
-// void EPubDocument::setTitle(const QString& title)
-//{
-//  Q_D(EPubDocument);
-//  d->setTitle(title);
-//}
+void EPubDocument::setTitle(const QString& title)
+{
+  Q_D(EPubDocument);
+  d->setTitle(title);
+}
 
 QString EPubDocument::subject()
 {
@@ -145,7 +151,7 @@ QStringList EPubDocument::creators()
   return d->creators();
 }
 
-QString EPubDocument::creatorNames(const QStringList &authors)
+QString EPubDocument::creatorNames(const QStringList& authors)
 {
   Q_D(EPubDocument);
   if (authors.isEmpty())

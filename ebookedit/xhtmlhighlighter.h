@@ -65,13 +65,13 @@ class XhtmlHighlighter : public QSyntaxHighlighter
   //    int open_pos, close_pos, closer_pos;
   //    int name_pos, current_att;
 
-  //    node_t prev_node /* = node_t(Q_NULLPTR)*/;
-  //    node_t next_node /* = node_t(Q_NULLPTR)*/;
+  //    node_t prev_node /* = node_t(nullptr)*/;
+  //    node_t next_node /* = node_t(nullptr)*/;
   //    AttributeList attributes;
   //  };
 
 public:
-  XhtmlHighlighter(Options* options, QTextDocument* parent = Q_NULLPTR);
+  XhtmlHighlighter(Options* options, QTextDocument* parent = nullptr);
   ~XhtmlHighlighter() override;
 
   void resetFormattingOptions();

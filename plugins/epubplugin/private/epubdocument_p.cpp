@@ -4,12 +4,16 @@
 #include <qlogger/qlogger.h>
 using namespace qlogger;
 
-EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent) :
-  q_ptr(parent), m_container(nullptr), m_loaded(false)
+EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent)
+  : q_ptr(parent)
+  , m_loaded(false)
+  , m_container(new EPubContainer(q_ptr))
 {
 }
 
-EPubDocumentPrivate::~EPubDocumentPrivate() {}
+EPubDocumentPrivate::~EPubDocumentPrivate()
+{
+}
 
 bool EPubDocumentPrivate::loaded()
 {
@@ -18,8 +22,8 @@ bool EPubDocumentPrivate::loaded()
 
 void EPubDocumentPrivate::openDocument(const QString& path)
 {
-  //  Q_Q(EPubDocument);
-  setDocumentPath(path);
+  Q_Q(EPubDocument);
+  m_container->setFilename(path);
   loadDocument();
 
   //    m_data->toc = m_container->toc();
@@ -27,47 +31,57 @@ void EPubDocumentPrivate::openDocument(const QString& path)
 
 void EPubDocumentPrivate::saveDocument()
 {
-  m_container->saveFile();
+  if (m_modified)
+    m_container->saveFile();
+}
+
+QString EPubDocumentPrivate::filename()
+{
+  //  Q_Q(EPubDocument);
+  return m_container->filename();
 }
 
 // void EPubDocumentPrivate::clearCache() { /*m_renderedSvgs.clear();*/ }
 
-void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
-{
-  m_documentPath = documentPath;
-}
+// void EPubDocumentPrivate::setDocumentPath(const QString& documentPath)
+//{
+//  m_documentPath = documentPath;
+//}
 
 QString EPubDocumentPrivate::buildTocFromFiles()
 {
   return m_container->buildTocfromHtml();
 }
 
+bool EPubDocumentPrivate::isModified() const
+{
+  return m_modified;
+}
+
 void EPubDocumentPrivate::loadDocument()
 {
   Q_Q(EPubDocument);
 
-  m_container = new EPubContainer(q_ptr);
-
-  if (!m_container->loadFile(m_documentPath)) {
+  if (!m_container->loadFile(q->filename())) {
     return;
   }
 
   // add the images as resources
   QSize image_size(int(q->pageSize().width() - q->documentMargin() * 4),
                    int(q->pageSize().height() - q->documentMargin() * 4));
-  foreach (QString name, m_container->imageKeys()) {
-    SharedManifestItem item = m_container->item(name);
-    QImage image = m_container->image(name, image_size);
-    q->addResource(QTextDocument::ImageResource, QUrl(item->path),
-                   QVariant(image));
-  }
+  //  foreach (QString name, m_container->imageKeys()) {
+  //    SharedManifestItem item = m_container->item(name);
+  //    QImage image = m_container->image(name, image_size);
+  //    q->addResource(QTextDocument::ImageResource, QUrl(item->path),
+  //                   QVariant(image));
+  //  }
 
-  foreach (QString name, m_container->cssKeys()) {
-    SharedManifestItem item = m_container->item(name);
-    QString data = m_container->css(name);
-    q->addResource(QTextDocument::StyleSheetResource, QUrl(item->path),
-                   QVariant(data));
-  }
+  //  foreach (QString name, m_container->cssKeys()) {
+  //    SharedManifestItem item = m_container->item(name);
+  //    QString data = m_container->css(name);
+  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(name),
+  //                   QVariant(data));
+  //  }
 
   // TODO QTextDocument doesn't seem to support javascript yet
   //  foreach (QString name, m_container->jsKeys()) {
@@ -77,38 +91,62 @@ void EPubDocumentPrivate::loadDocument()
   //                   QVariant(data));
   //  }
 
-  QStringList spine_items = m_container->spineKeys();
+  //  QStringList spine_items = m_container->spineKeys();
   QTextCursor cursor(q_ptr);
   cursor.movePosition(QTextCursor::End);
   //  SharedTextCursor cursor = SharedTextCursor(new QTextCursor(q_ptr));
-  QTextBlockFormat pageBreak;
-  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  for (const QString& chapter : spine_items) {
-    SharedManifestItem item = m_container->item(chapter);
-//    SharedDomDocument shared_domdocument = item->dom_document;
-    QString document = item->document_string;
-    if (document.isEmpty()) {
-      QLOG_WARN(QString("Got an empty document"))
-      continue;
-    }
 
-    // mark the start of the block
-    int start = cursor.position();
-    //    item->start = SharedTextCursor(new QTextCursor(*cursor.data()));
+  QString doc_string = "<html>";
+  doc_string += "<head>";
+  foreach (QString key, m_container->manifest().css.keys()) {
+    q->addResource(QTextDocument::StyleSheetResource, QUrl(key),
+                   QVariant(m_container->manifest().css.value(key)));
+    doc_string +=
+      QString("<link href=\"%1\" rel=\"stylesheet\" type=\"text/css\"/>")
+      .arg(key);
+  }
+  doc_string += "</head>";
+  doc_string += "<body class=\"calibre\">";
 
-//    QString data = shared_domdocument->toString();
-    cursor.insertHtml(document);
-    cursor.insertBlock(pageBreak);
-
-    // mark the end of the block
-    int end = cursor.position();
-
-    item->start_cursor = QTextCursor(q_ptr);
-    item->start_cursor.setPosition(start);
-    item->end_cursor = QTextCursor(q_ptr);
-    item->end_cursor.setPosition(end);
+  foreach (QString name, m_container->imageKeys()) {
+    SharedManifestItem item = m_container->item(name);
+    QImage image = m_container->image(name, image_size);
+    q->addResource(QTextDocument::ImageResource, QUrl(name), QVariant(image));
   }
 
+  QTextBlockFormat pageBreak;
+  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  //  for (const QString& chapter : spine_items) {
+  SharedManifestItem item = m_container->item(
+                              /*chapter*/ m_container->spineKeys().at(m_current_document_index));
+  //    SharedDomDocument shared_domdocument = item->dom_document;
+  QString document = item->document_string;
+  if (document.isEmpty()) {
+    QLOG_WARN(QString("Got an empty document"))
+    return;
+  }
+  doc_string += document;
+
+  //    // mark the start of the block
+  //    int start = cursor.position();
+  //    //    item->start = SharedTextCursor(new QTextCursor(*cursor.data()));
+
+  ////    QString data = shared_domdocument->toString();
+  //    cursor.insertHtml(document);
+  //    cursor.insertBlock(pageBreak);
+
+  //    // mark the end of the block
+  //    int end = cursor.position();
+
+  //    item->start_cursor = QTextCursor(q_ptr);
+  //    item->start_cursor.setPosition(start);
+  //    item->end_cursor = QTextCursor(q_ptr);
+  //    item->end_cursor.setPosition(end);
+  //}
+  doc_string += "</body>";
+  doc_string += "</html>";
+
+  cursor.insertHtml(doc_string);
   q->setBaseUrl(QUrl()); // base url to empty.
   m_loaded = true;
 
@@ -155,9 +193,9 @@ EPubContents* EPubDocumentPrivate::cloneData()
   return contents;
 }
 
-void EPubDocumentPrivate::setClonedData(EPubContents* clone)
+void EPubDocumentPrivate::setClonedData(EPubContents* /*clone*/)
 {
-  Q_Q(EPubDocument);
+  //  Q_Q(EPubDocument);
 
   //  QElapsedTimer timer;
   //  timer.start();
@@ -224,10 +262,24 @@ QStringList EPubDocumentPrivate::creators()
 
 QString EPubDocumentPrivate::title()
 {
-  SharedTitle first = m_container->metadata()->ordered_titles.first();
+  Title first = m_container->metadata()->orderedTitles().first();
   if (!first.isNull())
     return first->title;
   else {
     return QString();
+  }
+}
+
+void EPubDocumentPrivate::setTitle(QString title)
+{
+  Title first = m_container->metadata()->orderedTitles().first();
+  if (!first.isNull()) {
+    first->title = title;
+    m_modified = true;
+  } else {
+    first = Title(new EBookTitle());
+    first->title = title;
+    m_container->metadata()->orderedTitles().insert(1, first);
+    m_modified = true;
   }
 }

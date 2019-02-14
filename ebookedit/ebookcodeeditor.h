@@ -7,10 +7,11 @@
 #include "iebookdocument.h"
 #include "xhtmlhighlighter.h"
 
-class EBookCodeEditor : public QPlainTextEdit {
- public:
-  EBookCodeEditor(QWidget* parent = Q_NULLPTR);
-  EBookCodeEditor(Options* options, QWidget* parent = Q_NULLPTR);
+class EBookCodeEditor : public QPlainTextEdit
+{
+public:
+  EBookCodeEditor(QWidget* parent = nullptr);
+  EBookCodeEditor(Options* options, QWidget* parent = nullptr);
   EBookCodeEditor(const EBookCodeEditor& editor);
   ~EBookCodeEditor() override;
 
@@ -20,7 +21,7 @@ class EBookCodeEditor : public QPlainTextEdit {
   void setDocument(IEBookDocument* document);
   void rehighlight();
 
- protected:
+protected:
   QWidget* lineNumberArea;
   XhtmlHighlighter* m_highlighter;
   Options* m_options;
@@ -32,16 +33,17 @@ class EBookCodeEditor : public QPlainTextEdit {
   void init();
 };
 
-class LineNumberArea : public QWidget {
- public:
+class LineNumberArea : public QWidget
+{
+public:
   LineNumberArea(EBookCodeEditor* editor);
 
   QSize sizeHint() const override;
 
- protected:
+protected:
   void paintEvent(QPaintEvent* event) override;
 
- private:
+private:
   EBookCodeEditor* codeEditor;
 };
 

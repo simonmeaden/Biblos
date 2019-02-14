@@ -2,8 +2,6 @@
 
 #include <qlogger/qlogger.h>
 
-#include "dbmanager.h"
-
 #include "iebookinterface.h"
 #include "iplugininterface.h"
 #include "ispellinterface.h"
@@ -34,17 +32,20 @@ const QString MainWindow::NOT_MODIFIED = MainWindow::tr("Not Modified");
 const QString MainWindow::MODIFIED = MainWindow::tr("Modified");
 
 const QString MainWindow::PREF_FILE = "preferences.yaml";
-const QString MainWindow::DB_NAME = "library.sqlite";
+const QString MainWindow::LIB_FILE = "library.yaml";
+const QString MainWindow::AUTHOR_FILE = "authors.yaml";
+// const QString MainWindow::DB_NAME = "library.sqlite";
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
-    //  , m_library(QSharedPointer<Library>(new Library()))
   , m_initialising(true)
   , m_loading(false)
-  , m_options(new Options(parent))
+  , m_options(new Options(this))
+  , m_library(new LibraryDB(this))
+  , m_authors(new AuthorsDB(this))
   , m_bookcount(0)
-  , m_popup(Q_NULLPTR)
-  , m_current_spell_checker(Q_NULLPTR)
+  , m_popup(nullptr)
+  , m_current_spell_checker(nullptr)
 {
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
@@ -52,24 +53,31 @@ MainWindow::MainWindow(QWidget* parent)
   QPixmap library_icon(":/icons/library");
   setWindowIcon(library_icon);
 
-  connect(m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
+  connect(m_options, &Options::loadLibraryFiles, this,
+          &MainWindow::loadLibraryFiles);
 
   loadPlugins();
   initBuild();
   QDir dir;
-  m_home_directiory = QStandardPaths::locate(QStandardPaths::HomeLocation, QString(),
-                      QStandardPaths::LocateDirectory);
-  m_library_directory = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+  m_home_directiory = QStandardPaths::locate(
+                        QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory);
+  m_library_directory =
+    QStandardPaths::writableLocation(QStandardPaths::DataLocation);
   dir.mkpath(m_library_directory);
-  m_config_directory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+  m_config_directory =
+    QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
   dir.mkpath(m_config_directory);
   m_config_file = m_config_directory + QDir::separator() + PREF_FILE;
+  m_lib_file = m_config_directory + QDir::separator() + LIB_FILE;
+  loadLibrary();
+  m_authors_file = m_config_directory + QDir::separator() + AUTHOR_FILE;
+  loadAuthors();
 
-  /* The database file will be created automatically by SqLite if it
-   * does not exist. The tables are created if they do not already exist.
-   */
-  QString db_path = m_config_directory + QDir::separator() + DB_NAME;
-  m_database = new DbManager(db_path, parent);
+  //  /* The database file will be created automatically by SqLite if it
+  //   * does not exist. The tables are created if they do not already exist.
+  //   */
+  //  QString db_path = m_config_directory + QDir::separator() + DB_NAME;
+  //  m_database = new DbManager(db_path, parent);
 
   initSetup();
 
@@ -129,16 +137,21 @@ void MainWindow::initGui()
   //  setCentralWidget(mainFrame);
 
   m_doc_stack = new QStackedWidget(this);
-  connect(m_doc_stack, &QStackedWidget::currentChanged, this, &MainWindow::setObjectVisibility);
+  connect(m_doc_stack, &QStackedWidget::currentChanged, this,
+          &MainWindow::setObjectVisibility);
   setCentralWidget(m_doc_stack);
 
-  m_library = new LibraryFrame(m_options, this);
+  m_library_frame = new LibraryFrame(m_options, this);
   // These could not be created when the action was as l_library was still null.
-  connect(m_library_shelf, &QAction::triggered, m_library, &LibraryFrame::setToShelf);
-  connect(m_library_shelf, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
-  connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
-  connect(m_library_tree, &QAction::triggered, this, &MainWindow::setLibraryToolbarState);
-  m_stack_library = m_doc_stack->addWidget(m_library);
+  connect(m_library_shelf, &QAction::triggered, m_library_frame,
+          &LibraryFrame::setToShelf);
+  connect(m_library_shelf, &QAction::triggered, this,
+          &MainWindow::setLibraryToolbarState);
+  connect(m_library_tree, &QAction::triggered, m_library_frame,
+          &LibraryFrame::setToTree);
+  connect(m_library_tree, &QAction::triggered, this,
+          &MainWindow::setLibraryToolbarState);
+  m_stack_library = m_doc_stack->addWidget(m_library_frame);
 
   m_tabs_frame = new QFrame(this);
   QHBoxLayout* main_layout = new QHBoxLayout;
@@ -154,8 +167,10 @@ void MainWindow::initGui()
 
   m_doc_tabs = new QTabWidget(this);
   m_doc_tabs->setTabsClosable(true);
-  connect(m_doc_tabs, &QTabWidget::currentChanged, this, &MainWindow::documentChanged);
-  connect(m_doc_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::tabClosing);
+  connect(m_doc_tabs, &QTabWidget::currentChanged, this,
+          &MainWindow::documentChanged);
+  connect(m_doc_tabs, &QTabWidget::tabCloseRequested, this,
+          &MainWindow::tabClosing);
   if (m_doc_tabs->count() == 0)
     m_doc_tabs->setEnabled(false);
 
@@ -267,7 +282,7 @@ void MainWindow::initFileActions()
   m_file_save = new QAction(save_icon, tr("&Save"), this);
   m_file_save->setShortcut(QKeySequence::Save);
   m_file_save->setStatusTip(tr("Save the current file."));
-//  m_file_save->setEnabled(false);
+  //  m_file_save->setEnabled(false);
   connect(m_file_save, &QAction::triggered, this, &MainWindow::fileSave);
 
   m_file_save_as = new QAction(tr("Save &As"), this);
@@ -293,21 +308,27 @@ void MainWindow::initViewActions()
   m_view_maximise = new QAction(tr("Maximise screen"), this);
   m_screengrp->addAction(m_view_maximise);
   m_view_maximise->setShortcut(tr("Alt+X"));
-  m_view_maximise->setStatusTip(tr("Set screen size to full screen with title bar."));
-  connect(m_view_maximise, &QAction::triggered, this, &MainWindow::viewMaximise);
+  m_view_maximise->setStatusTip(
+    tr("Set screen size to full screen with title bar."));
+  connect(m_view_maximise, &QAction::triggered, this,
+          &MainWindow::viewMaximise);
 
   m_view_minimise = new QAction(tr("Minimise screen"), this);
   m_screengrp->addAction(m_view_minimise);
   m_view_minimise->setShortcut(tr("Alt+N"));
-  m_view_minimise->setStatusTip(tr("Set screen size to minimised screen with title bar."));
-  connect(m_view_minimise, &QAction::triggered, this, &MainWindow::viewMinimise);
+  m_view_minimise->setStatusTip(
+    tr("Set screen size to minimised screen with title bar."));
+  connect(m_view_minimise, &QAction::triggered, this,
+          &MainWindow::viewMinimise);
   m_view_minimise->setChecked(true);
 
   m_view_fullscreen = new QAction(tr("Full screen"), this);
   m_screengrp->addAction(m_view_fullscreen);
   m_view_fullscreen->setShortcut(QKeySequence::FullScreen);
-  m_view_fullscreen->setStatusTip(tr("Set screen size to full screen without title bar."));
-  connect(m_view_fullscreen, &QAction::triggered, this, &MainWindow::viewFullscreen);
+  m_view_fullscreen->setStatusTip(
+    tr("Set screen size to full screen without title bar."));
+  connect(m_view_fullscreen, &QAction::triggered, this,
+          &MainWindow::viewFullscreen);
 
   m_view_centre = new QAction(tr("Centre screen"), this);
   m_view_centre->setShortcut(QKeySequence::FullScreen);
@@ -333,8 +354,10 @@ void MainWindow::initViewActions()
   }
   m_view_toc_position = new QAction(text, this);
   m_view_toc_position->setShortcut(tr("Alt+P"));
-  m_view_toc_position->setStatusTip(tr("Set the Table of Contents viewer position."));
-  connect(m_view_toc_position, &QAction::triggered, this, &MainWindow::viewTocPosition);
+  m_view_toc_position->setStatusTip(
+    tr("Set the Table of Contents viewer position."));
+  connect(m_view_toc_position, &QAction::triggered, this,
+          &MainWindow::viewTocPosition);
 }
 
 void MainWindow::initEditActions()
@@ -366,8 +389,10 @@ void MainWindow::initEditActions()
 
   m_edit_paste_history = new QAction(tr("Paste from clipboard history"), this);
   m_edit_paste_history->setShortcut(tr("Ctrl+Shift+V"));
-  m_edit_paste_history->setStatusTip(tr("Paste from a previous clipboard selection."));
-  connect(m_edit_paste_history, &QAction::triggered, this, &MainWindow::editCopy);
+  m_edit_paste_history->setStatusTip(
+    tr("Paste from a previous clipboard selection."));
+  connect(m_edit_paste_history, &QAction::triggered, this,
+          &MainWindow::editCopy);
 
   m_edit_options = new QAction(tr("Preferences"), this);
   m_edit_options->setShortcut(QKeySequence::Preferences);
@@ -377,31 +402,38 @@ void MainWindow::initEditActions()
   m_edit_spellcheck = new QAction(tr("Spellcheck"), this);
   //  m_editoptions->setShortcut(QKeySequence::SelectPrevious);
   m_edit_options->setStatusTip(tr("Spellcheck Current Document."));
-  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSpellcheck);
+  connect(m_edit_options, &QAction::triggered, this,
+          &MainWindow::editSpellcheck);
 
-  m_edit_highlight_misspelled = new QAction(tr("Highlight Misspelled Words"), this);
+  m_edit_highlight_misspelled =
+    new QAction(tr("Highlight Misspelled Words"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   //  m_editoptions->setStatusTip(tr("Modify preferences."));
-  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editHighlightWords);
+  connect(m_edit_options, &QAction::triggered, this,
+          &MainWindow::editHighlightWords);
 
   m_edit_next_misspelled = new QAction(tr("Next Misspelled Word"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   m_edit_options->setStatusTip(tr("Modify preferences."));
   connect(m_edit_options, &QAction::triggered, this, &MainWindow::editNextWord);
 
-  m_edit_send_to_booklist = new QAction(tr("Send Word to Book Dictionary"), this);
+  m_edit_send_to_booklist =
+    new QAction(tr("Send Word to Book Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   m_edit_options->setStatusTip(
     tr("This allows you to create a dictionary specifically for this book."));
-  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSendToBookList);
+  connect(m_edit_options, &QAction::triggered, this,
+          &MainWindow::editSendToBookList);
 
-  m_edit_send_to_authorlist = new QAction(tr("Send Word to Author Dictionary"), this);
+  m_edit_send_to_authorlist =
+    new QAction(tr("Send Word to Author Dictionary"), this);
   //  m_editoptions->setShortcut(QKeySequence::Preferences);
   m_edit_options->setStatusTip(
     tr("This allows you to create a dictionary specifically for this Author. "
        "Generally you would use this for an Authors Series where the same, "
        "possibly name or non-standard word might be used in muyltiple books."));
-  connect(m_edit_options, &QAction::triggered, this, &MainWindow::editSendToAuthorList);
+  connect(m_edit_options, &QAction::triggered, this,
+          &MainWindow::editSendToAuthorList);
 }
 
 void MainWindow::initEditorActions()
@@ -416,7 +448,8 @@ void MainWindow::initEditorActions()
 
   m_open_codeeditor = new QAction(code_icon, tr("Open Code Editor"), this);
   m_open_codeeditor->setStatusTip(tr("Switches to the Code Editor Window."));
-  connect(m_open_codeeditor, &QAction::triggered, this, &MainWindow::openWindow);
+  connect(m_open_codeeditor, &QAction::triggered, this,
+          &MainWindow::openWindow);
 
   m_open_metadata = new QAction(meta_icon, tr("Open Metadata editor"), this);
   m_open_metadata->setStatusTip(tr("Switches to the Metadata Editor Window."));
@@ -427,7 +460,8 @@ void MainWindow::initHelpActions()
 {
   m_help_contents = new QAction(tr("Contents"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpContents);
+  connect(m_help_contents, &QAction::triggered, this,
+          &MainWindow::helpContents);
 
   m_help_index = new QAction(tr("Index"), this);
   m_help_index->setStatusTip(tr("Access Help Index."));
@@ -439,15 +473,19 @@ void MainWindow::initHelpActions()
 
   m_help_about_ebookeditor = new QAction(tr("About EBookEditor"), this);
   m_help_about_ebookeditor->setStatusTip(tr("Information about EBookEditor."));
-  connect(m_help_about_ebookeditor, &QAction::triggered, this, &MainWindow::helpAboutEbookEditor);
+  connect(m_help_about_ebookeditor, &QAction::triggered, this,
+          &MainWindow::helpAboutEbookEditor);
 
   m_help_about_plugins = new QAction(tr("About Plugins"), this);
-  m_help_about_plugins->setStatusTip(tr("Information about available Plugins."));
-  connect(m_help_about_plugins, &QAction::triggered, this, &MainWindow::helpAboutPlugins);
+  m_help_about_plugins->setStatusTip(
+    tr("Information about available Plugins."));
+  connect(m_help_about_plugins, &QAction::triggered, this,
+          &MainWindow::helpAboutPlugins);
 
   m_help_check_updates = new QAction(tr("Check for Updates"), this);
   m_help_contents->setStatusTip(tr("Access Help Contents."));
-  connect(m_help_contents, &QAction::triggered, this, &MainWindow::helpCheckUpdates);
+  connect(m_help_contents, &QAction::triggered, this,
+          &MainWindow::helpCheckUpdates);
 }
 
 void MainWindow::initLibActions()
@@ -461,19 +499,23 @@ void MainWindow::initLibActions()
 
   m_show_library = new QAction(library_icon, tr("Show Library"), this);
   m_show_library->setStatusTip(tr("Shows the library page."));
-  connect(m_show_library, &QAction::triggered, this, &MainWindow::viewShowLibrary);
+  connect(m_show_library, &QAction::triggered, this,
+          &MainWindow::viewShowLibrary);
 
   m_show_editor = new QAction(editor_icon, tr("Show Editor"), this);
   m_show_editor->setStatusTip(tr("Shows the editor page."));
-  connect(m_show_editor, &QAction::triggered, this, &MainWindow::viewShowEditor);
+  connect(m_show_editor, &QAction::triggered, this,
+          &MainWindow::viewShowEditor);
 
   m_library_tree = new QAction(tree_icon, tr("Library Tree"), this);
   m_library_tree->setStatusTip(tr("Sets the library page to tree format."));
-  //  connect(m_library_tree, &QAction::triggered, m_library, &LibraryFrame::setToTree);
+  //  connect(m_library_tree, &QAction::triggered, m_library,
+  //  &LibraryFrame::setToTree);
 
   m_library_shelf = new QAction(bookshelf_icon, tr("Library Shelf"), this);
   m_library_shelf->setStatusTip(tr("Sets the library page to shelf format."));
-  //  connect(m_library_shelf, &QAction::triggered, m_library, &LibraryFrame::setToShelf);
+  //  connect(m_library_shelf, &QAction::triggered, m_library,
+  //  &LibraryFrame::setToShelf);
 
   setObjectVisibility(state);
 }
@@ -518,7 +560,7 @@ void MainWindow::initToolbar()
   m_file_toolbar = addToolBar("file toolbar");
   m_file_toolbar->addAction(m_file_open);
   m_file_toolbar->addAction(m_file_save);
-// TODO maybe reinstate this ?  m_file_save->setVisible(false);
+  // TODO maybe reinstate this ?  m_file_save->setVisible(false);
   m_file_toolbar->setIconSize(QSize(48, 48));
 
   m_editor_toolbar = addToolBar("editor toolbar");
@@ -528,7 +570,8 @@ void MainWindow::initToolbar()
   m_editor_toolbar->setIconSize(QSize(48, 48));
 }
 
-void MainWindow::loadLibraryFiles(QStringList current_lib_files, int currentindex)
+void MainWindow::loadLibraryFiles(QStringList current_lib_files,
+                                  int currentindex)
 {
   if (!current_lib_files.empty()) {
     foreach (QString filename, current_lib_files) {
@@ -546,7 +589,7 @@ void MainWindow::loadLibraryFiles(QStringList current_lib_files, int currentinde
   }
 }
 
-EBookType MainWindow::checkMimetype(QString filename)
+EBookDocumentType MainWindow::checkMimetype(QString filename)
 {
   QMimeDatabase db;
   QMimeType mime = db.mimeTypeForFile(filename, QMimeDatabase::MatchDefault);
@@ -568,6 +611,26 @@ void MainWindow::saveOptions()
   m_options->save(m_config_file);
 }
 
+void MainWindow::loadLibrary()
+{
+  m_library->load(m_lib_file);
+}
+
+void MainWindow::saveLibrary()
+{
+  m_library->save();
+}
+
+void MainWindow::loadAuthors()
+{
+  m_authors->load(m_authors_file);
+}
+
+void MainWindow::saveAuthors()
+{
+  m_authors->save();
+}
+
 void MainWindow::initSetup()
 {
   loadOptions();
@@ -578,13 +641,10 @@ void MainWindow::initSetup()
  * \brief Copies a book to the library.
  *
  * The file will be copied to the library store if it does not already exist.
- * The directory within the library will be the space and comma separated concatenation
- * of the author(s) names.
- * If it does exist a dialog will pop up offering several options.
- * \list
- * \li Overwriting the library file.
- * \li Saving the file with a different name.
- * \li Opening the Library file instead.
+ * The directory within the library will be the space and comma separated
+ * concatenation of the author(s) names. If it does exist a dialog will pop up
+ * offering several options. \list \li Overwriting the library file. \li Saving
+ * the file with a different name. \li Opening the Library file instead.
  * \endlist
  * In all cases the result will be true if the file was copied or the library
  * file used otherwise false will be returned.
@@ -626,13 +686,14 @@ void MainWindow::initSetup()
 //           "If you choose Overwrite then the Library file will be\n"
 //           "removed and this cannot be undone!\n"
 //           "Are you sure?"),
-//        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Ok, this);
+//        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel |
+//        QMessageBox::Ok, this);
 //      box->setDefaultButton(QMessageBox::Cancel);
 //      box->setButtonText(QMessageBox::Open, tr("Use Library Version"));
 //      box->setButtonText(QMessageBox::Save, tr("Save As.."));
-//      box->setButtonText(QMessageBox::Ok, tr("Overwrite Existing Library Version"));
-//      int btn = box->exec();
-//      if (btn == QMessageBox::Ok) { // Overwrite.
+//      box->setButtonText(QMessageBox::Ok, tr("Overwrite Existing Library
+//      Version")); int btn = box->exec(); if (btn == QMessageBox::Ok) { //
+//      Overwrite.
 //        bool success = in_file.copy(out_file.fileName());
 //        if (!success) { // file exists
 //          out_file.remove();
@@ -646,8 +707,10 @@ void MainWindow::initSetup()
 //      } else if (btn == QMessageBox::Save) { // Save As.
 //        bool ok;
 //        QString text =
-//          QInputDialog::getText(this, tr("Save file as.."), tr("Enter the new file name : "),
-//                                QLineEdit::Normal, out_file_info.fileName(), &ok);
+//          QInputDialog::getText(this, tr("Save file as.."), tr("Enter the new
+//          file name : "),
+//                                QLineEdit::Normal, out_file_info.fileName(),
+//                                &ok);
 //        if (ok && !text.isEmpty()) {
 //          QString path = out_file_info.filePath();
 //          QString name = path + "/" + text + "." + ext;
@@ -667,15 +730,17 @@ void MainWindow::initSetup()
 //  if (result) { // Only delete the old file if the copy has been made.
 //    if (m_options->deleteOldBook()) {
 //      if (m_options->alwaysConfirmDelete()) {
-//        QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"), this);
-//        neverAskBox->setToolTip(tr("If this is checked then this dialog will not be "
-//                                   "shown again. This can be reset in the Options->Editor "
-//                                   "dialog."));
+//        QCheckBox* neverAskBox = new QCheckBox(tr("Never ask this again"),
+//        this); neverAskBox->setToolTip(tr("If this is checked then this dialog
+//        will not be "
+//                                   "shown again. This can be reset in the
+//                                   Options->Editor " "dialog."));
 
 //        QMessageBox* msgBox =
 //          new QMessageBox(QMessageBox::Warning, tr("Delete Old Book"),
-//                          tr("You are about to delete the old book, Are you sure?"),
-//                          QMessageBox::Ok | QMessageBox::Cancel, this);
+//                          tr("You are about to delete the old book, Are you
+//                          sure?"), QMessageBox::Ok | QMessageBox::Cancel,
+//                          this);
 //        msgBox->setCheckBox(neverAskBox);
 
 //        if (msgBox->exec() == QMessageBox::Accepted) {
@@ -711,38 +776,40 @@ void MainWindow::initSetup()
  * \param title - the title of the book
  * \return a QStringList containing the author(s) names.
  */
-SharedAuthorList MainWindow::selectAuthorNames(QString filename, QString title)
+AuthorList MainWindow::selectAuthorNames(QString filename, QString title)
 {
-  SharedAuthorList authors;
+  AuthorList authors;
   AuthorDialog* author_dlg;
   // TODO no author in metadata. Create it?
   // First see if the author name is in the title.
   QStringList names = attemptToExtractAuthorFromFilename(filename, title);
   if (!names.isEmpty()) {
-    author_dlg = new AuthorDialog(m_database, this);
-    if (author_dlg->exec(AuthorDialog::FromTitle, title, names) == QDialog::Accepted) {
+    author_dlg = new AuthorDialog(m_authors, this);
+    if (author_dlg->execute(AuthorDialog::FromTitle, title, names) ==
+        QDialog::Accepted) {
       authors = author_dlg->authors();
     }
   } else {
-    author_dlg = new AuthorDialog(m_database, this);
-    if (author_dlg->exec(AuthorDialog::NoNames, title) == QDialog::Accepted) {
+    author_dlg = new AuthorDialog(m_authors, this);
+    if (author_dlg->execute(AuthorDialog::NoNames, title) == QDialog::Accepted) {
       authors = author_dlg->authors();
     }
   }
   return authors;
 }
 
-void MainWindow::setModifiedAuthors(IEBookDocument* doc, SharedAuthorList authors)
+void MainWindow::setModifiedAuthors(IEBookDocument* doc, AuthorList authors)
 {
   QStringList names;
-  foreach (SharedAuthor author, authors) {
-    names << author->name();
+  foreach (AuthorData author, authors) {
+    names << author->display_name;
   }
   //  doc->setCreators(names);
   setStatusModified();
 }
 
-IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterface* ebook_plugin)
+IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename,
+    IEBookInterface* ebook_plugin)
 {
   IEBookDocument* ebook_document;
   // load the supplied ebook.
@@ -758,11 +825,11 @@ IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterf
 
   // if there is no author information attempt to get it elsewhere.
   if (authorlist.isEmpty()) {
-    SharedAuthorList authors = selectAuthorNames(filename, ebook_document->title());
+    AuthorList authors = selectAuthorNames(filename, ebook_document->title());
     setModifiedAuthors(ebook_document, authors);
 
-    foreach (SharedAuthor author, authors) {
-      authorlist << author->name();
+    foreach (AuthorData author, authors) {
+      authorlist << author->display_name;
     }
   }
 
@@ -781,8 +848,9 @@ IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterf
   // The book will be stored in two forms, an original form and a modified form.
   QFile out_file(newpath + QDir::separator() + in_file_info.baseName() + "." +
                  in_file_info.suffix());
-  QFile out_file_original(newpath + QDir::separator() + in_file_info.baseName() + "." +
-                          "original." + in_file_info.suffix());
+  QFile out_file_original(newpath + QDir::separator() +
+                          in_file_info.baseName() + "." + "original." +
+                          in_file_info.suffix());
   QFileInfo out_file_info(out_file);
 
   if (in_file.exists()) {
@@ -798,11 +866,14 @@ IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterf
            "If you choose Overwrite then the Library file will be\n"
            "removed and this cannot be undone!\n"
            "Are you sure?"),
-        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Ok, this);
+        QMessageBox::Open | QMessageBox::Save | QMessageBox::Cancel |
+        QMessageBox::Ok,
+        this);
       box->setDefaultButton(QMessageBox::Open);
       box->setButtonText(QMessageBox::Open, tr("Use Library Version"));
       box->setButtonText(QMessageBox::Save, tr("Save As.."));
-      box->setButtonText(QMessageBox::Ok, tr("Overwrite Existing Library Version"));
+      box->setButtonText(QMessageBox::Ok,
+                         tr("Overwrite Existing Library Version"));
       int btn = box->exec();
       if (btn == QMessageBox::Ok) { // Overwrite.
         bool success = in_file.copy(out_file.fileName());
@@ -820,19 +891,20 @@ IEBookDocument* MainWindow::copyToLibraryAndOpen(QString& filename, IEBookInterf
         filename = out_file.fileName();
       } else if (btn == QMessageBox::Save) { // Save As.
         bool ok;
-        QString text =
-          QInputDialog::getText(this, tr("Save file as.."), tr("Enter the new file name : "),
-                                QLineEdit::Normal, out_file_info.fileName(), &ok);
+        QString text = QInputDialog::getText(
+                         this, tr("Save file as.."), tr("Enter the new file name : "),
+                         QLineEdit::Normal, out_file_info.fileName(), &ok);
         if (ok && !text.isEmpty()) {
-          out_file.setFileName(out_file_info.filePath() + "/" + text + "." + ext);
+          out_file.setFileName(out_file_info.filePath() + "/" + text + "." +
+                               ext);
           bool success = in_file.copy(out_file.fileName());
           if (!success) { // file exists
             out_file.remove();
             in_file.copy(out_file.fileName());
           }
 
-          out_file_original.setFileName(out_file_info.filePath() + "/" + text + "." + "original." +
-                                        ext);
+          out_file_original.setFileName(out_file_info.filePath() + "/" + text +
+                                        "." + "original." + ext);
           in_file.copy(out_file_original.fileName());
           if (!success) { // original file exists
             out_file_original.remove();
@@ -850,10 +922,10 @@ void MainWindow::loadDocument(QString file_name, bool from_library)
 {
   m_loading = true;
   QString filename = file_name;
-  EBookType ebook_type = checkMimetype(filename);
+  EBookDocumentType ebook_type = checkMimetype(filename);
 
   // get the correct plugin.
-  IEBookInterface* ebook_plugin = Q_NULLPTR;
+  IEBookInterface* ebook_plugin = nullptr;
   foreach (IPluginInterface* plugin, m_plugins) {
     ebook_plugin = dynamic_cast<IEBookInterface*>(plugin);
     if (ebook_plugin) {
@@ -876,27 +948,36 @@ void MainWindow::loadDocument(QString file_name, bool from_library)
     itextdocument = dynamic_cast<ITextDocument*>(ebook_document);
     //    htmldocument->setPlugin(ebook_plugin);
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    wrapper = new EBookWrapper(m_options, this);
+    wrapper = new EBookWrapper(m_options, m_authors, this);
     wrapper->editor()->setDocument(ebook_document);
 
     EBookTOCWidget* toc_widget = new EBookTOCWidget(this);
     toc_widget->setOpenLinks(false);
     //  m_toc->setTextInteractionFlags(Qt::NoTextInteraction);
-    connect(toc_widget, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
-    connect(toc_widget, &EBookTOCWidget::buildTocFromHtmlFiles, this, &MainWindow::buildTocFromData);
-    connect(toc_widget, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
-    connect(toc_widget, &EBookTOCWidget::addAnchorsToToc, this, &MainWindow::addTocAnchors);
+    connect(toc_widget, &EBookTOCWidget::anchorClicked, this,
+            &MainWindow::tocAnchorClicked);
+    connect(toc_widget, &EBookTOCWidget::buildTocFromHtmlFiles, this,
+            &MainWindow::buildTocFromData);
+    connect(toc_widget, &EBookTOCWidget::buildManualToc, this,
+            &MainWindow::builManualToc);
+    connect(toc_widget, &EBookTOCWidget::addAnchorsToToc, this,
+            &MainWindow::addTocAnchors);
     toc_widget->setDocumentString(ebook_document->tocAsString());
     m_toc_stack->addWidget(toc_widget);
 
-    tabname = QString(tr("%1, (%2)")
-                      .arg(ebook_document->title())
-                      .arg(ebook_document->creatorNames(ebook_document->creators())));
+    tabname =
+      QString(tr("%1, (%2)")
+              .arg(ebook_document->title())
+              .arg(ebook_document->creatorNames(ebook_document->creators())));
     m_doc_tabs->addTab(wrapper, tabname);
     m_current_document = dynamic_cast<QTextDocument*>(ebook_document);
-    connect(itextdocument, &ITextDocument::loadCompleted, wrapper, &EBookWrapper::update);
+    connect(itextdocument, &ITextDocument::loadCompleted, wrapper,
+            &EBookWrapper::update);
 
-    // set up the editor state correctly (editor visible, show_library btn visible)
+    wrapper->metaEditor()->setDocument(itextdocument);
+
+    // set up the editor state correctly (editor visible, show_library btn
+    // visible)
     m_doc_stack->setCurrentIndex(m_stack_editor);
     m_doc_tabs->setEnabled(true);
     m_show_library->setVisible(true);
@@ -909,13 +990,12 @@ void MainWindow::loadDocument(QString file_name, bool from_library)
   m_loading = false;
 }
 
-QString MainWindow::concatenateAuthorNames(SharedAuthorList authors)
+QString MainWindow::concatenateAuthorNames(AuthorList authors)
 {
   QStringList names;
-  foreach (SharedAuthor author, authors) {
+  foreach (AuthorData author, authors) {
     QStringList f;
-    f << author->forename().trimmed() << author->middlenames().trimmed()
-      << author->surname().trimmed();
+    f << author->forename.trimmed() << author->surname.trimmed();
     f = removeEmpty(f);
     QString n = f.join("_");
     names << n;
@@ -928,7 +1008,8 @@ QString MainWindow::concatenateAuthorNames(QStringList authors)
 {
   QStringList names;
   foreach (QString name, authors) {
-    QStringList splits = name.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
+    QStringList splits =
+      name.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
     QStringList f;
     foreach (QString split, splits) {
       f << split;
@@ -952,7 +1033,8 @@ QStringList MainWindow::removeEmpty(QStringList values)
   return result;
 }
 
-QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, QString title)
+QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path,
+    QString title)
 {
   QFile in_file(path);
   QFileInfo fileInfo(in_file);
@@ -960,8 +1042,9 @@ QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, QString
   filename = filename.left(filename.lastIndexOf("."));
 
   // This removes case worries.
-  QString lower_filename(filename.toLower()); // the lowercase version of the filename.
-  QString lower_title(title.toLower());       // the lowercase version of the title.
+  QString lower_filename(
+    filename.toLower()); // the lowercase version of the filename.
+  QString lower_title(title.toLower()); // the lowercase version of the title.
   QString remainder;
 
   // remove the title (if used) from filename.
@@ -969,20 +1052,23 @@ QStringList MainWindow::attemptToExtractAuthorFromFilename(QString path, QString
   if (lower_filename.contains(lower_title)) {
     title_index = lower_filename.indexOf(lower_title);
     remainder = filename.left(title_index) +
-                filename.right(lower_filename.length() - (title_index + lower_title.length()));
+                filename.right(lower_filename.length() -
+                               (title_index + lower_title.length()));
   }
   remainder = cleanString(remainder);
-  QStringList list = remainder.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
+  QStringList list =
+    remainder.split(QRegularExpression("[\\s.]"), QString::SkipEmptyParts);
   return list;
 }
 
 QString MainWindow::cleanString(QString unclean)
 {
   QString clean = unclean;
-  clean.replace('_', ' ');         // replaces _ with spaces
-  clean.replace('-', ' ');         // replaces - with spaces
-  clean.remove(QRegularExpression( // removes all sorts of other nonword characters
-                 QString::fromUtf8("[-`~!@#$%^&*()_—+=|:;<>«»,.?/{}\'\"\\[\\]\\\\]")));
+  clean.replace('_', ' '); // replaces _ with spaces
+  clean.replace('-', ' '); // replaces - with spaces
+  clean.remove(
+    QRegularExpression( // removes all sorts of other nonword characters
+      QString::fromUtf8("[-`~!@#$%^&*()_—+=|:;<>«»,.?/{}\'\"\\[\\]\\\\]")));
   clean = clean.simplified(); // removes multiple spaces
   clean = clean.trimmed();    // removes pre and post spaces.
   return clean;
@@ -1004,9 +1090,12 @@ void MainWindow::documentChanged(int index)
   if (!m_loading) {
     if (index >= 0) {
       m_options->setCurrentIndex(index);
-      EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
-      QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
-      IEBookDocument* iebookdocument = dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+      EBookWrapper* wrapper =
+        qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
+      QTextDocument* textdocument =
+        dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+      IEBookDocument* iebookdocument =
+        dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
 
       if (textdocument->isModified()) {
         setStatusModified();
@@ -1028,7 +1117,7 @@ void MainWindow::documentChanged(int index)
           QLocale local(language);
         }
       } else {
-        m_current_document = Q_NULLPTR;
+        m_current_document = nullptr;
       }
     } else {
       // TODO - no documents selected.
@@ -1041,11 +1130,14 @@ void MainWindow::documentChanged(int index)
 
 void MainWindow::tabClosing(int index)
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
-  QTextDocument* textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  EBookWrapper* wrapper =
+    qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
+  QTextDocument* textdocument =
+    dynamic_cast<QTextDocument*>(wrapper->editor()->document());
   if (textdocument->isModified()) {
     // TODO - Check if the user wants to save the document.
-    IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+    IEBookDocument* itextdocument =
+      dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
     if (itextdocument) {
       saveDocument(itextdocument);
     }
@@ -1061,7 +1153,7 @@ void MainWindow::tabClosing(int index)
     }
   } else {
     // no more tabs.
-    m_current_document = Q_NULLPTR;
+    m_current_document = nullptr;
   }
 }
 
@@ -1073,7 +1165,8 @@ void MainWindow::fileOpen()
     IEBookInterface* ebook = dynamic_cast<IEBookInterface*>(plugin);
     if (ebook) {
       QString composite = ebook->fileFilter();
-      QString individual_filter = ebook->fileDescription() + " ( " + composite + " );;";
+      QString individual_filter =
+        ebook->fileDescription() + " ( " + composite + " );;";
       individual_filters.append(individual_filter);
       if (filters.isEmpty())
         filters += composite;
@@ -1089,8 +1182,8 @@ void MainWindow::fileOpen()
   }
   filters += tr("All files (*.*)");
 
-  QStringList filenames =
-    QFileDialog::getOpenFileNames(this, tr("Load Book"), m_defbookpath, filters);
+  QStringList filenames = QFileDialog::getOpenFileNames(this, tr("Load Book"),
+                          m_defbookpath, filters);
   foreach (QString filename, filenames) {
     loadDocument(filename);
   }
@@ -1101,9 +1194,11 @@ void MainWindow::fileOpen()
 void MainWindow::fileSave()
 {
   // TODO
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  EBookWrapper* wrapper =
+    qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   if (wrapper) {
-    QTextDocument* textdocument = qobject_cast<QTextDocument*>(wrapper->editor()->document());
+    QTextDocument* textdocument =
+      qobject_cast<QTextDocument*>(wrapper->editor()->document());
     IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
     if (textdocument->isModified()) {
       saveDocument(itextdocument);
@@ -1250,7 +1345,7 @@ void MainWindow::viewTocPosition()
 
 void MainWindow::setLibraryToolbarState()
 {
-  if (m_library->isTree()) {
+  if (m_library_frame->isTree()) {
     m_library_tree->setVisible(false);
     m_library_shelf->setVisible(true);
   } else {
@@ -1316,7 +1411,7 @@ void MainWindow::setStatusModified()
 void MainWindow::setStatusNotModified()
 {
   m_modifiedlbl->setText(NOT_MODIFIED);
-//  m_file_save->setEnabled(false);
+  //  m_file_save->setEnabled(false);
 }
 
 void MainWindow::setStatusReadOnly()
@@ -1338,7 +1433,8 @@ void MainWindow::openWindow()
 {
   QObject* obj = sender();
   QAction* act = qobject_cast<QAction*>(obj);
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  EBookWrapper* wrapper =
+    qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   if (wrapper) {
     if (act == m_open_editor) {
       wrapper->setToEditor();
@@ -1352,7 +1448,8 @@ void MainWindow::openWindow()
 
 void MainWindow::tocAnchorClicked(QUrl url)
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  EBookWrapper* wrapper =
+    qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   EBookEditor* editor = wrapper->editor();
   QString fragment = url.fragment();
   if (fragment.isEmpty()) {
@@ -1368,7 +1465,7 @@ void MainWindow::setObjectVisibility(int index)
   if (obj) {
     QStackedWidget* sw = dynamic_cast<QStackedWidget*>(obj);
     if (sw) {
-      if (sw->currentWidget() == m_library) {
+      if (sw->currentWidget() == m_library_frame) {
         m_show_library->setVisible(false);
         m_show_editor->setVisible(true);
       } else if (sw->currentWidget() == m_tabs_frame) {
@@ -1383,12 +1480,12 @@ void MainWindow::setObjectVisibility(int index)
         break;
       case Options::VIEW_LIBRARY_TREE:
         m_doc_stack->setCurrentIndex(m_stack_library);
-        m_library->setToTree();
+        m_library_frame->setToTree();
         setLibraryToolbarState();
         break;
       case Options::VIEW_LIBRARY_SHELF:
         m_doc_stack->setCurrentIndex(m_stack_library);
-        m_library->setToShelf();
+        m_library_frame->setToShelf();
         setLibraryToolbarState();
         break;
       }
@@ -1398,7 +1495,8 @@ void MainWindow::setObjectVisibility(int index)
 
 void MainWindow::buildTocFromData()
 {
-  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
+  EBookWrapper* wrapper =
+    qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   int index = m_doc_tabs->currentIndex();
   EBookEditor* editor = wrapper->editor();
   // get new toc data
@@ -1406,8 +1504,10 @@ void MainWindow::buildTocFromData()
   // create new data widget
   EBookTOCWidget* new_toc_widget = new EBookTOCWidget(this);
   new_toc_widget->setOpenLinks(false);
-  connect(new_toc_widget, &EBookTOCWidget::anchorClicked, this, &MainWindow::tocAnchorClicked);
-  connect(new_toc_widget, &EBookTOCWidget::buildManualToc, this, &MainWindow::builManualToc);
+  connect(new_toc_widget, &EBookTOCWidget::anchorClicked, this,
+          &MainWindow::tocAnchorClicked);
+  connect(new_toc_widget, &EBookTOCWidget::buildManualToc, this,
+          &MainWindow::builManualToc);
   new_toc_widget->setDocumentString(toc_string);
   // get current toc widget
   QWidget* toc_widget = m_toc_stack->currentWidget();
@@ -1428,14 +1528,15 @@ void MainWindow::builManualToc()
   // create new data editor
   EBookTocEditor* toceditor = new EBookTocEditor(this);
   // get current toc widget
-  EBookTOCWidget* toc_widget = qobject_cast<EBookTOCWidget*>(m_toc_stack->currentWidget());
+  EBookTOCWidget* toc_widget =
+    qobject_cast<EBookTOCWidget*>(m_toc_stack->currentWidget());
   // back it up
-//  m_toc_backup.insert(index, toc_widget);
-//  // replace it with the new toc data
-//  m_toc_stack->removeWidget(toc_widget);
+  //  m_toc_backup.insert(index, toc_widget);
+  //  // replace it with the new toc data
+  //  m_toc_stack->removeWidget(toc_widget);
   toceditor->setDocument(toc_widget->document());
-//  m_toc_stack->insertWidget(index, toceditor);
-//  m_toc_stack->setCurrentIndex(index);
+  //  m_toc_stack->insertWidget(index, toceditor);
+  //  m_toc_stack->setCurrentIndex(index);
 
   toceditor->exec();
   QString toc = toceditor->documentString();
@@ -1485,7 +1586,7 @@ void MainWindow::fileNew()
 //{
 //  if (m_popup) {
 //    m_popup->close();
-//    m_popup = Q_NULLPTR;
+//    m_popup = nullptr;
 //  }
 //}
 
@@ -1497,7 +1598,7 @@ void MainWindow::fileNew()
 //    } else if (path.toLower().endsWith(".mobi")) {
 //        return createMobiDocument(path);
 //    }
-//    return Q_NULLPTR;
+//    return nullptr;
 //}
 
 // EBookDocument *MainWindow::createDocument(EBookDocument *doc)
@@ -1517,7 +1618,7 @@ void MainWindow::fileNew()
 //    //    document->setClonedData(contents);
 //    //    return document;
 //    //  }
-//    return Q_NULLPTR;
+//    return nullptr;
 //}
 
 // EBookDocument *MainWindow::createEPubDocument(QString path)

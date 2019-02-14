@@ -89,11 +89,11 @@ QString MobiDocument::title()
   return QString();
 }
 
-// void MobiDocument::setTitle(const QString& title)
-//{
-//  Q_D(MobiDocument);
-//  d->setTitle(title);
-//}
+void MobiDocument::setTitle(const QString& title)
+{
+  Q_D(MobiDocument);
+  d->setTitle(title);
+}
 
 QString MobiDocument::subject()
 {

@@ -11,7 +11,7 @@ class EBookEditor : public QTextEdit
   Q_OBJECT
 
 public:
-  EBookEditor(QWidget* parent = Q_NULLPTR);
+  EBookEditor(QWidget* parent = nullptr);
   EBookEditor(const EBookEditor& editor);
   ~EBookEditor();
 

@@ -18,10 +18,10 @@ const QString MobiPlugin::m_file_description = "Mobi Document";
 
 MobiPlugin::MobiPlugin(QObject* parent) : QObject(parent) {}
 
-MobiPlugin::MobiPlugin(Options* options, QObject* parent) :
-  QObject(parent), m_options(options)
-{
-}
+//MobiPlugin::MobiPlugin(Options* options, QObject* parent) :
+//  QObject(parent), m_options(options)
+//{
+//}
 
 QString MobiPlugin::pluginGroup() const
 {

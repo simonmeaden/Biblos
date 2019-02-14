@@ -6,8 +6,8 @@
 #include "iebookdocument.h"
 #include "iebookinterface.h"
 #include "interface_global.h"
+#include "options.h"
 
-class Options;
 class MobiDocument;
 
 class INTERFACESHARED_EXPORT MobiPlugin : public QObject, public IEBookInterface
@@ -17,8 +17,8 @@ class INTERFACESHARED_EXPORT MobiPlugin : public QObject, public IEBookInterface
   Q_INTERFACES(IPluginInterface)
   Q_INTERFACES(IEBookInterface)
 public:
-  MobiPlugin(QObject* parent = Q_NULLPTR);
-  MobiPlugin(Options* options, QObject* parent = Q_NULLPTR);
+  MobiPlugin(QObject* parent = nullptr);
+//  MobiPlugin(Options* options, QObject* parent = nullptr);
 
   // IPluginInterface interface
   QString pluginGroup() const override;
@@ -34,7 +34,7 @@ public:
   // IEBookInterface interface
   IEBookDocument* createDocument(QString path) override;
   IEBookDocument* createCodeDocument() override;
-  EBookType type() const override
+  EBookDocumentType type() const override
   {
     return MOBI;
   }

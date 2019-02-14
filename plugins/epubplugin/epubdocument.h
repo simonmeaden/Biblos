@@ -19,11 +19,13 @@
 
 #include <csvsplitter/csvsplitter.h>
 
-#include "iebookdocument.h"
-#include "interface_global.h"
+#include "authors.h"
 #include "ebookcommon.h"
 #include "epubcontainer.h"
 #include "epubplugin.h"
+#include "iebookdocument.h"
+#include "interface_global.h"
+#include "library.h"
 
 struct EPubContents {
   QHash<QString, QByteArray> m_svgs;
@@ -40,8 +42,8 @@ class INTERFACESHARED_EXPORT EPubDocument : public ITextDocument
   Q_DECLARE_PRIVATE(EPubDocument)
 
 public:
-  EPubDocument(QObject* parent = Q_NULLPTR);
-  EPubDocument(EPubDocumentPrivate* doc, QObject* parent = Q_NULLPTR);
+  EPubDocument(QObject* parent = nullptr);
+  EPubDocument(EPubDocumentPrivate* doc, QObject* parent = nullptr);
   EPubDocument(const EPubDocument& doc);
   virtual ~EPubDocument() override;
 
@@ -65,12 +67,13 @@ public:
   void setPublished(const QDate& published) override;
   QString buildTocFromData() override;
 
-  EBookType type() const override
+  EBookDocumentType type() const override
   {
     return EPUB;
   }
+  bool isModified() override;
   QString title() override;
-  //  void setTitle(const QString& title) override;
+  void setTitle(const QString& title) override;
   QString subject() override;
   void setSubject(const QString& subject) override;
   QString language() override;
@@ -88,7 +91,6 @@ protected:
   EPubDocument(EPubDocumentPrivate& doc);
 
   bool m_modified, m_readonly;
-
 };
 
 Q_DECLARE_METATYPE(EPubDocument);

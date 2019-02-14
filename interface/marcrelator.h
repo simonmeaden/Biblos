@@ -291,7 +291,7 @@ public:
   bool isRelator();
 
   static QString toString(Relator relator);
-  static MarcRelator fromString(QString name);
+  static MarcRelator fromString(QString relator_name);
 
   static bool isRelator(QString name);
 

@@ -14,7 +14,7 @@ class OCRPLUGINSHARED_EXPORT OcrPlugin : public QObject, public IOcrInterface
   Q_INTERFACES(IOcrInterface)
 
 public:
-  OcrPlugin(QObject* parent = Q_NULLPTR);
+  OcrPlugin(QObject* parent = nullptr);
 
   QString pluginGroup() const
   {

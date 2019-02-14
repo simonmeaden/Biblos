@@ -22,16 +22,16 @@ public:
   virtual void saveDocument() = 0;
   virtual IEBookInterface* plugin() = 0;
   virtual void setPlugin(IEBookInterface* plugin) = 0;
-  virtual EBookType type() const = 0;
+  virtual EBookDocumentType type() const = 0;
 
-  //  virtual bool isModified() = 0;
+  virtual bool isModified() = 0;
   //  virtual bool readOnly() = 0;
   //  virtual void setReadOnly(const bool readonly) = 0;
 
   virtual QString tocAsString() = 0;
 
   virtual QString title() = 0;
-  //  virtual void setTitle(const QString& title) = 0;
+  virtual void setTitle(const QString& title) = 0;
   virtual QString subject() = 0;
   virtual void setSubject(const QString& subject) = 0;
   virtual QString language() = 0;
@@ -47,7 +47,6 @@ public:
   virtual void setPublished(const QDate& published) = 0;
 
   virtual QString buildTocFromData() = 0;
-
 };
 
 /*!
@@ -57,7 +56,7 @@ class ITextDocument : public QTextDocument, public IEBookDocument
 {
   Q_OBJECT
 public:
-  ITextDocument(QObject* parent = Q_NULLPTR)
+  ITextDocument(QObject* parent = nullptr)
     : QTextDocument(parent)
   {
   }
@@ -86,9 +85,7 @@ public:
   //  void setModified(bool modified) { m_modified = modified; }
   //  bool readonly() { return m_readonly; }
   //  void setReadonly(bool readonly) { m_readonly = readonly; }
-  //  void setTitle(QString title) { m_title = title; }
-  //  void setTitle(QString name, QString title) { m_titles.insert(name, title);
-  //  } QStringList creators() { return m_creators; } QString creator(int i) {
+  // QStringList creators() { return m_creators; } QString creator(int i) {
   //  return m_creators.at(i); } void addCreator(QString creator) {
   //  m_creators.append(creator); } void addCreators(QStringList creators) {
   //  m_creators.append(creators); } void setCreators(QStringList creators) {

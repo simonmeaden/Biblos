@@ -7,8 +7,10 @@
 #include "iebookdocument.h"
 #include "iebookinterface.h"
 #include "interface_global.h"
+#include "options.h"
+#include "library.h"
+#include "authors.h"
 
-class Options;
 class EPubDocument;
 
 class INTERFACESHARED_EXPORT EPubPlugin : public QObject, public IEBookInterface
@@ -19,8 +21,7 @@ class INTERFACESHARED_EXPORT EPubPlugin : public QObject, public IEBookInterface
   Q_INTERFACES(IEBookInterface)
 
 public:
-  EPubPlugin(QObject* parent = Q_NULLPTR);
-  EPubPlugin(Options* options, QObject* parent = Q_NULLPTR);
+  EPubPlugin(QObject* parent = nullptr);
 
   IEBookDocument* createDocument(QString path) override;
   IEBookDocument* createCodeDocument() override;
@@ -41,7 +42,7 @@ public:
   // IEBookInterface interface
   QString fileFilter() override;
   QString fileDescription() override;
-  EBookType type() const override
+  EBookDocumentType type() const override
   {
     return EPUB;
   }
@@ -60,8 +61,7 @@ protected:
   static const QString m_file_description;
 
   // variables for IEBookInterface;
-
-  Options* m_options;
+//  Options* m_options;
   IEBookDocument* m_document;
 };
 

@@ -13,6 +13,7 @@ EBookCodeEditor::EBookCodeEditor(Options* options, QWidget* parent)
 
 EBookCodeEditor::EBookCodeEditor(const EBookCodeEditor& editor)
   : QPlainTextEdit(editor.parentWidget()) {}
+
 EBookCodeEditor::~EBookCodeEditor() {}
 
 void EBookCodeEditor::init()

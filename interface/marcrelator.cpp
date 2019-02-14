@@ -587,9 +587,10 @@ QString MarcRelator::toString(MarcRelator::Relator relator)
   }
 }
 
-MarcRelator MarcRelator::fromString(QString name)
+MarcRelator MarcRelator::fromString(QString relator_name)
 {
   MarcRelator relator;
+  QString name = relator_name.toLower();
   if (name == "abr") {
     relator.setType(MarcRelator::ABRIDGER);
   } else if (name == "acp") {

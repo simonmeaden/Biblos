@@ -1,11 +1,12 @@
 #include "ebookwrapper.h"
 #include "ebookwordreader.h"
 
-EBookWrapper::EBookWrapper(Options* options, QWidget* parent) :
+EBookWrapper::EBookWrapper(Options* options, AuthorsDB *authors, QWidget* parent) :
   QStackedWidget(parent), m_editor(new EBookEditor(parent)),
   m_codeeditor(new EBookCodeEditor(options, parent)),
   m_metaeditor(new MetadataEditor(
                  options,
+                 authors,
                  parent)), /* m_word_reader(new EBookWordReader(m_editor, this)),*/
   m_editorindex(0), m_codeindex(0), m_metaindex(0), m_options(options)
 {

@@ -1,13 +1,17 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    scan \
     interface \
-#    ebook \
     plugins \
     ebookedit
 
 DISTFILES += \
     README.md
 
-CONFIG += ordered
+interface.subdir = interface
+
+plugins.subdir = plugins
+plugins.depends = interface
+
+ebookedit.subdir = ebookedit
+ebookedit.depends = interface

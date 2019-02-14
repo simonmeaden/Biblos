@@ -168,8 +168,8 @@ DCTerms DCTerms::fromString(QString term_name)
 {
   DCTerms terms;
   QString name;
-  if (term_name.startsWith("dcterms:")) {
-    QStringList splits = term_name.split(":");
+  if (term_name.toLower().startsWith("dcterms:")) {
+    QStringList splits = term_name.toLower().split(":");
     if (splits.size() == 2) {
       name = splits.at(1);
     } else {

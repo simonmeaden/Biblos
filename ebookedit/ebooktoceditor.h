@@ -10,7 +10,7 @@
 class EBookTocEditor : public QDialog
 {
 public:
-  EBookTocEditor(QWidget* parent = Q_NULLPTR);
+  EBookTocEditor(QWidget* parent = nullptr);
 
   void setDocument(QTextDocument* document);
   void setDocumentString(QString document_string);

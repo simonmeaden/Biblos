@@ -11,8 +11,8 @@ class HunspellChecker : public QThread
     Q_OBJECT
 
 public:
-    HunspellChecker(QObject* parent = Q_NULLPTR);
-    HunspellChecker(QString dict_path, QObject* parent = Q_NULLPTR);
+    HunspellChecker(QObject* parent = nullptr);
+    HunspellChecker(QString dict_path, QObject* parent = nullptr);
     ~HunspellChecker();
 
     void stopRunning();

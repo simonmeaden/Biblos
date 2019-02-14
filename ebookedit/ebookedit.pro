@@ -8,7 +8,7 @@ QT       += core gui xml svg sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
-TARGET = manuscript
+TARGET = biblios
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -36,7 +36,12 @@ DEFINES += \
        "VERSION_MINOR=$$VERSION_MINOR" \
        "VERSION_BUILD=$$VERSION_BUILD"
 
-DESTDIR = $$PWD/../../build/manuscript/manuscript
+DESTDIR = $$OUT_PWD/..
+#DESTDIR = $$PWD/../../build/biblios
+#OBJECTS_DIR = $$DESTDIR/build/.objd
+#MOC_DIR = $$DESTDIR/build/.mocd
+#RCC_DIR = $$DESTDIR/build/.qrcd
+#UI_DIR = $$DESTDIR/build/.uid
 
 SOURCES += \
     main.cpp \
@@ -47,17 +52,16 @@ SOURCES += \
     ebookwrapper.cpp \
     ebookeditor.cpp \
     deletefiledialog.cpp \
-    library.cpp \
     authordialog.cpp \
     metadataeditor.cpp \
-    dbmanager.cpp \
     ebookwordreader.cpp \
     plugindialog.cpp \
     libraryframe.cpp \
     libraryshelf.cpp \
     aboutdialog.cpp \
     ebooktocwidget.cpp \
-    ebooktoceditor.cpp
+    ebooktoceditor.cpp \
+    focuslineedit.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -67,17 +71,16 @@ HEADERS += \
     ebookwrapper.h \
     ebookeditor.h \
     deletefiledialog.h \
-    library.h \
     authordialog.h \
     metadataeditor.h \
-    dbmanager.h \
     ebookwordreader.h \
     plugindialog.h \
     libraryframe.h \
     libraryshelf.h \
     aboutdialog.h \
     ebooktocwidget.h \
-    ebooktoceditor.h
+    ebooktoceditor.h \
+    focuslineedit.h
 
 FORMS += \
         mainwindow.ui
@@ -85,23 +88,6 @@ FORMS += \
 RESOURCES += \
     icons.qrc
 
-## EBOOK library
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebook
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ebook/ -lebookd
-#else:unix: LIBS += -L$$OUT_PWD/../ebook/ -lebook
-
-#INCLUDEPATH += $$PWD/../ebook
-#DEPENDPATH += $$PWD/../ebook
-
-# interface - this was separated for use by plugins.
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
-else:unix: LIBS += -L$$OUT_PWD/../interface/ -linterface
-
-INCLUDEPATH += $$PWD/../interface
-DEPENDPATH += $$PWD/../interface
-
-INCLUDEPATH += /home/simonmeaden/workspace/include
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
 # QYAML-CPP library
@@ -112,18 +98,19 @@ unix|win32: LIBS += -lyaml-cpp
 unix|win32: LIBS += -lquazip5
 # QLOGGER library
 unix|win32: LIBS += -lqloggerlib
-## STRINGUTIL
-#unix|win32: LIBS += -lstringutil
 
 DISTFILES += \
     attributions.txt
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/release/ -linterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../interface/debug/ -linterface
+else:unix: LIBS += -L$$OUT_PWD/../interface/ -linterface
 
+INCLUDEPATH += $$PWD/../interface
+DEPENDPATH += $$PWD/../interface
 
-#unix|win32: LIBS += -L$$PWD/../../build/manuscript/interface/ -linterface
-
-#INCLUDEPATH += $$PWD/../../build/manuscript/interface
-#DEPENDPATH += $$PWD/../../build/manuscript/interface
-
-#win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../../build/manuscript/interface/interface.lib
-#else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../../build/manuscript/interface/libinterface.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/release/libinterface.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/debug/libinterface.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/release/interface.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/debug/interface.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../interface/libinterface.a

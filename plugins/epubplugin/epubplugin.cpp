@@ -11,18 +11,16 @@ const int EPubPlugin::m_major_version = EPUB_VERSION_MAJOR;
 const int EPubPlugin::m_minor_version = EPUB_VERSION_MINOR;
 const int EPubPlugin::m_build_version = EPUB_VERSION_BUILD;
 const QString EPubPlugin::m_version = QString("%1.%2.%3")
-                                          .arg(EPubPlugin::m_major_version)
-                                          .arg(EPubPlugin::m_minor_version)
-                                          .arg(EPubPlugin::m_build_version);
+                                      .arg(EPubPlugin::m_major_version)
+                                      .arg(EPubPlugin::m_minor_version)
+                                      .arg(EPubPlugin::m_build_version);
 bool EPubPlugin::m_loaded = false;
 
 const QString EPubPlugin::m_file_filter = "*.epub";
 const QString EPubPlugin::m_file_description = "EPub Document";
 
-EPubPlugin::EPubPlugin(QObject* parent) : QObject(parent) {}
-
-EPubPlugin::EPubPlugin(Options* options, QObject* parent) :
-    QObject(parent), m_options(options)
+EPubPlugin::EPubPlugin(QObject* parent)
+  : QObject(parent)
 {
 }
 
@@ -51,12 +49,12 @@ IEBookDocument* EPubPlugin::createCodeDocument()
 {
   if (m_document) {
     //    EBookContents *contents = doc->cloneData();
-    EPubDocument* document = new EPubDocument(parent());
-    document->setDocumentLayout(new QPlainTextDocumentLayout(document));
+//    EPubDocument* document = new EPubDocument(m_library, m_authors, parent());
+//    document->setDocumentLayout(new QPlainTextDocumentLayout(document));
     //    document->setClonedData(contents);
-    return document;
+//    return document;
   }
-  return Q_NULLPTR;
+  return nullptr;
 }
 
 // void EPubPlugin::saveDocument(IEBookDocument* document)
@@ -65,27 +63,60 @@ IEBookDocument* EPubPlugin::createCodeDocument()
 //  // TODO actual save epub file.
 //}
 
-QString EPubPlugin::fileFilter() { return m_file_filter; }
+QString EPubPlugin::fileFilter()
+{
+  return m_file_filter;
+}
 
-QString EPubPlugin::fileDescription() { return m_file_description; }
+QString EPubPlugin::fileDescription()
+{
+  return m_file_description;
+}
 
-QString EPubPlugin::pluginGroup() const { return m_plugin_group; }
+QString EPubPlugin::pluginGroup() const
+{
+  return m_plugin_group;
+}
 
-QString EPubPlugin::pluginName() const { return m_plugin_name; }
+QString EPubPlugin::pluginName() const
+{
+  return m_plugin_name;
+}
 
-QString EPubPlugin::vendor() const { return m_vendor; }
+QString EPubPlugin::vendor() const
+{
+  return m_vendor;
+}
 
-bool EPubPlugin::loaded() const { return m_loaded; }
+bool EPubPlugin::loaded() const
+{
+  return m_loaded;
+}
 
-void EPubPlugin::setLoaded(bool loaded) { m_loaded = loaded; }
+void EPubPlugin::setLoaded(bool loaded)
+{
+  m_loaded = loaded;
+}
 
-QString EPubPlugin::version() const { return m_version; }
+QString EPubPlugin::version() const
+{
+  return m_version;
+}
 
-int EPubPlugin::majorVersion() const { return m_major_version; }
+int EPubPlugin::majorVersion() const
+{
+  return m_major_version;
+}
 
-int EPubPlugin::minorVersion() const { return m_minor_version; }
+int EPubPlugin::minorVersion() const
+{
+  return m_minor_version;
+}
 
-int EPubPlugin::buildVersion() const { return m_build_version; }
+int EPubPlugin::buildVersion() const
+{
+  return m_build_version;
+}
 
 void EPubPlugin::buildMenu()
 {

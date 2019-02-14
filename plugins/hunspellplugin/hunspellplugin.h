@@ -19,9 +19,9 @@ class INTERFACESHARED_EXPORT HunspellPlugin : public QObject,
   Q_INTERFACES(IPluginInterface)
   Q_INTERFACES(ISpellInterface)
 public:
-  explicit HunspellPlugin(QObject *parent = Q_NULLPTR);
+  explicit HunspellPlugin(QObject *parent = nullptr);
   explicit HunspellPlugin(Options *options, QString dict_path = QString(),
-                          QObject *parent = Q_NULLPTR);
+                          QObject *parent = nullptr);
 
   // IPluginInterface interface
   QString pluginGroup() const override;

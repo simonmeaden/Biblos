@@ -11,6 +11,8 @@
 #include <qyaml-cpp/QYamlCpp>
 #include <yaml-cpp/yaml.h>
 
+#include "ebookcommon.h"
+
 class Options : public QObject
 {
   Q_OBJECT
@@ -35,7 +37,7 @@ public:
     VIEW_EDITOR,
   };
 
-  Options(QObject* parent = Q_NULLPTR);
+  Options(QObject* parent = nullptr);
   ~Options();
 
   void save(const QString filename);
@@ -168,7 +170,6 @@ public:
 
 signals:
   void loadLibraryFiles(QStringList, int);
-  void loadNonLibraryFiles(QStringList, int);
 
 protected:
   ViewState m_view_state = VIEW_LIBRARY_TREE;
@@ -176,11 +177,13 @@ protected:
   bool m_toc_visible = true;
 
   YAML::Node m_preferences;
-  bool m_prefchanged = false;
+  bool m_pref_changed = false;
 
   QRect m_rect;
   QSize m_options_dlg_size;
   int m_currentindex;
+  QList<int> m_current_document_indexes;
+  QList<int> m_current_document_lines;
   QStringList m_current_files;
 
 
@@ -226,6 +229,8 @@ protected:
   static QString POSITION;
   static QString DIALOG;
   static QString PREF_CURRENT_INDEX;
+  static QString PREF_CURRENT_ITEMS;
+  static QString PREF_CURRENT_LINE_NOS;
   static QString PREF_COUNT;
   static QString PREF_BOOKLIST;
   static QString PREF_LIBRARY;

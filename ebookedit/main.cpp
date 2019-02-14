@@ -13,10 +13,11 @@ int main(int argc, char* argv[])
   QApplication a(argc, argv);
   //  QCoreApplication::setOrganizationName("SM Electronic Components");
   //  QCoreApplication::setOrganizationDomain("smelecomp.co.uk");
-  QCoreApplication::setApplicationName("EBookEditor");
+  QCoreApplication::setApplicationName("Biblios");
 
   qRegisterMetaType<EBookEditor>();
   qRegisterMetaType<EBookCodeEditor>();
+//  qRegisterMetaType<EBookAuthorData>();
   //  qRegisterMetaType<EBookData>();
   //  qRegisterMetaType<EPubDocument>();
   //  qRegisterMetaType<EPubDocument>();
