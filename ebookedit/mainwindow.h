@@ -10,7 +10,8 @@
 
 #include <qlogger/qlogger.h>
 #include <qyaml-cpp/QYamlCpp>
-#include <yaml-cpp/yaml.h>
+//#include "qyaml-cpp.h"
+//#include <yaml-cpp/yaml.h>
 
 #include "ebookcommon.h"
 #include "iebookdocument.h"

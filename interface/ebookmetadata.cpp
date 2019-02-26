@@ -7,11 +7,12 @@
 using namespace qlogger;
 
 EBookMetadata::EBookMetadata()
-  : m_is_foaf(false)
-{
-}
+  : m_calibre(Calibre(new EBookCalibre()))
+  , m_is_foaf(false)
+{}
 
-void EBookMetadata::parseMetadata(QDomNodeList metadata_node_list)
+void
+EBookMetadata::parse(QDomNodeList metadata_node_list)
 {
   for (int i = 0; i < metadata_node_list.count(); i++) { // should only be one.
     QDomNodeList metadata_child_list = metadata_node_list.at(i).childNodes();
@@ -21,7 +22,8 @@ void EBookMetadata::parseMetadata(QDomNodeList metadata_node_list)
   }
 }
 
-bool EBookMetadata::writeMetadata(QXmlStreamWriter* xml_writer)
+bool
+EBookMetadata::write(QXmlStreamWriter* xml_writer)
 {
 
   xml_writer->writeStartElement("metadata");
@@ -132,60 +134,77 @@ bool EBookMetadata::writeMetadata(QXmlStreamWriter* xml_writer)
   return true;
 }
 
-QString EBookMetadata::uniqueIdentifierName() const
+QString
+EBookMetadata::uniqueIdentifierName() const
 {
   return m_package_unique_identifier_name;
 }
 
-void EBookMetadata::setUniqueIdentifierName(
+void
+EBookMetadata::setUniqueIdentifierName(
   const QString& package_unique_identifier_name)
 {
   m_package_unique_identifier_name = package_unique_identifier_name;
 }
 
-bool EBookMetadata::isFoaf() const
+bool
+EBookMetadata::isFoaf() const
 {
   return m_is_foaf;
 }
 
-void EBookMetadata::setIsFoaf(bool value)
+void
+EBookMetadata::setIsFoaf(bool value)
 {
   m_is_foaf = value;
 }
 
-QStringList EBookMetadata::creatorList() const
+QStringList
+EBookMetadata::creatorList() const
 {
   return m_creator_list;
 }
 
-void EBookMetadata::setCreatorList(const QStringList& creator_list)
+void
+EBookMetadata::setCreatorList(const QStringList& creator_list)
 {
   m_creator_list = creator_list;
 }
 
-OrderedTitleMap EBookMetadata::orderedTitles() const
+OrderedTitleMap
+EBookMetadata::orderedTitles() const
 {
   return m_ordered_titles;
 }
 
-void EBookMetadata::setOrderedTitles(const OrderedTitleMap& ordered_titles)
+void
+EBookMetadata::setOrderedTitles(const OrderedTitleMap& ordered_titles)
 {
   m_ordered_titles = ordered_titles;
 }
 
-void EBookMetadata::writeCreator(QXmlStreamWriter* xml_writer,
-                                 Creator shared_creator)
+Calibre
+EBookMetadata::calibre() const
+{
+  return m_calibre;
+}
+
+void
+EBookMetadata::writeCreator(QXmlStreamWriter* xml_writer,
+                            Creator shared_creator)
 {
   writeCreatorContributor("dc:creator", xml_writer, shared_creator);
 }
 
-void EBookMetadata::writeContributor(QXmlStreamWriter* xml_writer,
-                                     Creator shared_creator)
+void
+EBookMetadata::writeContributor(QXmlStreamWriter* xml_writer,
+                                Creator shared_creator)
 {
   writeCreatorContributor("dc:contributor", xml_writer, shared_creator);
 }
 
-void EBookMetadata::parseSourceMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseSourceMetadata(const QDomElement& metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   QDomNode node = node_map.namedItem("id");
@@ -202,7 +221,8 @@ void EBookMetadata::parseSourceMetadata(const QDomElement& metadata_element)
   source = shared_source;
 }
 
-void EBookMetadata::parsePublisherMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parsePublisherMetadata(const QDomElement& metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Publisher shared_publisher = Publisher(new EPubPublisher());
@@ -234,7 +254,8 @@ void EBookMetadata::parsePublisherMetadata(const QDomElement& metadata_element)
   publisher = shared_publisher;
 }
 
-void EBookMetadata::parseFormatMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseFormatMetadata(const QDomElement& metadata_element)
 {
   Format shared_format = Format(new EBookFormat());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -247,7 +268,8 @@ void EBookMetadata::parseFormatMetadata(const QDomElement& metadata_element)
   format = shared_format;
 }
 
-void EBookMetadata::parseTypeMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseTypeMetadata(const QDomElement& metadata_element)
 {
   BookType shared_type = BookType(new EBookType());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -257,10 +279,11 @@ void EBookMetadata::parseTypeMetadata(const QDomElement& metadata_element)
     shared_type->id = node.nodeValue();
   }
   shared_type->name = metadata_element.text();
-  type = shared_type;
+  m_type = shared_type;
 }
 
-void EBookMetadata::parseRelationMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseRelationMetadata(const QDomElement& metadata_element)
 {
   Relation shared_relation = Relation(new EBookRelation());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -281,7 +304,8 @@ void EBookMetadata::parseRelationMetadata(const QDomElement& metadata_element)
   relation = shared_relation;
 }
 
-void EBookMetadata::parseCoverageMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseCoverageMetadata(const QDomElement& metadata_element)
 {
   Coverage shared_coverage = Coverage(new EBookCoverage());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -302,7 +326,8 @@ void EBookMetadata::parseCoverageMetadata(const QDomElement& metadata_element)
   coverage = shared_coverage;
 }
 
-void EBookMetadata::parseRightsMetadata(const QDomElement& metadata_element)
+void
+EBookMetadata::parseRightsMetadata(const QDomElement& metadata_element)
 {
   Rights shared_rights = Rights(new EBookRights());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -323,9 +348,10 @@ void EBookMetadata::parseRightsMetadata(const QDomElement& metadata_element)
   rights = shared_rights;
 }
 
-void EBookMetadata::parseDublinCoreMeta(QString tag_name,
-                                        QDomElement& metadata_element,
-                                        QDomNamedNodeMap& node_map)
+void
+EBookMetadata::parseDublinCoreMeta(QString tag_name,
+                                   QDomElement& metadata_element,
+                                   QDomNamedNodeMap& node_map)
 {
   if (tag_name == "title") {
     parseTitleMetadata(metadata_element);
@@ -368,51 +394,56 @@ void EBookMetadata::parseDublinCoreMeta(QString tag_name,
   }
 }
 
-void EBookMetadata::parseOpfMeta(QString tag_name,
-                                 QDomElement& metadata_element,
-                                 QDomNamedNodeMap& /*node_map*/)
+void
+EBookMetadata::parseOpfMeta(QString tag_name,
+                            QDomElement& metadata_element,
+                            QDomNamedNodeMap& /*node_map*/)
 {
   QLOG_WARN(QString("Unknown OPF <meta> detected : TagName=%1, NodeName=%2, "
                     "NodeValue=%3, TagValue=%4")
-            .arg(tag_name)
-            .arg(metadata_element.nodeName())
-            .arg(metadata_element.nodeValue())
-            .arg(metadata_element.text()));
+              .arg(tag_name)
+              .arg(metadata_element.nodeName())
+              .arg(metadata_element.nodeValue())
+              .arg(metadata_element.text()));
 }
 
-void EBookMetadata::parseCalibreMetas(QString id, QDomNode& node)
+void
+EBookMetadata::parseCalibreMetas(QString id, QDomNode& node)
 {
   if (id == "calibre:series")
-    calibre.series_name = node.nodeValue();
+    m_calibre->setSeriesName(node.nodeValue());
   else if (id == "calibre:series_index")
-    calibre.series_index = node.nodeValue();
+    m_calibre->setSeriesIndex(node.nodeValue());
   else if (id == "calibre:title_sort")
-    calibre.title_sort = node.nodeValue();
+    m_calibre->setTitleSort(node.nodeValue());
   else if (id == "calibre:author_link_map")
-    calibre.author_link_map = node.nodeValue();
+    m_calibre->setAuthorLinkMap(node.nodeValue());
   else if (id == "calibre:timestamp")
-    calibre.timestamp = node.nodeValue();
+    m_calibre->setTimestamp(node.nodeValue());
   else if (id == "calibre:rating")
-    calibre.rating = node.nodeValue();
+    m_calibre->setRating(node.nodeValue());
   else if (id == "calibre:publication_type")
-    calibre.publication_type = node.nodeValue();
+    m_calibre->setPublicationType(node.nodeValue());
   else if (id == "calibre:user_metadata")
-    calibre.user_metadata = node.nodeValue();
+    m_calibre->setUserMetadata(node.nodeValue());
   else if (id == "calibre:user_categories")
-    calibre.user_categories = node.nodeValue();
+    m_calibre->setUserCategories(node.nodeValue());
   else if (id == "calibre:custom_metadata")
-    calibre.custom_metadata = node.nodeValue();
+    m_calibre->setCustomMetadata(node.nodeValue());
+  m_calibre->setModified(false);
 }
 
-void EBookMetadata::parseTitleDateRefines(Title shared_title,
-    QDomElement& metadata_element)
+void
+EBookMetadata::parseTitleDateRefines(Title shared_title,
+                                     QDomElement& metadata_element)
 {
   shared_title->date =
     QDateTime::fromString(metadata_element.text(), Qt::ISODate);
 }
 
-Foaf EBookMetadata::parseCreatorContributorFoafAttributes(
-  QString property, QDomNamedNodeMap node_map)
+Foaf
+EBookMetadata::parseCreatorContributorFoafAttributes(QString property,
+                                                     QDomNamedNodeMap node_map)
 {
   /* Please note that these are just values I have found in examples
    * of EPUB 3.0 and 3.1 ebooks. */
@@ -440,9 +471,11 @@ Foaf EBookMetadata::parseCreatorContributorFoafAttributes(
   return foaf;
 }
 
-void EBookMetadata::parseCreatorContributorRefines(
-  Creator shared_creator, QDomElement& metadata_element, QString id,
-  QDomNamedNodeMap node_map)
+void
+EBookMetadata::parseCreatorContributorRefines(Creator shared_creator,
+                                              QDomElement& metadata_element,
+                                              QString id,
+                                              QDomNamedNodeMap node_map)
 {
   QDomNode node = node_map.namedItem("property");
   if (!node.isNull()) {
@@ -458,7 +491,7 @@ void EBookMetadata::parseCreatorContributorRefines(
           if (shared_creator->relator.type() == MarcRelator::NO_TYPE) {
             shared_creator->string_creator = metadata_element.text();
             QLOG_DEBUG(QString("An unexpected role has come up. %1")
-                       .arg(metadata_element.text()))
+                         .arg(metadata_element.text()))
           }
         } else {
           // TODO treat as a string if not a recognised scheme type;
@@ -495,8 +528,10 @@ void EBookMetadata::parseCreatorContributorRefines(
   }
 }
 
-void EBookMetadata::parseTitleRefines(QString id, QDomElement metadata_element,
-                                      QDomNamedNodeMap node_map)
+void
+EBookMetadata::parseTitleRefines(QString id,
+                                 QDomElement metadata_element,
+                                 QDomNamedNodeMap node_map)
 {
   Title shared_title = m_titles_by_id.value(id);
   QDomNode node = node_map.namedItem("property");
@@ -547,8 +582,10 @@ void EBookMetadata::parseTitleRefines(QString id, QDomElement metadata_element,
   }
 }
 
-void EBookMetadata::parseRefineMetas(QDomElement& metadata_element,
-                                     QDomNode& node, QDomNamedNodeMap& node_map)
+void
+EBookMetadata::parseRefineMetas(QDomElement& metadata_element,
+                                QDomNode& node,
+                                QDomNamedNodeMap& node_map)
 {
   QString id = node.nodeValue().toLower();
   if (id.startsWith("#")) {
@@ -569,17 +606,18 @@ void EBookMetadata::parseRefineMetas(QDomElement& metadata_element,
   } else if (m_creators_by_id.contains(id)) {
     // is it a creator
     Creator shared_creator = m_creators_by_id.value(id);
-    parseCreatorContributorRefines(shared_creator, metadata_element, id,
-                                   node_map);
+    parseCreatorContributorRefines(
+      shared_creator, metadata_element, id, node_map);
   } else if (contributors_by_name.contains(id)) {
     // is it a creator
     Creator shared_contributor = contributors_by_name.value(id);
-    parseCreatorContributorRefines(shared_contributor, metadata_element, id,
-                                   node_map);
+    parseCreatorContributorRefines(
+      shared_contributor, metadata_element, id, node_map);
   }
 }
 
-bool EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
+bool
+EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
 {
   QDomElement metadata_element = metadata_node.toElement();
   QString tag_name = metadata_element.tagName();
@@ -702,7 +740,7 @@ bool EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
         if (id.startsWith("calibre:")) {
           parseCalibreMetas(id, node);
         } else // a store for unknown stuff.
-          extra_metas.insert(id, node.nodeValue());
+          m_extra_metas.insert(id, node.nodeValue());
       }
     }
   } else if (metadata_element.prefix() == "dc") {
@@ -715,16 +753,17 @@ bool EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
     // TODO not a dc  or OPF element, maybe calibre?
     QLOG_WARN(QString("Unknown <meta> detected : TagName=%1, NodeName=%2, "
                       "NodeValue=%3, TagValue=%4")
-              .arg(tag_name)
-              .arg(metadata_element.nodeName())
-              .arg(metadata_element.nodeValue())
-              .arg(metadata_element.text()));
+                .arg(tag_name)
+                .arg(metadata_element.nodeName())
+                .arg(metadata_element.nodeValue())
+                .arg(metadata_element.text()));
   }
 
   return true;
 }
 
-void EBookMetadata::parseTitleMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseTitleMetadata(QDomElement metadata_element)
 {
   Title shared_title = Title(new EBookTitle());
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -764,7 +803,8 @@ void EBookMetadata::parseTitleMetadata(QDomElement metadata_element)
   m_ordered_titles.insert(getNextTitleIndex(), shared_title);
 }
 
-void EBookMetadata::parseCreatorMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseCreatorMetadata(QDomElement metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Creator creator = Creator(new EBookCreator());
@@ -828,7 +868,8 @@ void EBookMetadata::parseCreatorMetadata(QDomElement metadata_element)
   m_creator_list.append(creator->name);
 }
 
-void EBookMetadata::parseContributorMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseContributorMetadata(QDomElement metadata_element)
 {
   /* Please note that according to the 3.0 spec Contributors data are
    * identical to Creators data. */
@@ -890,7 +931,8 @@ void EBookMetadata::parseContributorMetadata(QDomElement metadata_element)
   //  creator_list.append(shared_creator->name);
 }
 
-void EBookMetadata::parseDescriptionMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseDescriptionMetadata(QDomElement metadata_element)
 {
   /* Please note that according to the 3.0 spec Contributors data are
    * identical to Creators data. */
@@ -912,7 +954,8 @@ void EBookMetadata::parseDescriptionMetadata(QDomElement metadata_element)
   description->text = metadata_element.text();
 }
 
-void EBookMetadata::parseIdentifierMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseIdentifierMetadata(QDomElement metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Identifier shared_identifier = Identifier(new EBookIdentifier());
@@ -935,7 +978,8 @@ void EBookMetadata::parseIdentifierMetadata(QDomElement metadata_element)
   m_identifiers.insert(shared_identifier->identifier.scheme, shared_identifier);
 }
 
-void EBookMetadata::parseLanguageMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseLanguageMetadata(QDomElement metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Language shared_language = Language(new EBookLanguage());
@@ -947,7 +991,8 @@ void EBookMetadata::parseLanguageMetadata(QDomElement metadata_element)
   m_languages.insert(shared_language->id, shared_language);
 }
 
-void EBookMetadata::parseSubjectMetadata(QDomElement metadata_element)
+void
+EBookMetadata::parseSubjectMetadata(QDomElement metadata_element)
 {
   QDomNamedNodeMap node_map = metadata_element.attributes();
   QDomNode node = node_map.namedItem("id");
@@ -976,7 +1021,8 @@ void EBookMetadata::parseSubjectMetadata(QDomElement metadata_element)
   subjects.insert(shared_subject->subject, shared_subject);
 }
 
-void EBookMetadata::parseDateModified(QDomNamedNodeMap node_map, QString text)
+void
+EBookMetadata::parseDateModified(QDomNamedNodeMap node_map, QString text)
 {
   QDateTime date_modified = QDateTime::fromString(text, Qt::ISODate);
   modified.date = date_modified;
@@ -1002,9 +1048,10 @@ void EBookMetadata::parseDateModified(QDomNamedNodeMap node_map, QString text)
  * \param key
  * \return
  */
-QString EBookMetadata::writeCreatorContibutor(QString tag_name,
-    QXmlStreamWriter* xml_writer,
-    QString key)
+QString
+EBookMetadata::writeCreatorContibutor(QString tag_name,
+                                      QXmlStreamWriter* xml_writer,
+                                      QString key)
 {
   // Basically contributors and creators are identical in form if not in
   // definition, contributors are lesser ctreators effectively.
@@ -1028,8 +1075,10 @@ QString EBookMetadata::writeCreatorContibutor(QString tag_name,
   return name;
 }
 
-void EBookMetadata::writeLanguageMetadata(QXmlStreamWriter* xml_writer,
-    QString key, bool first)
+void
+EBookMetadata::writeLanguageMetadata(QXmlStreamWriter* xml_writer,
+                                     QString key,
+                                     bool first)
 {
   /*
    * There must be at least one language element in 2.0 & 3.0.
@@ -1069,8 +1118,8 @@ void EBookMetadata::writeLanguageMetadata(QXmlStreamWriter* xml_writer,
   }
 }
 
-void EBookMetadata::writeSubjectMetadata(QXmlStreamWriter* xml_writer,
-    QString key)
+void
+EBookMetadata::writeSubjectMetadata(QXmlStreamWriter* xml_writer, QString key)
 {
   Subject shared_subject = subjects.value(key);
 
@@ -1081,8 +1130,8 @@ void EBookMetadata::writeSubjectMetadata(QXmlStreamWriter* xml_writer,
       writeIdAttribute(xml_writer, shared_subject->id);
       writeDirAttribute(xml_writer, shared_subject->dir);
       writeLangAttribute(xml_writer, shared_subject->lang);
-      writeAuthorityAttribute(xml_writer, shared_subject->authority,
-                              shared_subject->term);
+      writeAuthorityAttribute(
+        xml_writer, shared_subject->authority, shared_subject->term);
 
       xml_writer->writeCharacters(shared_subject->subject);
       xml_writer->writeEndElement();
@@ -1090,8 +1139,10 @@ void EBookMetadata::writeSubjectMetadata(QXmlStreamWriter* xml_writer,
   }
 }
 
-void EBookMetadata::writeIdentifierMetadata(
-  QXmlStreamWriter* xml_writer, EBookIdentifierScheme::IdentifierScheme key)
+void
+EBookMetadata::writeIdentifierMetadata(
+  QXmlStreamWriter* xml_writer,
+  EBookIdentifierScheme::IdentifierScheme key)
 {
   Identifier shared_identifier = m_identifiers.value(key);
   if (!shared_identifier->name.isEmpty()) {
@@ -1104,7 +1155,8 @@ void EBookMetadata::writeIdentifierMetadata(
   }
 }
 
-void EBookMetadata::writeTitle(QXmlStreamWriter* xml_writer, Title shared_title)
+void
+EBookMetadata::writeTitle(QXmlStreamWriter* xml_writer, Title shared_title)
 {
   QString id = shared_title->id;
 
@@ -1132,7 +1184,8 @@ void EBookMetadata::writeTitle(QXmlStreamWriter* xml_writer, Title shared_title)
   }
 }
 
-QString EBookMetadata::writeTitleMetadata(QXmlStreamWriter* xml_writer, int key)
+QString
+EBookMetadata::writeTitleMetadata(QXmlStreamWriter* xml_writer, int key)
 {
   Title shared_title = m_ordered_titles.value(key);
   QString title;
@@ -1143,7 +1196,8 @@ QString EBookMetadata::writeTitleMetadata(QXmlStreamWriter* xml_writer, int key)
   return title;
 }
 
-void EBookMetadata::writeDescriptionMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeDescriptionMetadata(QXmlStreamWriter* xml_writer)
 {
   if (!description->text.isEmpty()) {
     xml_writer->writeStartElement("dc:description");
@@ -1157,7 +1211,8 @@ void EBookMetadata::writeDescriptionMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeSourceMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeSourceMetadata(QXmlStreamWriter* xml_writer)
 {
   Source shared_source = source;
   if (!shared_source->source.isEmpty()) {
@@ -1169,7 +1224,8 @@ void EBookMetadata::writeSourceMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writePublisherMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writePublisherMetadata(QXmlStreamWriter* xml_writer)
 {
   Publisher shared_publisher = publisher;
   if (!shared_publisher->name.isEmpty()) {
@@ -1187,7 +1243,8 @@ void EBookMetadata::writePublisherMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeFormatMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeFormatMetadata(QXmlStreamWriter* xml_writer)
 {
   Format shared_format = format;
   if (!shared_format->name.isEmpty()) {
@@ -1200,7 +1257,8 @@ void EBookMetadata::writeFormatMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeRelationMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeRelationMetadata(QXmlStreamWriter* xml_writer)
 {
   Relation shared_publisher = relation;
   if (!shared_publisher->name.isEmpty()) {
@@ -1215,7 +1273,8 @@ void EBookMetadata::writeRelationMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeRightsMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeRightsMetadata(QXmlStreamWriter* xml_writer)
 {
   Rights shared_rights = rights;
   if (!shared_rights->name.isEmpty()) {
@@ -1230,7 +1289,8 @@ void EBookMetadata::writeRightsMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeCoverageMetadata(QXmlStreamWriter* xml_writer)
+void
+EBookMetadata::writeCoverageMetadata(QXmlStreamWriter* xml_writer)
 {
   Coverage shared_coverage = coverage;
   if (!shared_coverage->name.isEmpty()) {
@@ -1245,30 +1305,34 @@ void EBookMetadata::writeCoverageMetadata(QXmlStreamWriter* xml_writer)
   }
 }
 
-void EBookMetadata::writeIdAttribute(QXmlStreamWriter* xml_writer, QString id)
+void
+EBookMetadata::writeIdAttribute(QXmlStreamWriter* xml_writer, QString id)
 {
   if (!id.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("id", id);
   }
 }
 
-void EBookMetadata::writeDirAttribute(QXmlStreamWriter* xml_writer, QString dir)
+void
+EBookMetadata::writeDirAttribute(QXmlStreamWriter* xml_writer, QString dir)
 {
   if (!dir.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("dir", dir);
   }
 }
 
-void EBookMetadata::writeLangAttribute(QXmlStreamWriter* xml_writer,
-                                       QString lang)
+void
+EBookMetadata::writeLangAttribute(QXmlStreamWriter* xml_writer, QString lang)
 {
   if (!lang.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("xml:lang", lang);
   }
 }
 
-void EBookMetadata::writeAuthorityAttribute(QXmlStreamWriter* xml_writer,
-    QString authority, QString term)
+void
+EBookMetadata::writeAuthorityAttribute(QXmlStreamWriter* xml_writer,
+                                       QString authority,
+                                       QString term)
 {
   if (!authority.isEmpty()) { // 3.0.
     xml_writer->writeAttribute("opf:authority", authority);
@@ -1279,8 +1343,9 @@ void EBookMetadata::writeAuthorityAttribute(QXmlStreamWriter* xml_writer,
   }
 }
 
-void EBookMetadata::writeAltRepAttribute(QXmlStreamWriter* xml_writer,
-    AltRep alt_rep)
+void
+EBookMetadata::writeAltRepAttribute(QXmlStreamWriter* xml_writer,
+                                    AltRep alt_rep)
 {
   if (alt_rep) {
     if (!alt_rep->name.isEmpty()) { // 3.0
@@ -1292,8 +1357,9 @@ void EBookMetadata::writeAltRepAttribute(QXmlStreamWriter* xml_writer,
   }
 }
 
-void EBookMetadata::writeFileAsAttribute(QXmlStreamWriter* xml_writer,
-    FileAs file_as)
+void
+EBookMetadata::writeFileAsAttribute(QXmlStreamWriter* xml_writer,
+                                    FileAs file_as)
 {
   if (file_as) { // 3.0
     if (file_as->name.isEmpty())
@@ -1302,35 +1368,39 @@ void EBookMetadata::writeFileAsAttribute(QXmlStreamWriter* xml_writer,
   }
 }
 
-QString EBookMetadata::writeCreatorsMetadata(QXmlStreamWriter* xml_writer,
-    QString key)
+QString
+EBookMetadata::writeCreatorsMetadata(QXmlStreamWriter* xml_writer, QString key)
 {
   return writeCreatorContibutor("dc:creator", xml_writer, key);
 }
 
-QString EBookMetadata::writeContributorMetadata(QXmlStreamWriter* xml_writer,
-    QString key)
+QString
+EBookMetadata::writeContributorMetadata(QXmlStreamWriter* xml_writer,
+                                        QString key)
 {
   return writeCreatorContibutor("dc:contributor", xml_writer, key);
 }
 
-void EBookMetadata::writeRoleAttribute(QXmlStreamWriter* xml_writer,
-                                       MarcRelator relator)
+void
+EBookMetadata::writeRoleAttribute(QXmlStreamWriter* xml_writer,
+                                  MarcRelator relator)
 {
   if (relator.type() != MarcRelator::NO_TYPE) {
     xml_writer->writeAttribute("opf:role", relator.code());
   }
 }
 
-void EBookMetadata::writeSchemeAttribute(QXmlStreamWriter* xml_writer,
-    EBookIdentifierScheme scheme)
+void
+EBookMetadata::writeSchemeAttribute(QXmlStreamWriter* xml_writer,
+                                    EBookIdentifierScheme scheme)
 {
   writeSchemeAttribute(xml_writer,
                        EBookIdentifierScheme::toString(scheme.scheme));
 }
 
-void EBookMetadata::writeSchemeAttribute(QXmlStreamWriter* xml_writer,
-    QString scheme)
+void
+EBookMetadata::writeSchemeAttribute(QXmlStreamWriter* xml_writer,
+                                    QString scheme)
 {
   if (!scheme.isEmpty()) {
     xml_writer->writeAttribute("opf:scheme", scheme);
@@ -1344,9 +1414,10 @@ void EBookMetadata::writeSchemeAttribute(QXmlStreamWriter* xml_writer,
  * \param xml_writer
  * \param shared_object
  */
-QString EBookMetadata::writeCreatorContributor(QString tag_name,
-    QXmlStreamWriter* xml_writer,
-    Creator shared_object)
+QString
+EBookMetadata::writeCreatorContributor(QString tag_name,
+                                       QXmlStreamWriter* xml_writer,
+                                       Creator shared_object)
 {
   QString name;
   if (!shared_object.isNull()) {
@@ -1382,7 +1453,8 @@ QString EBookMetadata::writeCreatorContributor(QString tag_name,
   return name;
 }
 
-int EBookMetadata::getNextTitleIndex()
+int
+EBookMetadata::getNextTitleIndex()
 {
   int highest = 0;
   foreach (int i, m_ordered_titles.keys()) {

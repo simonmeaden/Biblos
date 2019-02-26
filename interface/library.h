@@ -7,22 +7,28 @@
 
 #include <qyaml-cpp/QYamlCpp>
 
-struct EBookSeriesData {
+struct EBookSeriesData
+{
   EBookSeriesData()
-  {
-    uid = 0;
-  }
+    : uid(0)
+  {}
   quint64 uid;
   QString name;
+
+  static quint64 m_highest_uid;
+  static quint64 nextUid() { return ++m_highest_uid; }
 };
 typedef QSharedPointer<EBookSeriesData> SeriesData;
 typedef QMap<quint64, SeriesData> SeriesMap;
+typedef QMap<QString, SeriesData> SeriesByString;
+typedef QStringList SeriesList;
 
-struct EBookData {
+struct EBookData
+{
   EBookData()
-  {
-    uid = 0;
-  }
+    : uid(0)
+    , modified(false)
+  {}
   quint64 uid;
   QString filename;
   QString title;
@@ -30,11 +36,15 @@ struct EBookData {
   QString series_index;
   int current_spine_index;
   int current_spine_lineno;
+  bool modified;
+
+  static quint64 m_highest_uid;
+  static quint64 nextUid() { return ++m_highest_uid; }
 };
 typedef QSharedPointer<EBookData> BookData;
 typedef QList<BookData> BookList;
 typedef QMap<quint64, BookData> BookMap;
-typedef QMultiMap<QString, BookData> BookByTitle;
+typedef QMultiMap<QString, BookData> BookByString;
 
 class LibraryDB : public QObject
 {
@@ -43,15 +53,24 @@ public:
   explicit LibraryDB(QObject* parent = nullptr);
   ~LibraryDB();
 
+  // yaml file stuff
   void setFilename(QString filename);
   bool save();
   bool load(QString filename);
 
-  quint64 insertBook(BookData data);
+  // series data stuff
+  quint64 insertOrGetSeries(QString series);
+  bool removeSeries(quint64 index);
+
+  // book stuff.
+  quint64 insertOrUpdateBook(BookData book_data);
   bool removeBook(quint64 index);
 
-  BookData book(quint64 uid);
-  BookList book(QString title);
+  BookData bookByUid(quint64 uid);
+  BookList bookByTitle(QString title);
+  BookData bookByFile(QString filename);
+
+  SeriesList seriesList();
 
 signals:
 
@@ -60,8 +79,11 @@ public slots:
 protected:
   QString m_filename;
   BookMap m_book_data;
-  BookByTitle m_book_by_title;
-  SeriesMap m_book_series;
+  BookByString m_book_by_title;
+  BookByString m_book_by_file;
+  SeriesMap m_series_map;
+  SeriesByString m_series_by_name;
+  SeriesList m_series_list;
 
   bool m_library_changed;
 

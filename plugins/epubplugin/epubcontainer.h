@@ -87,8 +87,7 @@ class EPubTocItem;
 typedef QSharedPointer<EPubTocItem> SharedTocItem;
 typedef QMap<int, SharedTocItem> SharedTocItemMap;
 typedef QMap<QString, SharedTocItem> SharedTocItemPathMap;
-class EPubTocItem
-{
+class EPubTocItem {
 public:
   QString id;
   int playorder;
@@ -99,8 +98,7 @@ public:
   QString chapter_tag;
 };
 
-class EPubManifest
-{
+class EPubManifest {
 public:
   QString id;
   SharedManifestItem cover_image; // 0 or 1
@@ -123,11 +121,9 @@ public:
   SharedTocItemPathMap toc_paths;
 };
 
-class EPubSpineItem
-{
+class EPubSpineItem {
 public:
-  EPubSpineItem()
-  {
+  EPubSpineItem() {
     linear = false;
     page_spread_left = false;
     page_spread_right = false;
@@ -142,8 +138,7 @@ typedef QSharedPointer<EPubSpineItem> SharedSpineItem;
 typedef QMap<QString, SharedSpineItem> SharedSpineItemMap;
 typedef QStringList SpineItemList;
 
-class EPubSpine
-{
+class EPubSpine {
 public:
   QString id;
   QString toc;
@@ -158,8 +153,7 @@ public:
  * This is only included to support epub2.0 as it has been superceded in epub3.0
  * by the landmarks object.
  */
-class EPubGuideItem
-{
+class EPubGuideItem {
 public:
   enum GuideType {
     cover,
@@ -185,8 +179,7 @@ public:
   QString title;
   QString href;
 
-  static GuideType fromString(QString type)
-  {
+  static GuideType fromString(QString type) {
     if (type == "cover") {
       return GuideType::cover;
     } else if (type == "title-page") {
@@ -225,8 +218,7 @@ public:
     }
   }
 
-  static QString toString(GuideType type)
-  {
+  static QString toString(GuideType type) {
     switch (type) {
     case cover:
       return "cover";
@@ -269,11 +261,10 @@ typedef QSharedPointer<EPubGuideItem> SharedGuideItem;
 typedef QMap<QString, SharedGuideItem> SharedGuideItemMap;
 typedef QStringList GuideItemList;
 
-class EPubContainer : public QObject
-{
+class EPubContainer : public QObject {
   Q_OBJECT
 public:
-  explicit EPubContainer(QObject* parent = nullptr);
+  explicit EPubContainer(QObject *parent = nullptr);
   ~EPubContainer();
 
   bool loadFile(const QString path);
@@ -283,7 +274,7 @@ public:
   bool closeFile();
   //  QByteArray epubItem(const QString& id) const;
   //  QSharedPointer<QuaZipFile> zipFile(const QString& path);
-  QImage image(const QString& id, QSize image_size = QSize());
+  QImage image(const QString &id, QSize image_size = QSize());
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
   QStringList itemKeys();
@@ -298,13 +289,13 @@ public:
   QString tocAsString();
   QStringList creators();
 
-  SharedMetadata metadata();
+  Metadata metadata();
   EPubManifest manifest();
 
   QString buildTocfromHtml();
 
 signals:
-  void errorHappened(const QString& error);
+  void errorHappened(const QString &error);
 
 public slots:
 
@@ -315,65 +306,65 @@ protected:
   QString m_package_language;
   QString m_package_prefix;
   QString
-  m_package_direction; // text direction - overridden  by Undicode values.
-  QString m_package_id;  // unique identifier.
+      m_package_direction; // text direction - overridden  by Undicode values.
+  QString m_package_id;    // unique identifier.
 
   // only one container per epub.
   QString m_container_version;
   QString m_container_xmlns;
   QString m_container_fullpath;
   QString m_container_mediatype;
-  LibraryDB* m_library;
-  AuthorsDB* m_authors;
+  LibraryDB *m_library;
+  AuthorsDB *m_authors;
 
   bool parseMimetype();
-  bool writeMimetype(QuaZip* save_zip);
+  bool writeMimetype(QuaZip *save_zip);
   bool parseContainer();
-  bool writeContainer(QuaZip* save_zip);
-  bool parsePackageFile(QString& full_path);
-  bool writePackageFile(QuaZip* save_zip);
+  bool writeContainer(QuaZip *save_zip);
+  bool parsePackageFile(QString &full_path);
+  bool writePackageFile(QuaZip *save_zip);
 
-  bool parseManifestItem(const QDomNode& manifest_node,
+  bool parseManifestItem(const QDomNode &manifest_node,
                          const QString current_folder);
   void extractHeadInformationFromHtmlFile(SharedManifestItem item,
                                           QString container);
 
-  SharedSpineItem parseSpineItem(const QDomNode& metadata_element,
+  SharedSpineItem parseSpineItem(const QDomNode &metadata_element,
                                  SharedSpineItem item);
   bool saveSpineItem();
   bool parseTocFile();
-  bool parseGuideItem(const QDomNode& guideItem);
-  bool parseLandmarksItem(const QDomNode& guideItem);
+  bool parseGuideItem(const QDomNode &guideItem);
+  bool parseLandmarksItem(const QDomNode &guideItem);
   bool saveLandmarksItem();
-  bool parseBindingsItem(const QDomNode& bindingsItem);
+  bool parseBindingsItem(const QDomNode &bindingsItem);
   bool saveBindingsItem();
 
-  const QuaZip* getFile(const QString& path);
+  const QuaZip *getFile(const QString &path);
 
-  QuaZip* m_archive = nullptr;
+  QuaZip *m_archive = nullptr;
   QString m_filename;
   QStringList m_files;
 
   // metadata/manifest/spine etc.
   QByteArray m_mimetype;
-  SharedMetadata m_metadata;
+  Metadata m_metadata;
   EPubManifest m_manifest;
   EPubSpine m_spine;
 
   // might be more than one root content file.
-  QMap<QString, QMap<QString, SharedDomDocument>> m_rootfiles;
-  QMap<QString, SharedDomDocument> m_current_rootfile;
+  QMap<QString, QMap<QString, DomDocument>> m_rootfiles;
+  QMap<QString, DomDocument> m_current_rootfile;
   // a map of dom elements within the  that might be modified.
-  QMap<QString, QDomElement*> m_metadata_nodes;
+  QMap<QString, QDomElement *> m_metadata_nodes;
   int m_toc_chapter_index;
 
   SharedTocItem parseNavPoint(QDomElement navpoint,
-                              QString& formatted_toc_data);
+                              QString &formatted_toc_data);
 
   void createAnchorPointForChapter(SharedTocItem toc_item,
                                    SharedManifestItem manifest_item);
   //  void createChapterAnchorPoints(SharedSpineItem spine_item);
-  void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);
+  void handleSubNavpoints(QDomElement navpoint, QString &formatted_toc_string);
   QString extractTagText(int anchor_start, QString document_string);
 
   static const QString MIMETYPE_FILE;

@@ -4,24 +4,14 @@
 #include <qlogger/qlogger.h>
 using namespace qlogger;
 
-EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent)
-  : q_ptr(parent)
-  , m_loaded(false)
-  , m_container(new EPubContainer(q_ptr))
-{
-}
+EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument *parent)
+    : q_ptr(parent), m_loaded(false), m_container(new EPubContainer(q_ptr)) {}
 
-EPubDocumentPrivate::~EPubDocumentPrivate()
-{
-}
+EPubDocumentPrivate::~EPubDocumentPrivate() {}
 
-bool EPubDocumentPrivate::loaded()
-{
-  return m_loaded;
-}
+bool EPubDocumentPrivate::loaded() { return m_loaded; }
 
-void EPubDocumentPrivate::openDocument(const QString& path)
-{
+void EPubDocumentPrivate::openDocument(const QString &path) {
   Q_Q(EPubDocument);
   m_container->setFilename(path);
   loadDocument();
@@ -29,14 +19,12 @@ void EPubDocumentPrivate::openDocument(const QString& path)
   //    m_data->toc = m_container->toc();
 }
 
-void EPubDocumentPrivate::saveDocument()
-{
+void EPubDocumentPrivate::saveDocument() {
   if (m_modified)
     m_container->saveFile();
 }
 
-QString EPubDocumentPrivate::filename()
-{
+QString EPubDocumentPrivate::filename() {
   //  Q_Q(EPubDocument);
   return m_container->filename();
 }
@@ -48,18 +36,13 @@ QString EPubDocumentPrivate::filename()
 //  m_documentPath = documentPath;
 //}
 
-QString EPubDocumentPrivate::buildTocFromFiles()
-{
+QString EPubDocumentPrivate::buildTocFromFiles() {
   return m_container->buildTocfromHtml();
 }
 
-bool EPubDocumentPrivate::isModified() const
-{
-  return m_modified;
-}
+bool EPubDocumentPrivate::isModified() const { return m_modified; }
 
-void EPubDocumentPrivate::loadDocument()
-{
+void EPubDocumentPrivate::loadDocument() {
   Q_Q(EPubDocument);
 
   if (!m_container->loadFile(q->filename())) {
@@ -102,8 +85,8 @@ void EPubDocumentPrivate::loadDocument()
     q->addResource(QTextDocument::StyleSheetResource, QUrl(key),
                    QVariant(m_container->manifest().css.value(key)));
     doc_string +=
-      QString("<link href=\"%1\" rel=\"stylesheet\" type=\"text/css\"/>")
-      .arg(key);
+        QString("<link href=\"%1\" rel=\"stylesheet\" type=\"text/css\"/>")
+            .arg(key);
   }
   doc_string += "</head>";
   doc_string += "<body class=\"calibre\">";
@@ -118,7 +101,7 @@ void EPubDocumentPrivate::loadDocument()
   pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
   //  for (const QString& chapter : spine_items) {
   SharedManifestItem item = m_container->item(
-                              /*chapter*/ m_container->spineKeys().at(m_current_document_index));
+      /*chapter*/ m_container->spineKeys().at(m_current_document_index));
   //    SharedDomDocument shared_domdocument = item->dom_document;
   QString document = item->document_string;
   if (document.isEmpty()) {
@@ -153,10 +136,7 @@ void EPubDocumentPrivate::loadDocument()
   emit q->loadCompleted();
 }
 
-QString EPubDocumentPrivate::toc()
-{
-  return m_container->tocAsString();
-}
+QString EPubDocumentPrivate::toc() { return m_container->tocAsString(); }
 
 // QVariant EPubDocumentPrivate::loadResource(int type, const QUrl& url)
 //{
@@ -184,17 +164,15 @@ QString EPubDocumentPrivate::toc()
 //  return data;
 //}
 
-EPubContents* EPubDocumentPrivate::cloneData()
-{
-  EPubContents* contents = new EPubContents();
+EPubContents *EPubDocumentPrivate::cloneData() {
+  EPubContents *contents = new EPubContents();
   contents->m_container = m_container;
   contents->m_loaded = m_loaded;
 
   return contents;
 }
 
-void EPubDocumentPrivate::setClonedData(EPubContents* /*clone*/)
-{
+void EPubDocumentPrivate::setClonedData(EPubContents * /*clone*/) {
   //  Q_Q(EPubDocument);
 
   //  QElapsedTimer timer;
@@ -255,13 +233,9 @@ void EPubDocumentPrivate::setClonedData(EPubContents* /*clone*/)
   //  //  QLOG_DEBUG(QString("Done in %1 mS").arg(timer.elapsed()))
 }
 
-QStringList EPubDocumentPrivate::creators()
-{
-  return m_container->creators();
-}
+QStringList EPubDocumentPrivate::creators() { return m_container->creators(); }
 
-QString EPubDocumentPrivate::title()
-{
+QString EPubDocumentPrivate::title() {
   Title first = m_container->metadata()->orderedTitles().first();
   if (!first.isNull())
     return first->title;
@@ -270,8 +244,7 @@ QString EPubDocumentPrivate::title()
   }
 }
 
-void EPubDocumentPrivate::setTitle(QString title)
-{
+void EPubDocumentPrivate::setTitle(QString title) {
   Title first = m_container->metadata()->orderedTitles().first();
   if (!first.isNull()) {
     first->title = title;
@@ -283,3 +256,5 @@ void EPubDocumentPrivate::setTitle(QString title)
     m_modified = true;
   }
 }
+
+Metadata EPubDocumentPrivate::metadata() { return m_container->metadata(); }

@@ -1,49 +1,52 @@
 #ifndef EBOOKBASEMETADATA_H
 #define EBOOKBASEMETADATA_H
 
-#include <QSharedPointer>
-#include <QImage>
-#include <QTextCursor>
 #include <QDateTime>
 #include <QDomDocument>
+#include <QImage>
+#include <QSharedPointer>
+#include <QTextCursor>
 
-#include "foaf.h"
 #include "dcterms.h"
+#include "foaf.h"
 #include "marcrelator.h"
 
-typedef QSharedPointer<QDomDocument> SharedDomDocument;
+typedef QSharedPointer<QDomDocument> DomDocument;
 typedef QSharedPointer<QImage> SharedImage;
 typedef QMap<QString, SharedImage> SharedImageMap;
 typedef QSharedPointer<QTextCursor> SharedTextCursor;
 
-struct EBookModified {
+struct EBookModified
+{
   QDateTime date;
   QString id;
 };
 
-struct EBookAltRep {
+struct EBookAltRep
+{
   QString name;
   QString lang;
 };
 typedef QSharedPointer<EBookAltRep> AltRep;
 typedef QList<AltRep> AltRepList;
 
-struct EBookFileAs {
+struct EBookFileAs
+{
   QString name;
   QString lang;
 };
 typedef QSharedPointer<EBookFileAs> FileAs;
 typedef QList<FileAs> FileAsList;
 
-struct EBookBaseMetadata {
+struct EBookBaseMetadata
+{
   EBookBaseMetadata();
 };
 typedef QSharedPointer<EBookBaseMetadata> BaseMetadata;
 
-struct EBookTitle : public EBookBaseMetadata {
-  EBookTitle()
-  {
-  }
+struct EBookTitle : public EBookBaseMetadata
+{
+  EBookTitle() {}
   //  QString title_type;
   QString id;
   QString title;
@@ -82,7 +85,8 @@ typedef QMap<QString, Subject> SubjectMap;
 class EBookIdentifierScheme
 {
 public:
-  enum IdentifierScheme {
+  enum IdentifierScheme
+  {
     DOI,
     ISBN,
     JDCN,
@@ -92,10 +96,7 @@ public:
     UNKNOWN_SCHEME,
   };
 
-  EBookIdentifierScheme()
-  {
-    scheme = IdentifierScheme::UNKNOWN_SCHEME;
-  }
+  EBookIdentifierScheme() { scheme = IdentifierScheme::UNKNOWN_SCHEME; }
 
   IdentifierScheme scheme;
 
@@ -123,20 +124,20 @@ public:
   static QString toString(EBookIdentifierScheme::IdentifierScheme scheme)
   {
     switch (scheme) {
-    case DOI:
-      return "doi";
-    case ISBN:
-      return "isbn";
-    case JDCN:
-      return "jdcn";
-    case UUID:
-      return "uuid";
-    case AMAZON:
-      return "mobi-asin";
-    case CALIBRE:
-      return "calibre";
-    default:
-      return QString();
+      case DOI:
+        return "doi";
+      case ISBN:
+        return "isbn";
+      case JDCN:
+        return "jdcn";
+      case UUID:
+        return "uuid";
+      case AMAZON:
+        return "mobi-asin";
+      case CALIBRE:
+        return "calibre";
+      default:
+        return QString();
     }
   }
 };
@@ -161,7 +162,8 @@ public:
 typedef QSharedPointer<EPubSource> Source;
 typedef QMap<QString, Source> SourceMap;
 
-struct EPubPublisher {
+struct EPubPublisher
+{
   QString name;
   FileAs file_as;
   QString dir;
@@ -171,7 +173,8 @@ struct EPubPublisher {
 };
 typedef QSharedPointer<EPubPublisher> Publisher;
 
-struct EBookRelation {
+struct EBookRelation
+{
   QString name;
   QString dir;
   QString id;
@@ -179,7 +182,8 @@ struct EBookRelation {
 };
 typedef QSharedPointer<EBookRelation> Relation;
 
-struct EBookRights {
+struct EBookRights
+{
   QString name;
   QString dir;
   QString id;
@@ -187,7 +191,8 @@ struct EBookRights {
 };
 typedef QSharedPointer<EBookRights> Rights;
 
-struct EBookCoverage {
+struct EBookCoverage
+{
   QString name;
   QString dir;
   QString id;
@@ -195,13 +200,15 @@ struct EBookCoverage {
 };
 typedef QSharedPointer<EBookCoverage> Coverage;
 
-struct EBookFormat {
+struct EBookFormat
+{
   QString name;
   QString id;
 };
 typedef QSharedPointer<EBookFormat> Format;
 
-struct EBookType {
+struct EBookType
+{
   QString name;
   QString id;
 };
@@ -210,7 +217,8 @@ typedef QSharedPointer<EBookType> BookType;
 class EBookCreator : public EBookBaseMetadata
 {
 public:
-  enum SchemeType {
+  enum SchemeType
+  {
     dcterms,
     marc,
     media,
@@ -218,9 +226,7 @@ public:
     xsd,
     string_scheme_type,
   };
-  EBookCreator()
-  {
-  }
+  EBookCreator() {}
 
   QString name;
   FileAsList file_as_list;
@@ -262,7 +268,8 @@ typedef QSharedPointer<EBookContributor> Contributor;
 typedef QMultiMap<QString, Contributor> ContributorMap;
 typedef QList<Contributor> ContributorList;
 
-struct EBookDescription {
+struct EBookDescription
+{
   QString id;
   QString text;
   QString dir;
@@ -271,17 +278,57 @@ struct EBookDescription {
 typedef QSharedPointer<EBookDescription> Description;
 typedef QMultiMap<QString, Description> DescriptionMap;
 
-struct Calibre {
-  QString series_name;
-  QString series_index;
-  QString title_sort;
-  QString author_link_map;
-  QString timestamp;
-  QString rating;
-  QString publication_type;
-  QString user_metadata;
-  QString user_categories;
-  QString custom_metadata;
+class EBookCalibre
+{
+public:
+  EBookCalibre();
+
+  QString seriesName() const;
+  void setSeriesName(const QString& seriesName);
+
+  QString seriesIndex() const;
+  void setSeriesIndex(const QString& seriesIndex);
+
+  QString titleSort() const;
+  void setTitleSort(const QString& titleSort);
+
+  QString authorLinkMap() const;
+  void setAuthorLinkMap(const QString& authorLinkMap);
+
+  QString timestamp() const;
+  void setTimestamp(const QString& timestamp);
+
+  QString rating() const;
+  void setRating(const QString& rating);
+
+  QString publicationType() const;
+  void setPublicationType(const QString& publicationType);
+
+  QString userMetadata() const;
+  void setUserMetadata(const QString& userMetadata);
+
+  QString userCategories() const;
+  void setUserCategories(const QString& userCategories);
+
+  QString customMetadata() const;
+  void setCustomMetadata(const QString& customMetadata);
+
+  bool isModified() const;
+  void setModified(bool isModified);
+
+protected:
+  QString m_series_name;
+  QString m_series_index;
+  QString m_title_sort;
+  QString m_author_link_map;
+  QString m_timestamp;
+  QString m_rating;
+  QString m_publication_type;
+  QString m_user_metadata;
+  QString m_user_categories;
+  QString m_custom_metadata;
+  bool m_modified;
 };
+typedef QSharedPointer<EBookCalibre> Calibre;
 
 #endif // EBOOKBASEMETADATA_H

@@ -1,7 +1,7 @@
 TEMPLATE        = lib
 CONFIG         += plugin
-QT             += widgets
-CONFIG         += c++11
+QT             += core gui widgets
+CONFIG += c++14
 
 TARGET          = hunspellplugin
 DESTDIR = $$OUT_PWD/..

@@ -6,61 +6,49 @@
 
 #include "private/mobidocument_p.h"
 
-MobiDocument::MobiDocument(QObject* parent) :
-  ITextDocument(parent), d_ptr(new MobiDocumentPrivate(this))
-{
-}
+MobiDocument::MobiDocument(QObject *parent)
+    : ITextDocument(parent), d_ptr(new MobiDocumentPrivate(this)) {}
 
-MobiDocument::MobiDocument(MobiDocumentPrivate* doc, QObject* parent) :
-  ITextDocument(parent), d_ptr(doc)
-{
-}
+MobiDocument::MobiDocument(MobiDocumentPrivate *doc, QObject *parent)
+    : ITextDocument(parent), d_ptr(doc) {}
 
-MobiDocument::MobiDocument(const MobiDocument& doc) :
-  ITextDocument(doc.parent()), d_ptr(doc.d_ptr)
-{
-}
+MobiDocument::MobiDocument(const MobiDocument &doc)
+    : ITextDocument(doc.parent()), d_ptr(doc.d_ptr) {}
 
 MobiDocument::~MobiDocument() {}
 
-MobiDocument::MobiDocument(MobiDocumentPrivate& d) : ITextDocument(d.q_ptr) {}
+MobiDocument::MobiDocument(MobiDocumentPrivate &d) : ITextDocument(d.q_ptr) {}
 
-QString MobiDocument::buildTocFromData()
-{
-}
+QString MobiDocument::buildTocFromData() {}
 
-QString MobiDocument::filename()
-{
+Metadata MobiDocument::metadata() {}
+
+QString MobiDocument::filename() {
   Q_D(MobiDocument);
   return d->filename();
 }
 
-void MobiDocument::setFilename(const QString& filename)
-{
+void MobiDocument::setFilename(const QString &filename) {
   Q_D(MobiDocument);
   d->setFilename(filename);
 }
 
-void MobiDocument::openDocument(const QString& path)
-{
+void MobiDocument::openDocument(const QString &path) {
   Q_D(MobiDocument);
   d->openDocument(path);
 }
 
-void MobiDocument::saveDocument()
-{
+void MobiDocument::saveDocument() {
   Q_D(MobiDocument);
   d->saveDocument();
 }
 
-IEBookInterface* MobiDocument::plugin()
-{
+IEBookInterface *MobiDocument::plugin() {
   Q_D(MobiDocument);
   return d->plugin();
 }
 
-void MobiDocument::setPlugin(IEBookInterface* plugin)
-{
+void MobiDocument::setPlugin(IEBookInterface *plugin) {
   Q_D(MobiDocument);
   d->setPlugin(plugin);
 }
@@ -83,42 +71,37 @@ void MobiDocument::setPlugin(IEBookInterface* plugin)
 //  d->setReadonly(readonly);
 //}
 
-QString MobiDocument::title()
-{
+QString MobiDocument::title() {
   Q_D(MobiDocument);
   return QString();
 }
 
-void MobiDocument::setTitle(const QString& title)
-{
+void MobiDocument::setTitle(const QString &title) {
   Q_D(MobiDocument);
   d->setTitle(title);
 }
 
-QString MobiDocument::subject()
-{
+QString MobiDocument::subject() {
   Q_D(MobiDocument);
   return d->subject();
 }
 
-void MobiDocument::setSubject(const QString& subject)
-{
+void MobiDocument::setSubject(const QString &subject) {
   Q_D(MobiDocument);
   d->setSubject(subject);
 }
 
 QString MobiDocument::language() {}
 
-void MobiDocument::setLanguage(const QString& language) {}
+void MobiDocument::setLanguage(const QString &language) {}
 
 QDateTime MobiDocument::date() {}
 
-void MobiDocument::setDate(const QDateTime& date) {}
+void MobiDocument::setDate(const QDateTime &date) {}
 
-QStringList MobiDocument::creators()
-{
-//  Q_D(MobiDocument);
-//  return d->creators();
+QStringList MobiDocument::creators() {
+  //  Q_D(MobiDocument);
+  //  return d->creators();
 }
 
 // void MobiDocument::setCreators(const QStringList& creators)
@@ -127,32 +110,27 @@ QStringList MobiDocument::creators()
 ////  d->setCreators(creators);
 //}
 
-QString MobiDocument::creatorNames(const QStringList &)
-{
+QString MobiDocument::creatorNames(const QStringList &) {
   Q_D(MobiDocument);
   return d->creatorNames(QStringList());
 }
 
-QString MobiDocument::publisher()
-{
+QString MobiDocument::publisher() {
   Q_D(MobiDocument);
   return d->publisher();
 }
 
-void MobiDocument::setPublisher(const QString& publisher)
-{
+void MobiDocument::setPublisher(const QString &publisher) {
   Q_D(MobiDocument);
   return d->setPublisher(publisher);
 }
 
-QDate MobiDocument::published()
-{
+QDate MobiDocument::published() {
   Q_D(MobiDocument);
   return d->published();
 }
 
-void MobiDocument::setPublished(const QDate& published)
-{
+void MobiDocument::setPublished(const QDate &published) {
   Q_D(MobiDocument);
   return d->setPublished(published);
 }

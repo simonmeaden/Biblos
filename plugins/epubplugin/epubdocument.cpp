@@ -6,153 +6,121 @@
 
 using namespace qlogger;
 
-EPubDocument::EPubDocument(QObject* parent)
-  : ITextDocument(parent)
-  , d_ptr(new EPubDocumentPrivate(this))
-{
+EPubDocument::EPubDocument(QObject *parent)
+    : ITextDocument(parent), d_ptr(new EPubDocumentPrivate(this)) {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent)
-  : ITextDocument(parent)
-  , d_ptr(doc)
-{
+EPubDocument::EPubDocument(EPubDocumentPrivate *doc, QObject *parent)
+    : ITextDocument(parent), d_ptr(doc) {
   setUndoRedoEnabled(false);
 }
 
-EPubDocument::EPubDocument(const EPubDocument& doc)
-  : ITextDocument(doc.parent())
-  , d_ptr(doc.d_ptr)
-{
-}
+EPubDocument::EPubDocument(const EPubDocument &doc)
+    : ITextDocument(doc.parent()), d_ptr(doc.d_ptr) {}
 
-EPubDocument::EPubDocument(EPubDocumentPrivate& d)
-  : ITextDocument(d.q_ptr)
-{
-}
+EPubDocument::EPubDocument(EPubDocumentPrivate &d) : ITextDocument(d.q_ptr) {}
 
-QString EPubDocument::buildTocFromData()
-{
+QString EPubDocument::buildTocFromData() {
   Q_D(EPubDocument);
   return d->buildTocFromFiles();
 }
 
-bool EPubDocument::isModified()
-{
+bool EPubDocument::isModified() {
   Q_D(EPubDocument);
   return d->isModified();
 }
 
-EPubDocument::~EPubDocument()
-{
-}
+EPubDocument::~EPubDocument() {}
 
-bool EPubDocument::loaded()
-{
+bool EPubDocument::loaded() {
   Q_D(EPubDocument);
   return d->loaded();
 }
 
-void EPubDocument::openDocument(const QString& path)
-{
+void EPubDocument::openDocument(const QString &path) {
   Q_D(EPubDocument);
   d->openDocument(path);
 }
 
-void EPubDocument::saveDocument()
-{
+void EPubDocument::saveDocument() {
   Q_D(EPubDocument);
   d->saveDocument();
 }
 
-EPubContents* EPubDocument::cloneData()
-{
+EPubContents *EPubDocument::cloneData() {
   Q_D(EPubDocument);
   return d->cloneData();
 }
 
-void EPubDocument::setClonedData(EPubContents* cloneData)
-{
+void EPubDocument::setClonedData(EPubContents *cloneData) {
   Q_D(EPubDocument);
   d->setClonedData(cloneData);
 }
 
-QString EPubDocument::filename()
-{
+QString EPubDocument::filename() {
   Q_D(EPubDocument);
   return d->filename();
 }
 
-void EPubDocument::setFilename(const QString& filename)
-{
+void EPubDocument::setFilename(const QString &filename) {
   Q_D(EPubDocument);
   d->setFilename(filename);
 }
 
-QString EPubDocument::tocAsString()
-{
+QString EPubDocument::tocAsString() {
   Q_D(EPubDocument);
   return d->toc();
 }
 
-QString EPubDocument::title()
-{
+QString EPubDocument::title() {
   Q_D(EPubDocument);
   return d->title();
 }
 
-void EPubDocument::setTitle(const QString& title)
-{
+void EPubDocument::setTitle(const QString &title) {
   Q_D(EPubDocument);
   d->setTitle(title);
 }
 
-QString EPubDocument::subject()
-{
+QString EPubDocument::subject() {
   Q_D(EPubDocument);
   return d->subject();
 }
 
-void EPubDocument::setSubject(const QString& subject)
-{
+void EPubDocument::setSubject(const QString &subject) {
   Q_D(EPubDocument);
   d->setSubject(subject);
 }
 
-QString EPubDocument::language()
-{
+QString EPubDocument::language() {
   Q_D(EPubDocument);
   // TODO
   return QString();
 }
 
-void EPubDocument::setLanguage(const QString& language)
-{
+void EPubDocument::setLanguage(const QString &language) {
   Q_D(EPubDocument);
   // TODO
 }
 
-QDateTime EPubDocument::date()
-{
+QDateTime EPubDocument::date() {
   Q_D(EPubDocument);
   // TODO
   return QDateTime();
 }
 
-void EPubDocument::setDate(const QDateTime& date)
-{
+void EPubDocument::setDate(const QDateTime &date) {
   Q_D(EPubDocument);
   // TODO
 }
 
-QStringList EPubDocument::creators()
-{
+QStringList EPubDocument::creators() {
   Q_D(EPubDocument);
   return d->creators();
 }
 
-QString EPubDocument::creatorNames(const QStringList& authors)
-{
+QString EPubDocument::creatorNames(const QStringList &authors) {
   Q_D(EPubDocument);
   if (authors.isEmpty())
     return d->creatorNames(d->creators());
@@ -161,38 +129,37 @@ QString EPubDocument::creatorNames(const QStringList& authors)
   }
 }
 
-QString EPubDocument::publisher()
-{
+QString EPubDocument::publisher() {
   Q_D(EPubDocument);
   return d->publisher();
 }
 
-void EPubDocument::setPublisher(const QString& publisher)
-{
+void EPubDocument::setPublisher(const QString &publisher) {
   Q_D(EPubDocument);
   d->setPublisher(publisher);
 }
 
-IEBookInterface* EPubDocument::plugin()
-{
+Metadata EPubDocument::metadata() {
+  Q_D(EPubDocument);
+  return d->metadata();
+}
+
+IEBookInterface *EPubDocument::plugin() {
   Q_D(EPubDocument);
   return d->plugin();
 }
 
-void EPubDocument::setPlugin(IEBookInterface* plugin)
-{
+void EPubDocument::setPlugin(IEBookInterface *plugin) {
   Q_D(EPubDocument);
   d->setPlugin(plugin);
 }
 
-QDate EPubDocument::published()
-{
+QDate EPubDocument::published() {
   Q_D(EPubDocument);
   return d->published();
 }
 
-void EPubDocument::setPublished(const QDate& published)
-{
+void EPubDocument::setPublished(const QDate &published) {
   Q_D(EPubDocument);
   return d->setPublished(published);
 }

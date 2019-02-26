@@ -1,5 +1,5 @@
 #! [0]
-TEMPLATE        = subdirs
+TEMPLATE = subdirs
 
 SUBDIRS += \
     hunspellplugin \

@@ -15,7 +15,10 @@ class EBookWrapper : public QStackedWidget
   Q_OBJECT
 
 public:
-  EBookWrapper(Options* options, AuthorsDB *authors, QWidget* parent = nullptr);
+  EBookWrapper(Options* options,
+               AuthorsDB* authors,
+               LibraryDB* library,
+               QWidget* parent = nullptr);
   ~EBookWrapper();
 
   void setToEditor();

@@ -21,7 +21,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++14
 #CONFIG += debug_and_release # prepared to build in debug and release forms
 #CONFIG -= debug_and_release_target # but NOT in debug and release directories
 #CONFIG += build_all # build BOTH debug and realese (if debug_and_release is set)
@@ -88,6 +88,8 @@ FORMS += \
 RESOURCES += \
     icons.qrc
 
+INCLUDEPATH += /usr/local/include
+
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
 # QYAML-CPP library
@@ -99,11 +101,9 @@ unix|win32: LIBS += -lquazip5
 # QLOGGER library
 unix|win32: LIBS += -lqloggerlib
 
-DISTFILES += \
-    attributions.txt
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/release/ -linterface
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../interface/debug/ -linterface
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface
 else:unix: LIBS += -L$$OUT_PWD/../interface/ -linterface
 
 INCLUDEPATH += $$PWD/../interface
@@ -114,3 +114,22 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../inte
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/release/interface.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../interface/debug/interface.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../interface/libinterface.a
+
+
+DISTFILES += \
+    attributions.txt
+
+
+#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppd
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppdd
+#else:unix: LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppd
+
+#INCLUDEPATH += $$PWD/../qyaml-cpp
+#DEPENDPATH += $$PWD/../qyaml-cpp
+
+#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/ -lqyaml-cpp
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/ -lqyaml-cppd
+#else:unix: LIBS += -L$$OUT_PWD/ -lqyaml-cpp
+
+#INCLUDEPATH += $$PWD/../qyaml-cpp
+#DEPENDPATH += $$PWD/../qyaml-cpp

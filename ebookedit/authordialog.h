@@ -3,10 +3,22 @@
 
 #include <QtWidgets>
 
-#include "focuslineedit.h"
 #include "authors.h"
 #include "ebookcommon.h"
+#include "focuslineedit.h"
 
+class AuthorImage : public QLabel
+{
+public:
+  AuthorImage(QWidget* parent = nullptr);
+
+  bool modified() const;
+
+protected:
+  bool m_modified;
+  void contextMenuEvent(QContextMenuEvent* event);
+  void pasteAuthorImage();
+};
 
 class AuthorDialog : public QDialog
 {
@@ -26,21 +38,26 @@ public:
   AuthorList authors();
 
 protected:
-  //  QSharedPointer<Library> m_library;
   AuthorsDB* m_authors;
-  //  SharedAuthor  m_current_author;
-  QVBoxLayout* authorLayout;
-  //  QLineEdit *m_forename_edit, *m_midname_edit, *m_surname_edit;
+
+  QGridLayout* m_main_layout;
+  int m_max_author_row;
+
   QLabel* m_text_lbl;
   QListWidget* m_author_list;
+  AuthorImage* m_image_lbl;
+  QFrame* m_btn_frame;
   QPushButton *m_accept_btn, *m_cancel_btn, *m_reset_btn, *m_help_btn;
-  bool m_modified;
-  QString m_forename, m_middlename, m_surname;
   QList<FocusLineEdit*> m_forenames, m_middlenames, m_surnames;
   QList<bool> m_empty_rows;
   QList<QFrame*> m_frames;
   QList<QPushButton*> m_buttons;
   AuthorList m_current_authors;
+  int m_current_index;
+
+  bool m_modified;
+  QString m_forename, m_middlename, m_surname;
+
   int m_names_index;
   //  QString m_result;
   QPixmapCache::Key up_key, down_key, plus_key, minus_key;
@@ -53,7 +70,7 @@ protected:
   void changeForename(const QString& name);
   void changeMidnames(const QString& name);
 
-  QFrame* createAuthorFrame();
+  void addAuthorRow();
   void removeAuthorFrame();
   void addAnotherAuthor();
   void upPressed();
@@ -91,6 +108,8 @@ protected:
       setEmptyRow(index);
     }
   }
+  void initPositionalButtons();
+  void initMainButtonBox();
 
 protected:
   static const QString FULL_COLOR;

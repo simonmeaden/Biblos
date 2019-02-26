@@ -11,48 +11,34 @@
 #include "epubcontainer.h"
 #include "epubdocument.h"
 
-class EPubDocumentPrivate : public ITextDocumentPrivate
-{
+class EPubDocumentPrivate : public ITextDocumentPrivate {
 public:
-  EPubDocumentPrivate(EPubDocument* parent);
+  EPubDocumentPrivate(EPubDocument *parent);
   virtual ~EPubDocumentPrivate();
 
-  EPubDocument* q_ptr;
+  EPubDocument *q_ptr;
 
   bool loaded();
-  void openDocument(const QString& path);
+  void openDocument(const QString &path);
   void saveDocument();
   QString filename();
   //  void clearCache();
-  EPubContents* cloneData();
-  void setClonedData(EPubContents* cloneData);
+  EPubContents *cloneData();
+  void setClonedData(EPubContents *cloneData);
 
   QStringList creators();
   QString title();
   void setTitle(QString title);
 
-  IEBookInterface* plugin()
-  {
-    return m_plugin;
-  }
-  void setPlugin(IEBookInterface* plugin)
-  {
-    m_plugin = plugin;
-  }
+  IEBookInterface *plugin() { return m_plugin; }
+  void setPlugin(IEBookInterface *plugin) { m_plugin = plugin; }
 
-  QString language() const
-  {
-  }
-  void setLanguage(const QString& language)
-  {
-  }
-  QDateTime date() const
-  {
-  }
-  void setDate(const QDateTime& date)
-  {
-  }
-//  void setDocumentPath(const QString& documentPath);
+  QString language() const {}
+  void setLanguage(const QString &language) {}
+  QDateTime date() const {}
+  void setDate(const QDateTime &date) {}
+  //  void setDocumentPath(const QString& documentPath);
+  Metadata metadata();
 
   QString buildTocFromFiles();
 
@@ -63,10 +49,10 @@ protected:
   bool m_loaded;
   bool m_current_document_index;
   bool m_current_document_lineno;
-  EPubContainer* m_container;
+  EPubContainer *m_container;
   bool m_modified;
 
-  EPubDocumentPrivate(EPubDocumentPrivate& d);
+  EPubDocumentPrivate(EPubDocumentPrivate &d);
   void loadDocument();
   QString toc();
   //  virtual QVariant loadResource(int, const QUrl&);
