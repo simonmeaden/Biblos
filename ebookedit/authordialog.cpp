@@ -11,51 +11,57 @@
 //    "}");
 
 const QString AuthorDialog::FULL_COLOR =
-    "QListWidget::item { color: green; background-color: transparent; }";
+  "QListWidget::item { color: green; background-color: transparent; }";
 const QString AuthorDialog::PARTIAL_COLOR =
-    "QListWidget::item { color: blue; background-color: transparent; }";
+  "QListWidget::item { color: blue; background-color: transparent; }";
 const QString AuthorDialog::SURNAMEMATCH_COLOR =
-    "QListWidget::item { color: cyan; background-color: transparent; }";
+  "QListWidget::item { color: cyan; background-color: transparent; }";
 
 const QString AuthorDialog::NO_AUTHOR_DETAILS_FOUND =
-    tr("No Author details found!");
+  tr("No Author details found!");
 const QString AuthorDialog::FROM_TITLE_TITLE = tr("Missing Author info %1 %2");
 const QString AuthorDialog::FROM_TITLE =
-    tr("<html>"
-       "The Metadata does not have any Author information.<br>"
-       "We have attempted to extract an Author name from<br>"
-       "the file name and come up with the following, <br>"
-       "<b>%1</b>.<br>"
-       "Either select one or more authors from the list,<br>"
-       "enter your own values or press <em>Cancel</em> to<br>"
-       "leave the dialog without making changes."
-       "</html>");
+  tr("<html>"
+     "The Metadata does not have any Author information.<br>"
+     "We have attempted to extract an Author name from<br>"
+     "the file name and come up with the following, <br>"
+     "<b>%1</b>.<br>"
+     "Either select one or more authors from the list,<br>"
+     "enter your own values or press <em>Cancel</em> to<br>"
+     "leave the dialog without making changes."
+     "</html>");
 const QString AuthorDialog::NO_NAMES =
-    tr("<html>"
-       "The Metadata does not have any Author information.<br>"
-       "We have attempted to extract an Author name from<br>"
-       "the file name but have failed. Please enter author<br>"
-       "information or select from author list."
-       "</html");
+  tr("<html>"
+     "The Metadata does not have any Author information.<br>"
+     "We have attempted to extract an Author name from<br>"
+     "the file name but have failed. Please enter author<br>"
+     "information or select from author list."
+     "</html");
 
-AuthorDialog::AuthorDialog(AuthorsDB *authors, QWidget *parent)
-    : QDialog(parent), m_authors(authors), m_max_author_row(0),
-      m_btn_frame(new QFrame(this)), m_modified(false), m_names_index(0)
+AuthorDialog::AuthorDialog(Options* options, AuthorsDB authors, QWidget* parent)
+  : QDialog(parent)
+  , m_authors(authors)
+  , m_max_author_row(0)
+  , m_btn_frame(new QFrame(this))
+  , m_modified(false)
+  , m_names_index(0)
 
 {
-  up_key = QPixmapCache::insert(QPixmap(":/icons/up"));
-  down_key = QPixmapCache::insert(QPixmap(":/icons/down"));
-  plus_key = QPixmapCache::insert(QPixmap(":/icons/add"));
-  minus_key = QPixmapCache::insert(QPixmap(":/icons/remove"));
+  up_key = options->up_key;
+  down_key = options->down_key;
+  plus_key = options->plus_key;
+  minus_key = options->minus_key;
 
   initGui();
 }
 
-void AuthorDialog::setPartialNames(QStringList names) {
+void
+AuthorDialog::setPartialNames(QStringList names)
+{
   if (names.isEmpty()) {
     m_authors_list = m_authors->authors();
     foreach (AuthorData author, m_authors_list) {
-      QListWidgetItem *item = new QListWidgetItem(author->displayName());
+      QListWidgetItem* item = new QListWidgetItem(author->displayName());
       item->setData(Qt::UserRole, QVariant::fromValue<AuthorData>(author));
       m_author_list->addItem(item);
     }
@@ -73,14 +79,14 @@ void AuthorDialog::setPartialNames(QStringList names) {
             middlenames = author->middlenames();
           }
         }
-        QListWidgetItem *item = new QListWidgetItem(author->displayName());
+        QListWidgetItem* item = new QListWidgetItem(author->displayName());
         item->setData(Qt::UserRole, QVariant::fromValue<AuthorData>(author));
         m_author_list->addItem(item);
         if (reduced.size() == 1) {
           // colours the item appropriately
           if (item) {
             EBookAuthorData::Comparison comp =
-                author->compare(forename, middlenames, surname);
+              author->compare(forename, middlenames, surname);
             if (comp == EBookAuthorData::ALL_MATCH) {
               item->setForeground(QColor("green"));
             } else if (comp == EBookAuthorData::FORE_AND_SURNAME_MATCH) {
@@ -95,8 +101,10 @@ void AuthorDialog::setPartialNames(QStringList names) {
   }
 }
 
-void AuthorDialog::changeSurname(const QString &name) {
-  FocusLineEdit *edit = qobject_cast<FocusLineEdit *>(sender());
+void
+AuthorDialog::changeSurname(const QString& name)
+{
+  FocusLineEdit* edit = qobject_cast<FocusLineEdit*>(sender());
   int index = m_surnames.indexOf(edit);
   if (m_current_authors.isEmpty())
     return;
@@ -111,8 +119,10 @@ void AuthorDialog::changeSurname(const QString &name) {
   author->setSurname(name);
 }
 
-void AuthorDialog::changeForename(const QString &name) {
-  FocusLineEdit *edit = qobject_cast<FocusLineEdit *>(sender());
+void
+AuthorDialog::changeForename(const QString& name)
+{
+  FocusLineEdit* edit = qobject_cast<FocusLineEdit*>(sender());
   int index = m_forenames.indexOf(edit);
   if (m_current_authors.isEmpty())
     return;
@@ -127,8 +137,10 @@ void AuthorDialog::changeForename(const QString &name) {
   author->setForename(name);
 }
 
-void AuthorDialog::changeMidnames(const QString &name) {
-  FocusLineEdit *edit = qobject_cast<FocusLineEdit *>(sender());
+void
+AuthorDialog::changeMidnames(const QString& name)
+{
+  FocusLineEdit* edit = qobject_cast<FocusLineEdit*>(sender());
   int index = m_middlenames.indexOf(edit);
   if (m_current_authors.isEmpty())
     return;
@@ -143,45 +155,67 @@ void AuthorDialog::changeMidnames(const QString &name) {
   author->setMiddlenames(name);
 }
 
-void AuthorDialog::help() {}
+void
+AuthorDialog::help()
+{}
 
-void AuthorDialog::acceptAuthor() {
+void
+AuthorDialog::acceptAuthor()
+{
+  AuthorData author_data = m_current_authors.at(m_current_index);
   if (m_image_lbl->modified()) {
-    AuthorData author_data = m_current_authors.at(m_current_index);
-    const QPixmap *pixmap = m_image_lbl->pixmap();
+    const QPixmap* pixmap = m_image_lbl->pixmap();
     if (!pixmap->isNull()) {
       author_data->setPixmap(*pixmap);
     }
   }
+  QString site = m_web_edit->text();
+  if (site != m_original_website) {
+    author_data->setWebsite(site);
+  }
+  site = m_wiki_edit->text();
+  if (site != m_original_wikipedia) {
+    author_data->setWikipedia(site);
+  }
   accept();
 }
 
-void AuthorDialog::cancelChanges() { reject(); }
+void
+AuthorDialog::cancelChanges()
+{
+  reject();
+}
 
-void AuthorDialog::resetChanges() {
+void
+AuthorDialog::resetChanges()
+{
   m_current_authors.clear();
   m_forenames.at(m_names_index)->clear();
   m_middlenames.at(m_names_index)->clear();
   m_surnames.at(m_names_index)->clear();
 }
 
-void AuthorDialog::authorDoubleClicked(QListWidgetItem *item) {
+void
+AuthorDialog::authorDoubleClicked(QListWidgetItem* item)
+{
   m_current_authors.insert(m_names_index,
                            item->data(Qt::UserRole).value<AuthorData>());
   if (m_current_authors.size() > m_names_index) {
     m_forenames.at(m_names_index)
-        ->setText(m_current_authors.at(m_names_index)->forename());
+      ->setText(m_current_authors.at(m_names_index)->forename());
     m_middlenames.at(m_names_index)
-        ->setText(m_current_authors.at(m_names_index)->middlenames());
+      ->setText(m_current_authors.at(m_names_index)->middlenames());
     m_surnames.at(m_names_index)
-        ->setText(m_current_authors.at(m_names_index)->surname());
+      ->setText(m_current_authors.at(m_names_index)->surname());
     if (m_surnames.size() > m_names_index + 1)
       m_names_index++;
   }
 }
 
-void AuthorDialog::authorRowClicked(bool focussed) {
-  FocusLineEdit *edit = qobject_cast<FocusLineEdit *>(sender());
+void
+AuthorDialog::authorRowClicked(bool focussed)
+{
+  FocusLineEdit* edit = qobject_cast<FocusLineEdit*>(sender());
   int index = -1;
   if (edit) {
     if (m_surnames.contains(edit)) {
@@ -208,30 +242,41 @@ void AuthorDialog::authorRowClicked(bool focussed) {
   }
 }
 
-int AuthorDialog::execute(AuthorDialog::Type type, QString title,
-                          QStringList names) {
+void
+AuthorDialog::websiteChanged(const QString& text)
+{}
+
+void
+AuthorDialog::wikipediaChanged(const QString& text)
+{}
+
+int
+AuthorDialog::execute(AuthorDialog::Type type, QString title, QStringList names)
+{
   switch (type) {
-  case FromTitle:
-    setWindowTitle(FROM_TITLE_TITLE.arg((title.length() > 0 ? ":" : ""))
+    case FromTitle:
+      setWindowTitle(FROM_TITLE_TITLE.arg((title.length() > 0 ? ":" : ""))
                        .arg((title.length() > 0 ? title : "")));
-    m_text_lbl->setText(FROM_TITLE.arg(names.join(" ")));
-    setPartialNames(names);
-    return QDialog::exec();
+      m_text_lbl->setText(FROM_TITLE.arg(names.join(" ")));
+      setPartialNames(names);
+      return QDialog::exec();
 
-  case NoNames:
-    setWindowTitle(FROM_TITLE_TITLE.arg((title.length() > 0 ? ":" : ""))
+    case NoNames:
+      setWindowTitle(FROM_TITLE_TITLE.arg((title.length() > 0 ? ":" : ""))
                        .arg((title.length() > 0 ? title : "")));
-    m_text_lbl->setText(NO_NAMES);
-    setPartialNames();
-    return QDialog::exec();
+      m_text_lbl->setText(NO_NAMES);
+      setPartialNames();
+      return QDialog::exec();
 
-  default:
-    break;
+    default:
+      break;
   }
   return -1;
 }
 
-int AuthorDialog::execute(AuthorData author_data) {
+int
+AuthorDialog::execute(AuthorData author_data)
+{
   setWindowTitle(QString("Modify %1").arg(author_data->displayName()));
   QStringList names;
   names << author_data->surname() << author_data->forename();
@@ -241,6 +286,10 @@ int AuthorDialog::execute(AuthorData author_data) {
   m_surnames.at(0)->setText(author_data->surname());
   m_current_authors.clear(); // shouldn't be any here. mayn not be needed.
   m_current_authors.append(author_data);
+  m_web_edit->setText(author_data->website());
+  m_original_website = author_data->website();
+  m_wiki_edit->setText(author_data->wikipedia());
+  m_original_wikipedia = author_data->wikipedia();
   m_names_index = 0;
   m_current_index = 0;
   QPixmap pixmap = author_data->pixmap();
@@ -249,7 +298,9 @@ int AuthorDialog::execute(AuthorData author_data) {
   return QDialog::exec();
 }
 
-int AuthorDialog::execute(AuthorList author_list) {
+int
+AuthorDialog::execute(AuthorList author_list)
+{
   setWindowTitle(QString("Modify Authors"));
   QStringList names;
   foreach (AuthorData author_data, author_list) {
@@ -265,12 +316,22 @@ int AuthorDialog::execute(AuthorList author_list) {
     m_middlenames.at(i)->setText(author_data->middlenames());
     m_surnames.at(i)->setText(author_data->surname());
     m_current_authors.append(author_data);
+    m_web_edit->setText(author_data->website());
+    m_wiki_edit->setText(author_data->wikipedia());
     m_names_index = 0;
   }
   return QDialog::exec();
 }
 
-AuthorList AuthorDialog::authors() {
+AuthorData
+AuthorDialog::author()
+{
+  return m_current_authors.at(m_current_index);
+}
+
+AuthorList
+AuthorDialog::authors()
+{
   AuthorList authors;
   // only return authors that have values (actually only surnames are tested.)
   foreach (AuthorData author, m_current_authors) {
@@ -281,37 +342,51 @@ AuthorList AuthorDialog::authors() {
   return authors;
 }
 
-void AuthorDialog::addAuthorRow() {
-  QLabel *lbl = new QLabel(tr("Forename :"), this);
+void
+AuthorDialog::addAuthorRow()
+{
+  QLabel* lbl = new QLabel(tr("Forename :"), this);
   m_main_layout->addWidget(lbl, m_max_author_row, 0);
 
-  FocusLineEdit *m_forename_edit = new FocusLineEdit(this);
+  FocusLineEdit* m_forename_edit = new FocusLineEdit(this);
   m_forenames.append(m_forename_edit);
-  connect(m_forename_edit, &FocusLineEdit::textChanged, this,
+  connect(m_forename_edit,
+          &FocusLineEdit::textChanged,
+          this,
           &AuthorDialog::changeForename);
-  connect(m_forename_edit, &FocusLineEdit::focussed, this,
+  connect(m_forename_edit,
+          &FocusLineEdit::focussed,
+          this,
           &AuthorDialog::authorRowClicked);
   m_main_layout->addWidget(m_forename_edit, m_max_author_row, 1);
 
   lbl = new QLabel(tr("Middle name(s) :"), this);
   m_main_layout->addWidget(lbl, m_max_author_row, 2);
 
-  FocusLineEdit *m_midname_edit = new FocusLineEdit(this);
+  FocusLineEdit* m_midname_edit = new FocusLineEdit(this);
   m_middlenames.append(m_midname_edit);
-  connect(m_midname_edit, &FocusLineEdit::textChanged, this,
+  connect(m_midname_edit,
+          &FocusLineEdit::textChanged,
+          this,
           &AuthorDialog::changeMidnames);
-  connect(m_midname_edit, &FocusLineEdit::focussed, this,
+  connect(m_midname_edit,
+          &FocusLineEdit::focussed,
+          this,
           &AuthorDialog::authorRowClicked);
   m_main_layout->addWidget(m_midname_edit, m_max_author_row, 3);
 
   lbl = new QLabel(tr("Surname :"), this);
   m_main_layout->addWidget(lbl, m_max_author_row, 4);
 
-  FocusLineEdit *m_surname_edit = new FocusLineEdit(this);
+  FocusLineEdit* m_surname_edit = new FocusLineEdit(this);
   m_surnames.append(m_surname_edit);
-  connect(m_surname_edit, &FocusLineEdit::textChanged, this,
+  connect(m_surname_edit,
+          &FocusLineEdit::textChanged,
+          this,
           &AuthorDialog::changeSurname);
-  connect(m_surname_edit, &FocusLineEdit::focussed, this,
+  connect(m_surname_edit,
+          &FocusLineEdit::focussed,
+          this,
           &AuthorDialog::authorRowClicked);
   m_main_layout->addWidget(m_surname_edit, m_max_author_row, 5);
 
@@ -320,7 +395,7 @@ void AuthorDialog::addAuthorRow() {
 
   QPixmap pixmap;
   QPixmapCache::find(minus_key, &pixmap);
-  QPushButton *btn = new QPushButton(pixmap, QString(), this);
+  QPushButton* btn = new QPushButton(pixmap, QString(), this);
   m_buttons.append(btn);
   m_main_layout->addWidget(btn, m_max_author_row, 6);
   connect(btn, &QPushButton::clicked, this, &AuthorDialog::removeAuthorFrame);
@@ -331,12 +406,14 @@ void AuthorDialog::addAuthorRow() {
   m_max_author_row++;
 }
 
-void AuthorDialog::removeAuthorFrame() {
-  QPushButton *btn = qobject_cast<QPushButton *>(sender());
+void
+AuthorDialog::removeAuthorFrame()
+{
+  QPushButton* btn = qobject_cast<QPushButton*>(sender());
   if (btn) {
     int index = m_buttons.indexOf(btn);
-    QWidget *w;
-    QLayout *layout = m_frames.at(index)->layout();
+    QWidget* w;
+    QLayout* layout = m_frames.at(index)->layout();
     w = m_forenames.at(index);
     layout->removeWidget(w);
     m_forenames.removeAt(index);
@@ -367,7 +444,9 @@ void AuthorDialog::removeAuthorFrame() {
   }
 }
 
-void AuthorDialog::addAnotherAuthor() {
+void
+AuthorDialog::addAnotherAuthor()
+{
   checkEmptyRows();
   // Only allow one empty row.
   for (int i = 0; i < m_forenames.size(); i++) {
@@ -377,12 +456,18 @@ void AuthorDialog::addAnotherAuthor() {
   addAuthorRow();
 }
 
-void AuthorDialog::upPressed() {}
+void
+AuthorDialog::upPressed()
+{}
 
-void AuthorDialog::dnPressed() {}
+void
+AuthorDialog::dnPressed()
+{}
 
-void AuthorDialog::initPositionalButtons() {
-  QVBoxLayout *btn_layout = new QVBoxLayout;
+void
+AuthorDialog::initPositionalButtons()
+{
+  QVBoxLayout* btn_layout = new QVBoxLayout;
   m_btn_frame->setLayout(btn_layout);
 
   QPixmap upicon, downicon, pluspix;
@@ -390,49 +475,53 @@ void AuthorDialog::initPositionalButtons() {
   QPixmapCache::find(down_key, &downicon);
   QPixmapCache::find(plus_key, &pluspix);
 
-  QPushButton *upBtn = new QPushButton(upicon, "", this);
+  QPushButton* upBtn = new QPushButton(upicon, "", this);
   btn_layout->addWidget(upBtn);
   connect(upBtn, &QPushButton::clicked, this, &AuthorDialog::upPressed);
 
-  QPushButton *plusbtn = new QPushButton(pluspix, "", this);
+  QPushButton* plusbtn = new QPushButton(pluspix, "", this);
   btn_layout->addWidget(plusbtn);
-  connect(plusbtn, &QPushButton::clicked, this,
-          &AuthorDialog::addAnotherAuthor);
+  connect(
+    plusbtn, &QPushButton::clicked, this, &AuthorDialog::addAnotherAuthor);
 
-  QPushButton *dnBtn = new QPushButton(downicon, "", this);
+  QPushButton* dnBtn = new QPushButton(downicon, "", this);
   btn_layout->addWidget(dnBtn);
   connect(dnBtn, &QPushButton::clicked, this, &AuthorDialog::dnPressed);
 }
 
-void AuthorDialog::initMainButtonBox() {
-  QDialogButtonBox *btnBox = new QDialogButtonBox(Qt::Horizontal, this);
+QDialogButtonBox*
+AuthorDialog::initMainButtonBox()
+{
+  QDialogButtonBox* btnBox = new QDialogButtonBox(Qt::Horizontal, this);
 
   m_help_btn = btnBox->addButton(tr("Help"), QDialogButtonBox::HelpRole);
   m_help_btn->setToolTip(tr("Brings up a Help dialog."));
   connect(m_help_btn, &QPushButton::clicked, this, &AuthorDialog::help);
 
   m_accept_btn =
-      btnBox->addButton(tr("Accept Author"), QDialogButtonBox::AcceptRole);
+    btnBox->addButton(tr("Accept Author"), QDialogButtonBox::AcceptRole);
   m_accept_btn->setToolTip(tr("Click this to accept the authors name as is."));
-  connect(m_accept_btn, &QPushButton::clicked, this,
-          &AuthorDialog::acceptAuthor);
+  connect(
+    m_accept_btn, &QPushButton::clicked, this, &AuthorDialog::acceptAuthor);
 
   m_cancel_btn =
-      btnBox->addButton(tr("Cancel Changes"), QDialogButtonBox::ActionRole);
+    btnBox->addButton(tr("Cancel Changes"), QDialogButtonBox::ActionRole);
   m_cancel_btn->setToolTip(tr("Cancels all changes and closes dialog"));
-  connect(m_cancel_btn, &QPushButton::clicked, this,
-          &AuthorDialog::cancelChanges);
+  connect(
+    m_cancel_btn, &QPushButton::clicked, this, &AuthorDialog::cancelChanges);
 
   m_reset_btn = btnBox->addButton(tr("Reset"), QDialogButtonBox::ActionRole);
   m_reset_btn->setToolTip(tr("Resets author to initial values."));
-  connect(m_reset_btn, &QPushButton::clicked, this,
-          &AuthorDialog::resetChanges);
+  connect(
+    m_reset_btn, &QPushButton::clicked, this, &AuthorDialog::resetChanges);
 
   btnBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  m_main_layout->addWidget(btnBox, m_max_author_row + 2, 0, 7, 1);
+  return btnBox;
 }
 
-void AuthorDialog::initGui() {
+void
+AuthorDialog::initGui()
+{
   setWindowTitle(tr("Choose Author"));
   m_main_layout = new QGridLayout;
   setLayout(m_main_layout);
@@ -443,37 +532,80 @@ void AuthorDialog::initGui() {
   m_text_lbl = new QLabel(this);
   m_main_layout->addWidget(m_text_lbl, m_max_author_row, 0, 1, 4);
 
+  QLabel* lbl = new QLabel(tr("Website : "), this);
+  m_main_layout->addWidget(lbl, m_max_author_row + 1, 0);
+  m_web_edit = new QLineEdit(this);
+  connect(
+    m_web_edit, &QLineEdit::textChanged, this, &AuthorDialog::websiteChanged);
+  m_main_layout->addWidget(m_web_edit, m_max_author_row + 1, 1, 1, 5);
+
+  lbl = new QLabel(tr("Wikipedia : "), this);
+  m_main_layout->addWidget(lbl, m_max_author_row + 2, 0);
+  m_wiki_edit = new QLineEdit(this);
+  connect(m_wiki_edit,
+          &QLineEdit::textChanged,
+          this,
+          &AuthorDialog::wikipediaChanged);
+  m_main_layout->addWidget(m_wiki_edit, m_max_author_row + 2, 1, 1, 5);
+
   m_author_list = new QListWidget(this);
-  connect(m_author_list, &QListWidget::itemDoubleClicked, this,
+  connect(m_author_list,
+          &QListWidget::itemDoubleClicked,
+          this,
           &AuthorDialog::authorDoubleClicked);
-  m_main_layout->addWidget(m_author_list, m_max_author_row + 1, 0, 1, 4);
+  m_main_layout->addWidget(m_author_list, m_max_author_row + 3, 0, 1, 4);
 
   m_image_lbl = new AuthorImage(this);
   m_image_lbl->setAlignment(Qt::AlignCenter);
   m_image_lbl->setFrameStyle(QFrame::StyledPanel);
-  m_main_layout->addWidget(m_image_lbl, m_max_author_row + 1, 4, 1, 2);
+  m_main_layout->addWidget(m_image_lbl, m_max_author_row + 3, 4, 1, 2);
 
-  initMainButtonBox();
+  QDialogButtonBox* btn_box = initMainButtonBox();
+  m_main_layout->addWidget(btn_box, m_max_author_row + 4, 0, 7, 1);
 }
 
-AuthorImage::AuthorImage(QWidget *parent) : QLabel(parent), m_modified(false) {}
+AuthorImage::AuthorImage(QWidget* parent)
+  : QLabel(parent)
+  , m_modified(false)
+{}
 
-bool AuthorImage::modified() const { return m_modified; }
+bool
+AuthorImage::modified() const
+{
+  return m_modified;
+}
 
-void AuthorImage::contextMenuEvent(QContextMenuEvent *event) {
+void
+AuthorImage::contextMenuEvent(QContextMenuEvent* event)
+{
   QMenu menu(this);
-  QAction *pasteImage = new QAction(tr("Paste Image"), this);
-  connect(pasteImage, &QAction::triggered, this,
-          &AuthorImage::pasteAuthorImage);
-  menu.addAction(pasteImage);
+  QAction* paste_image = new QAction(tr("Paste Image"), this);
+  connect(
+    paste_image, &QAction::triggered, this, &AuthorImage::pasteAuthorImage);
+  menu.addAction(paste_image);
+  QAction* load_image = new QAction(tr("Load Image from file"), this);
+  connect(load_image, &QAction::triggered, this, &AuthorImage::loadAuthorImage);
+  menu.addAction(load_image);
   menu.exec(event->globalPos());
 }
 
-void AuthorImage::pasteAuthorImage() {
-  QClipboard *clipboard = QGuiApplication::clipboard();
-  const QMimeData *mimedata = clipboard->mimeData();
+void
+AuthorImage::pasteAuthorImage()
+{
+  QClipboard* clipboard = QGuiApplication::clipboard();
+  const QMimeData* mimedata = clipboard->mimeData();
   if (mimedata->hasImage()) {
-    setPixmap(qvariant_cast<QPixmap>(mimedata->imageData()));
+    //    setPixmap(qvariant_cast<QPixmap>(mimedata->imageData()));
+    QImage image = clipboard->image();
+    QPixmap pixmap = QPixmap::fromImage(image);
+    setPixmap(pixmap);
     m_modified = true;
   }
+}
+
+void
+AuthorImage::loadAuthorImage()
+{
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open Image"), "~", tr("Image Files (*.png *.jpg *.bmp)"));
 }

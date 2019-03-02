@@ -28,6 +28,7 @@ public:
   void setOrderedTitles(const OrderedTitleMap& ordered_titles);
 
   Calibre calibre() const;
+  void setCalibre(const Calibre& calibre);
 
 protected:
   QString m_package_unique_identifier;

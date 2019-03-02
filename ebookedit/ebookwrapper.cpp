@@ -2,15 +2,17 @@
 #include "ebookwordreader.h"
 
 EBookWrapper::EBookWrapper(Options* options,
-                           AuthorsDB* authors,
-                           LibraryDB* library,
+                           AuthorsDB authors,
+                           SeriesDB series_db,
+                           LibraryDB library,
                            QWidget* parent)
   : QStackedWidget(parent)
   , m_editor(new EBookEditor(parent))
   , m_codeeditor(new EBookCodeEditor(options, parent))
-  , m_metaeditor(new MetadataEditor(options, authors, library, parent))
-  , /* m_word_reader(new EBookWordReader(m_editor, this)),*/
-  m_editorindex(0)
+  , m_metaeditor(
+      new MetadataEditor(options, authors, series_db, library, parent))
+  /* ,m_word_reader(new EBookWordReader(m_editor, this)),*/
+  , m_editorindex(0)
   , m_codeindex(0)
   , m_metaindex(0)
   , m_options(options)

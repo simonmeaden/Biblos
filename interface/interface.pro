@@ -20,7 +20,7 @@ CONFIG += c++14
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-#DESTDIR = $$PWD/../../build/biblios
+#DESTDIR = $$PWD/../../build/biblos
 #OBJECTS_DIR = $$DESTDIR/build/.objd
 #MOC_DIR = $$DESTDIR/build/.mocd
 #RCC_DIR = $$DESTDIR/build/.qrcd
@@ -40,7 +40,8 @@ SOURCES +=  \
     library.cpp \
     authors.cpp \
     ebookmetadata.cpp \
-    ebookbasemetadata.cpp
+    ebookbasemetadata.cpp \
+    series.cpp
 
 HEADERS += \
     interface_global.h \
@@ -56,7 +57,8 @@ HEADERS += \
     library.h \
     authors.h \
     ebookmetadata.h \
-    ebookbasemetadata.h
+    ebookbasemetadata.h \
+    series.h
 
 DISTFILES += \
     spellinterface.json \

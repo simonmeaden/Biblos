@@ -8,9 +8,11 @@
 
 #include "ebookbasemetadata.h"
 
-class EBookAuthorData {
+class EBookAuthorData
+{
 public:
-  enum Comparison {
+  enum Comparison
+  {
     NO_MATCH,
     SURNAME_MATCH,
     FORENAME_MATCH,
@@ -20,41 +22,43 @@ public:
   };
 
   EBookAuthorData();
-  EBookAuthorData(const EBookAuthorData &other);
+  EBookAuthorData(const EBookAuthorData& other);
   ~EBookAuthorData();
 
   bool isValid();
   bool isEmpty();
   bool isModified();
-  bool operator==(const EBookAuthorData &rhs) {
+  bool operator==(const EBookAuthorData& rhs)
+  {
     if (m_uid == rhs.m_uid) {
       return true;
     }
     return false;
   }
-  Comparison compare(QString m_forename, QString m_middlenames,
+  Comparison compare(QString m_forename,
+                     QString m_middlenames,
                      QString m_surname);
 
   QString forename() const;
-  void setForename(const QString &value);
+  void setForename(const QString& value);
   QString middlenames() const;
-  void setMiddlenames(const QString &value);
+  void setMiddlenames(const QString& value);
   QString surname() const;
-  void setSurname(const QString &surname);
+  void setSurname(const QString& surname);
   QString fileAs() const;
-  void setFile_as(const QString &file_as);
+  void setFile_as(const QString& file_as);
   quint64 uid() const;
-  void setUid(const quint64 &uid);
+  void setUid(const quint64& uid);
   QString displayName() const;
-  void setDisplayName(const QString &displayName);
+  void setDisplayName(const QString& displayName);
   QString website() const;
-  void setWebsite(const QString &website);
+  void setWebsite(const QString& website);
   QString wikipedia() const;
-  void setWikipedia(const QString &wikipedia);
+  void setWikipedia(const QString& wikipedia);
   QList<quint64> books() const;
-  void setBooks(const QList<quint64> &books);
+  void setBooks(const QList<quint64>& books);
   QPixmap pixmap() const;
-  void setPixmap(const QPixmap &pixmap);
+  void setPixmap(const QPixmap& pixmap);
   bool surnameLast() const;
   void setSurnameLast(bool surnameLast);
 
@@ -82,11 +86,12 @@ typedef QMap<quint64, AuthorData> AuthorMap;
 typedef QMultiMap<QString, AuthorData> AuthorByString;
 Q_DECLARE_METATYPE(AuthorData);
 
-class AuthorsDB : public QObject {
+class EBookAuthorsDB : public QObject
+{
   Q_OBJECT
 public:
-  explicit AuthorsDB(QObject *parent = nullptr);
-  ~AuthorsDB();
+  explicit EBookAuthorsDB(QObject* parent = nullptr);
+  ~EBookAuthorsDB();
 
   void setFilename(QString filename);
   bool save();
@@ -127,6 +132,6 @@ protected:
 
   static quint64 m_highest_uid;
 };
-// typedef QSharedPointer<AuthorsData> AuthorsDB;
+typedef QSharedPointer<EBookAuthorsDB> AuthorsDB;
 
 #endif // AUTHORS_H

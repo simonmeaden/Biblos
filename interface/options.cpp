@@ -59,17 +59,33 @@ Options::Options(QObject* parent)
   , m_style_italic(false)
   , m_style_weight(QFont::Normal)
 {
+  lib_key = QPixmapCache::insert(QPixmap(":/icons/library"));
+  up_key = QPixmapCache::insert(QPixmap(":/icons/up"));
+  down_key = QPixmapCache::insert(QPixmap(":/icons/down"));
+  plus_key = QPixmapCache::insert(QPixmap(":/icons/add"));
+  minus_key = QPixmapCache::insert(QPixmap(":/icons/remove"));
+  open_key = QPixmapCache::insert(QPixmap(":/icons/opem"));
+  save_key = QPixmapCache::insert(QPixmap(":/icons/save"));
+  editor_key = QPixmapCache::insert(QPixmap(":/icons/editor"));
+  code_key = QPixmapCache::insert(QPixmap(":/icons/code"));
+  meta_key = QPixmapCache::insert(QPixmap(":/icons/metadata"));
+  bookshelf_key = QPixmapCache::insert(QPixmap(":/icons/bookshelf"));
+  tree_key = QPixmapCache::insert(QPixmap(":/icons/tree"));
 }
 
-Options::~Options()
-{
-}
+Options::~Options() {}
 
-void Options::save(const QString filename)
+void
+Options::save(const QString filename)
 {
-  QFile file(filename);
+  QFile* file;
+  if (filename.isEmpty())
+    file = new QFile(configFile());
+  else
+    file = new QFile(filename);
+
   if (m_pref_changed) {
-    if (file.open((QFile::ReadWrite | QFile::Truncate))) {
+    if (file->open((QFile::ReadWrite | QFile::Truncate))) {
       YAML::Emitter emitter;
       {
         emitter << YAML::BeginMap;
@@ -82,7 +98,8 @@ void Options::save(const QString filename)
         emitter << YAML::Key << SHOW_TOC;
         emitter << YAML::Value << m_toc_visible;
         emitter << YAML::Key << TOC_POSITION;
-        emitter << YAML::Value << (m_toc_position == Options::LEFT ? "LEFT" : "RIGHT");
+        emitter << YAML::Value
+                << (m_toc_position == Options::LEFT ? "LEFT" : "RIGHT");
         emitter << YAML::Key << PREF_BOOKLIST;
         {
           // Start of PREF_BOOKLIST
@@ -199,13 +216,15 @@ void Options::save(const QString filename)
         } // End of CODE_OPTIONS
         emitter << YAML::EndMap;
       }
-      QTextStream out(&file);
+      QTextStream out(file);
       out << emitter.c_str();
+      file->close();
     }
   }
 }
 
-void Options::load(const QString filename)
+void
+Options::load(const QString filename)
 {
   QFile file(filename);
   if (file.exists()) {
@@ -312,432 +331,588 @@ void Options::load(const QString filename)
   }
 }
 
-Options::TocPosition Options::tocPosition() const
+Options::TocPosition
+Options::tocPosition() const
 {
   return m_toc_position;
 }
 
-void Options::setTocPosition(const TocPosition position)
+void
+Options::setTocPosition(const TocPosition position)
 {
   m_toc_position = position;
   m_pref_changed = true;
 }
 
-bool Options::tocVisible() const
+bool
+Options::tocVisible() const
 {
   return m_toc_visible;
 }
 
-void Options::setTocVisible(const bool visible)
+void
+Options::setTocVisible(const bool visible)
 {
   m_toc_visible = visible;
   m_pref_changed = true;
 }
 
-QString Options::codeOptionToString(const CodeOptions options)
+QString
+Options::codeOptionToString(const CodeOptions options)
 {
   switch (options) {
-  case NORMAL:
-    return QObject::tr("Normal");
-  case TAG:
-    return QObject::tr("Tag");
-  case STRING:
-    return QObject::tr("String");
-  case ATTRIBUTE:
-    return QObject::tr("Attribute");
-  case ERROR:
-    return QObject::tr("Error");
-  case STYLE:
-    return QObject::tr("Style");
-  case SCRIPT:
-    return QObject::tr("Script");
+    case NORMAL:
+      return QObject::tr("Normal");
+    case TAG:
+      return QObject::tr("Tag");
+    case STRING:
+      return QObject::tr("String");
+    case ATTRIBUTE:
+      return QObject::tr("Attribute");
+    case ERROR:
+      return QObject::tr("Error");
+    case STYLE:
+      return QObject::tr("Style");
+    case SCRIPT:
+      return QObject::tr("Script");
   }
   return QString();
 }
 
-QString Options::weightToString(const QFont::Weight weight)
+QString
+Options::weightToString(const QFont::Weight weight)
 {
   switch (weight) {
-  case QFont::Thin:
-    return "Thin";
-  case QFont::ExtraLight:
-    return "ExtraLight";
-  case QFont::Light:
-    return "Light";
-  case QFont::Normal:
-    return "Normal";
-  case QFont::Medium:
-    return "Medium";
-  case QFont::DemiBold:
-    return "DemiBold";
-  case QFont::Bold:
-    return "Bold";
-  case QFont::ExtraBold:
-    return "ExtraBold";
-  case QFont::Black:
-    return "Black";
+    case QFont::Thin:
+      return "Thin";
+    case QFont::ExtraLight:
+      return "ExtraLight";
+    case QFont::Light:
+      return "Light";
+    case QFont::Normal:
+      return "Normal";
+    case QFont::Medium:
+      return "Medium";
+    case QFont::DemiBold:
+      return "DemiBold";
+    case QFont::Bold:
+      return "Bold";
+    case QFont::ExtraBold:
+      return "ExtraBold";
+    case QFont::Black:
+      return "Black";
   }
   return QString();
 }
 
-QColor Options::normalColor() const
+QColor
+Options::normalColor() const
 {
   return m_normal_color;
 }
 
-void Options::setNormalColor(const QColor& normal_color)
+void
+Options::setNormalColor(const QColor& normal_color)
 {
   m_normal_color = normal_color;
   m_pref_changed = true;
 }
 
-QColor Options::normalBack() const
+QColor
+Options::normalBack() const
 {
   return m_normal_back;
 }
 
-void Options::setNormalBack(const QColor& normal_back)
+void
+Options::setNormalBack(const QColor& normal_back)
 {
   m_normal_back = normal_back;
   m_pref_changed = true;
 }
 
-bool Options::normalItalic() const
+bool
+Options::normalItalic() const
 {
   return m_normal_italic;
 }
 
-void Options::setNormalItalic(bool normal_italic)
+void
+Options::setNormalItalic(bool normal_italic)
 {
   m_normal_italic = normal_italic;
   m_pref_changed = true;
 }
 
-QFont Options::codeFont() const
+QFont
+Options::codeFont() const
 {
   return m_code_font;
 }
 
-void Options::setCodeFont(const QFont& code_font)
+void
+Options::setCodeFont(const QFont& code_font)
 {
   m_code_font = code_font;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::normalWeight() const
+QFont::Weight
+Options::normalWeight() const
 {
   return m_normal_weight;
 }
 
-void Options::setNormalWeight(const QFont::Weight& normal_weight)
+void
+Options::setNormalWeight(const QFont::Weight& normal_weight)
 {
   m_normal_weight = normal_weight;
   m_pref_changed = true;
 }
 
-QColor Options::attributeColor() const
+QColor
+Options::attributeColor() const
 {
   return m_attribute_color;
 }
 
-void Options::setAttributeColor(const QColor& attribute_color)
+void
+Options::setAttributeColor(const QColor& attribute_color)
 {
   m_attribute_color = attribute_color;
   m_pref_changed = true;
 }
 
-QColor Options::attributeBack() const
+QColor
+Options::attributeBack() const
 {
   return m_attribute_back;
 }
 
-void Options::setAttributeBack(const QColor& attribute_back)
+void
+Options::setAttributeBack(const QColor& attribute_back)
 {
   m_attribute_back = attribute_back;
   m_pref_changed = true;
 }
 
-bool Options::attributeItalic() const
+bool
+Options::attributeItalic() const
 {
   return m_attribute_italic;
 }
 
-void Options::setAttribute_italic(bool attribute_italic)
+void
+Options::setAttribute_italic(bool attribute_italic)
 {
   m_attribute_italic = attribute_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::attributeWeight() const
+QFont::Weight
+Options::attributeWeight() const
 {
   return m_attribute_weight;
 }
 
-void Options::setAttributeWeight(const QFont::Weight& attribute_weight)
+void
+Options::setAttributeWeight(const QFont::Weight& attribute_weight)
 {
   m_attribute_weight = attribute_weight;
   m_pref_changed = true;
 }
 
-QColor Options::tagColor() const
+QColor
+Options::tagColor() const
 {
   return m_tag_color;
 }
 
-void Options::setTagColor(const QColor& tag_color)
+void
+Options::setTagColor(const QColor& tag_color)
 {
   m_tag_color = tag_color;
   m_pref_changed = true;
 }
 
-QColor Options::tagBack() const
+QColor
+Options::tagBack() const
 {
   return m_tag_back;
 }
 
-void Options::setTagBack(const QColor& tag_back)
+void
+Options::setTagBack(const QColor& tag_back)
 {
   m_tag_back = tag_back;
   m_pref_changed = true;
 }
 
-bool Options::tagItalic() const
+bool
+Options::tagItalic() const
 {
   return m_tag_italic;
 }
 
-void Options::setTagItalic(bool tag_italic)
+void
+Options::setTagItalic(bool tag_italic)
 {
   m_tag_italic = tag_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::tagWeight() const
+QFont::Weight
+Options::tagWeight() const
 {
   return m_tag_weight;
 }
 
-void Options::setTagWeight(const QFont::Weight& tag_weight)
+void
+Options::setTagWeight(const QFont::Weight& tag_weight)
 {
   m_tag_weight = tag_weight;
   m_pref_changed = true;
 }
 
-QColor Options::stringColor() const
+QColor
+Options::stringColor() const
 {
   return m_string_color;
 }
 
-void Options::setStringColor(const QColor& string_color)
+void
+Options::setStringColor(const QColor& string_color)
 {
   m_string_color = string_color;
   m_pref_changed = true;
 }
 
-QColor Options::stringBack() const
+QColor
+Options::stringBack() const
 {
   return m_string_back;
 }
 
-void Options::setStringBack(const QColor& string_back)
+void
+Options::setStringBack(const QColor& string_back)
 {
   m_string_back = string_back;
   m_pref_changed = true;
 }
 
-bool Options::stringItalic() const
+bool
+Options::stringItalic() const
 {
   return m_string_italic;
 }
 
-void Options::setStringItalic(bool string_italic)
+void
+Options::setStringItalic(bool string_italic)
 {
   m_string_italic = string_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::stringWeight() const
+QFont::Weight
+Options::stringWeight() const
 {
   return m_string_weight;
 }
 
-void Options::setStringWeight(const QFont::Weight& string_weight)
+void
+Options::setStringWeight(const QFont::Weight& string_weight)
 {
   m_string_weight = string_weight;
   m_pref_changed = true;
 }
 
-QColor Options::errorColor() const
+QColor
+Options::errorColor() const
 {
   return m_error_color;
 }
 
-void Options::setErrorColor(const QColor& error_color)
+void
+Options::setErrorColor(const QColor& error_color)
 {
   m_error_color = error_color;
   m_pref_changed = true;
 }
 
-QColor Options::errorBack() const
+QColor
+Options::errorBack() const
 {
   return m_error_back;
 }
 
-void Options::setErrorBack(const QColor& error_back)
+void
+Options::setErrorBack(const QColor& error_back)
 {
   m_error_back = error_back;
   m_pref_changed = true;
 }
 
-bool Options::errorItalic() const
+bool
+Options::errorItalic() const
 {
   return m_error_italic;
 }
 
-void Options::setErrorItalic(bool error_italic)
+void
+Options::setErrorItalic(bool error_italic)
 {
   m_error_italic = error_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::errorWeight() const
+QFont::Weight
+Options::errorWeight() const
 {
   return m_error_weight;
 }
 
-void Options::setErrorWeight(const QFont::Weight& error_weight)
+void
+Options::setErrorWeight(const QFont::Weight& error_weight)
 {
   m_error_weight = error_weight;
   m_pref_changed = true;
 }
 
-QColor Options::scriptColor() const
+QColor
+Options::scriptColor() const
 {
   return m_script_color;
 }
 
-void Options::setScriptColor(const QColor& script_color)
+void
+Options::setScriptColor(const QColor& script_color)
 {
   m_script_color = script_color;
   m_pref_changed = true;
 }
 
-QColor Options::scriptBack() const
+QColor
+Options::scriptBack() const
 {
   return m_script_back;
 }
 
-void Options::setScriptBack(const QColor& script_back)
+void
+Options::setScriptBack(const QColor& script_back)
 {
   m_script_back = script_back;
   m_pref_changed = true;
 }
 
-bool Options::scriptItalic() const
+bool
+Options::scriptItalic() const
 {
   return m_script_italic;
 }
 
-void Options::setScriptItalic(bool script_italic)
+void
+Options::setScriptItalic(bool script_italic)
 {
   m_script_italic = script_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::scriptWeight() const
+QFont::Weight
+Options::scriptWeight() const
 {
   return m_script_weight;
 }
 
-void Options::setScriptWeight(const QFont::Weight& script_weight)
+void
+Options::setScriptWeight(const QFont::Weight& script_weight)
 {
   m_script_weight = script_weight;
   m_pref_changed = true;
 }
 
-QColor Options::styleColor() const
+QColor
+Options::styleColor() const
 {
   return m_style_color;
 }
 
-void Options::setStyleColor(const QColor& style_color)
+void
+Options::setStyleColor(const QColor& style_color)
 {
   m_style_color = style_color;
   m_pref_changed = true;
 }
 
-QColor Options::styleBack() const
+QColor
+Options::styleBack() const
 {
   return m_style_back;
 }
 
-void Options::setStyleBack(const QColor& style_back)
+void
+Options::setStyleBack(const QColor& style_back)
 {
   m_style_back = style_back;
   m_pref_changed = true;
 }
 
-bool Options::styleItalic() const
+bool
+Options::styleItalic() const
 {
   return m_style_italic;
 }
 
-void Options::setStyleItalic(bool style_italic)
+void
+Options::setStyleItalic(bool style_italic)
 {
   m_style_italic = style_italic;
   m_pref_changed = true;
 }
 
-QFont::Weight Options::styleWeight() const
+QFont::Weight
+Options::styleWeight() const
 {
   return m_style_weight;
 }
 
-void Options::setStyleWeight(const QFont::Weight& style_weight)
+void
+Options::setStyleWeight(const QFont::Weight& style_weight)
 {
   m_style_weight = style_weight;
   m_pref_changed = true;
 }
 
-QRect Options::rect() const
+QString
+Options::homeDirectiory() const
+{
+  return m_home_directiory;
+}
+
+void
+Options::setHomeDirectiory(const QString& home_directiory)
+{
+  m_home_directiory = home_directiory;
+}
+
+QString
+Options::libraryDirectory() const
+{
+  return m_library_directory;
+}
+
+void
+Options::setLibraryDirectory(const QString& library_directory)
+{
+  m_library_directory = library_directory;
+}
+
+QString
+Options::configDirectory() const
+{
+  return m_config_directory;
+}
+
+void
+Options::setConfigDirectory(const QString& config_directory)
+{
+  m_config_directory = config_directory;
+}
+
+QString
+Options::configFile() const
+{
+  return m_config_file;
+}
+
+void
+Options::setConfigFile(const QString& config_file)
+{
+  m_config_file = config_file;
+}
+
+QString
+Options::libraryFile() const
+{
+  return m_lib_file;
+}
+
+void
+Options::setLibraryFile(const QString& lib_file)
+{
+  m_lib_file = lib_file;
+}
+
+QString
+Options::authorsFile() const
+{
+  return m_authors_file;
+}
+
+void
+Options::setAuthorsFile(const QString& authors_file)
+{
+  m_authors_file = authors_file;
+}
+
+QString
+Options::seriesFile() const
+{
+  return m_series_file;
+}
+
+void
+Options::setSeriesFile(const QString& seriesFile)
+{
+  m_series_file = seriesFile;
+}
+
+QRect
+Options::rect() const
 {
   return m_rect;
 }
 
-void Options::setRect(const QRect& rect)
+void
+Options::setRect(const QRect& rect)
 {
   m_rect = rect;
   m_pref_changed = true;
 }
 
-QSize Options::optionsDlgSize() const
+QSize
+Options::optionsDlgSize() const
 {
   return m_options_dlg_size;
 }
 
-void Options::setOptionsDlgSize(const QSize& options_dlg)
+void
+Options::setOptionsDlgSize(const QSize& options_dlg)
 {
   m_options_dlg_size = options_dlg;
   m_pref_changed = true;
 }
 
-int Options::currentIndex() const
+int
+Options::currentIndex() const
 {
   return m_currentindex;
 }
 
-void Options::setCurrentIndex(const int index)
+void
+Options::setCurrentIndex(const int index)
 {
   m_currentindex = index;
   m_pref_changed = true;
 }
 
-bool Options::currentFilesContains(const QString filename)
+bool
+Options::currentFilesContains(const QString filename)
 {
   return m_current_files.contains(filename);
 }
 
-void Options::appendCurrentFile(const QString filename)
+void
+Options::appendCurrentFile(const QString filename)
 {
   if (!m_current_files.contains(filename)) {
     m_current_files.append(filename);
@@ -745,248 +920,268 @@ void Options::appendCurrentFile(const QString filename)
   }
 }
 
-QStringList Options::currentfiles() const
+void
+Options::replaceCurrentFile(const QString filename)
+{
+  m_current_files.replace(m_currentindex, filename);
+  m_pref_changed = true;
+}
+
+QStringList
+Options::currentfiles() const
 {
   return m_current_files;
 }
 
-int Options::bookCount() const
+int
+Options::bookCount() const
 {
   return m_current_files.size();
 }
 
-Options::ViewState Options::viewState() const
+Options::ViewState
+Options::viewState() const
 {
   return m_view_state;
 }
 
-void Options::setViewState(const Options::ViewState& view_state)
+void
+Options::setViewState(const Options::ViewState& view_state)
 {
   m_view_state = view_state;
   m_pref_changed = true;
 }
 
-QColor Options::color(const CodeOptions options) const
+QColor
+Options::color(const CodeOptions options) const
 {
   switch (options) {
-  case Options::NORMAL:
-    return m_normal_color;
-  case Options::TAG:
-    return m_tag_color;
-  case Options::ATTRIBUTE:
-    return m_attribute_color;
-  case Options::ERROR:
-    return m_error_color;
-  case Options::STRING:
-    return m_string_color;
-  case Options::SCRIPT:
-    return m_script_color;
-  case Options::STYLE:
-    return m_style_color;
+    case Options::NORMAL:
+      return m_normal_color;
+    case Options::TAG:
+      return m_tag_color;
+    case Options::ATTRIBUTE:
+      return m_attribute_color;
+    case Options::ERROR:
+      return m_error_color;
+    case Options::STRING:
+      return m_string_color;
+    case Options::SCRIPT:
+      return m_script_color;
+    case Options::STYLE:
+      return m_style_color;
   }
   return QColor();
 }
 
-void Options::setColor(const CodeOptions options, const QColor color)
+void
+Options::setColor(const CodeOptions options, const QColor color)
 {
   switch (options) {
-  case Options::NORMAL:
-    m_normal_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::TAG:
-    m_tag_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::ATTRIBUTE:
-    m_attribute_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::ERROR:
-    m_error_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::STRING:
-    m_string_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::SCRIPT:
-    m_script_color = color;
-    m_pref_changed = true;
-    break;
-  case Options::STYLE:
-    m_style_color = color;
-    m_pref_changed = true;
-    break;
+    case Options::NORMAL:
+      m_normal_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::TAG:
+      m_tag_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::ATTRIBUTE:
+      m_attribute_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::ERROR:
+      m_error_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::STRING:
+      m_string_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::SCRIPT:
+      m_script_color = color;
+      m_pref_changed = true;
+      break;
+    case Options::STYLE:
+      m_style_color = color;
+      m_pref_changed = true;
+      break;
   }
 }
 
-QColor Options::background(const CodeOptions options) const
+QColor
+Options::background(const CodeOptions options) const
 {
   switch (options) {
-  case Options::NORMAL:
-    return m_normal_back;
-  case Options::TAG:
-    return m_tag_back;
-  case Options::ATTRIBUTE:
-    return m_attribute_back;
-  case Options::ERROR:
-    return m_error_back;
-  case Options::STRING:
-    return m_string_back;
-  case Options::SCRIPT:
-    return m_script_back;
-  case Options::STYLE:
-    return m_style_back;
+    case Options::NORMAL:
+      return m_normal_back;
+    case Options::TAG:
+      return m_tag_back;
+    case Options::ATTRIBUTE:
+      return m_attribute_back;
+    case Options::ERROR:
+      return m_error_back;
+    case Options::STRING:
+      return m_string_back;
+    case Options::SCRIPT:
+      return m_script_back;
+    case Options::STYLE:
+      return m_style_back;
   }
   return QColor();
 }
 
-void Options::setBackground(const CodeOptions options, const QColor color)
+void
+Options::setBackground(const CodeOptions options, const QColor color)
 {
   switch (options) {
-  case Options::NORMAL:
-    m_normal_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::TAG:
-    m_tag_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::ATTRIBUTE:
-    m_attribute_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::ERROR:
-    m_error_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::STRING:
-    m_string_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::SCRIPT:
-    m_script_back = color;
-    m_pref_changed = true;
-    break;
-  case Options::STYLE:
-    m_style_back = color;
-    m_pref_changed = true;
-    break;
+    case Options::NORMAL:
+      m_normal_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::TAG:
+      m_tag_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::ATTRIBUTE:
+      m_attribute_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::ERROR:
+      m_error_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::STRING:
+      m_string_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::SCRIPT:
+      m_script_back = color;
+      m_pref_changed = true;
+      break;
+    case Options::STYLE:
+      m_style_back = color;
+      m_pref_changed = true;
+      break;
   }
 }
 
-bool Options::italic(const CodeOptions options) const
+bool
+Options::italic(const CodeOptions options) const
 {
   switch (options) {
-  case Options::NORMAL:
-    return m_normal_italic;
-  case Options::TAG:
-    return m_tag_italic;
-  case Options::ATTRIBUTE:
-    return m_attribute_italic;
-  case Options::ERROR:
-    return m_error_italic;
-  case Options::STRING:
-    return m_string_italic;
-  case Options::SCRIPT:
-    return m_script_italic;
-  case Options::STYLE:
-    return m_style_italic;
+    case Options::NORMAL:
+      return m_normal_italic;
+    case Options::TAG:
+      return m_tag_italic;
+    case Options::ATTRIBUTE:
+      return m_attribute_italic;
+    case Options::ERROR:
+      return m_error_italic;
+    case Options::STRING:
+      return m_string_italic;
+    case Options::SCRIPT:
+      return m_script_italic;
+    case Options::STYLE:
+      return m_style_italic;
   }
   return false;
 }
 
-void Options::setItalic(const CodeOptions options, const bool italic)
+void
+Options::setItalic(const CodeOptions options, const bool italic)
 {
   switch (options) {
-  case Options::NORMAL:
-    m_normal_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::TAG:
-    m_tag_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::ATTRIBUTE:
-    m_attribute_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::ERROR:
-    m_error_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::STRING:
-    m_string_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::SCRIPT:
-    m_script_italic = italic;
-    m_pref_changed = true;
-    break;
-  case Options::STYLE:
-    m_style_italic = italic;
-    m_pref_changed = true;
-    break;
+    case Options::NORMAL:
+      m_normal_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::TAG:
+      m_tag_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::ATTRIBUTE:
+      m_attribute_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::ERROR:
+      m_error_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::STRING:
+      m_string_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::SCRIPT:
+      m_script_italic = italic;
+      m_pref_changed = true;
+      break;
+    case Options::STYLE:
+      m_style_italic = italic;
+      m_pref_changed = true;
+      break;
   }
 }
 
-QFont::Weight Options::weight(const CodeOptions options) const
+QFont::Weight
+Options::weight(const CodeOptions options) const
 {
   switch (options) {
-  case Options::NORMAL:
-    return m_normal_weight;
-  case Options::TAG:
-    return m_tag_weight;
-  case Options::ATTRIBUTE:
-    return m_attribute_weight;
-  case Options::ERROR:
-    return m_error_weight;
-  case Options::STRING:
-    return m_string_weight;
-  case Options::SCRIPT:
-    return m_script_weight;
-  case Options::STYLE:
-    return m_style_weight;
+    case Options::NORMAL:
+      return m_normal_weight;
+    case Options::TAG:
+      return m_tag_weight;
+    case Options::ATTRIBUTE:
+      return m_attribute_weight;
+    case Options::ERROR:
+      return m_error_weight;
+    case Options::STRING:
+      return m_string_weight;
+    case Options::SCRIPT:
+      return m_script_weight;
+    case Options::STYLE:
+      return m_style_weight;
   }
   return QFont::Normal;
 }
 
-void Options::setWeight(const CodeOptions options, const QFont::Weight weight)
+void
+Options::setWeight(const CodeOptions options, const QFont::Weight weight)
 {
   switch (options) {
-  case Options::NORMAL:
-    m_normal_weight = weight;
-    m_pref_changed = true;
-    break;
-  case Options::TAG:
-    m_tag_weight = weight;
-    m_pref_changed = true;
-    break;
-  case Options::ATTRIBUTE:
-    m_pref_changed = true;
-    m_attribute_weight = weight;
-    break;
-  case Options::ERROR:
-    m_error_weight = weight;
-    m_pref_changed = true;
-    break;
-  case Options::STRING:
-    m_string_weight = weight;
-    m_pref_changed = true;
-    break;
-  case Options::SCRIPT:
-    m_script_weight = weight;
-    m_pref_changed = true;
-    break;
-  case Options::STYLE:
-    m_style_weight = weight;
-    m_pref_changed = true;
-    break;
+    case Options::NORMAL:
+      m_normal_weight = weight;
+      m_pref_changed = true;
+      break;
+    case Options::TAG:
+      m_tag_weight = weight;
+      m_pref_changed = true;
+      break;
+    case Options::ATTRIBUTE:
+      m_pref_changed = true;
+      m_attribute_weight = weight;
+      break;
+    case Options::ERROR:
+      m_error_weight = weight;
+      m_pref_changed = true;
+      break;
+    case Options::STRING:
+      m_string_weight = weight;
+      m_pref_changed = true;
+      break;
+    case Options::SCRIPT:
+      m_script_weight = weight;
+      m_pref_changed = true;
+      break;
+    case Options::STYLE:
+      m_style_weight = weight;
+      m_pref_changed = true;
+      break;
   }
 }
 
-QColor Options::contrastingColor(const QColor color)
+QColor
+Options::contrastingColor(const QColor color)
 {
   int v = (color.red() + color.green() + color.blue()) / 3 > 127 ? 0 : 255;
   return QColor(v, v, v);

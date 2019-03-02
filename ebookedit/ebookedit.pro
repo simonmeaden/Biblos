@@ -8,7 +8,7 @@ QT       += core gui xml svg sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
-TARGET = biblios
+TARGET = biblos
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -37,7 +37,7 @@ DEFINES += \
        "VERSION_BUILD=$$VERSION_BUILD"
 
 DESTDIR = $$OUT_PWD/..
-#DESTDIR = $$PWD/../../build/biblios
+#DESTDIR = $$PWD/../../build/biblos
 #OBJECTS_DIR = $$DESTDIR/build/.objd
 #MOC_DIR = $$DESTDIR/build/.mocd
 #RCC_DIR = $$DESTDIR/build/.qrcd

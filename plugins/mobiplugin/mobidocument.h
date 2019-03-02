@@ -22,41 +22,42 @@
 
 class MobiDocumentPrivate;
 
-class INTERFACESHARED_EXPORT MobiDocument : public ITextDocument {
+class INTERFACESHARED_EXPORT MobiDocument : public ITextDocument
+{
   Q_OBJECT
   Q_DECLARE_PRIVATE(MobiDocument)
 
 public:
-  MobiDocument(QObject *parent = nullptr);
-  MobiDocument(MobiDocumentPrivate *doc, QObject *parent = nullptr);
-  MobiDocument(const MobiDocument &doc);
+  MobiDocument(QObject* parent = nullptr);
+  MobiDocument(MobiDocumentPrivate* doc, QObject* parent = nullptr);
+  MobiDocument(const MobiDocument& doc);
   virtual ~MobiDocument() override;
 
   // IEBookDocument interface
   QString filename() override;
-  void setFilename(const QString &filename) override;
-  void openDocument(const QString &path) override;
-  void saveDocument() override;
-  IEBookInterface *plugin() override;
-  void setPlugin(IEBookInterface *plugin) override;
+  void setFilename(const QString& filename) override;
+  void openDocument(const QString& path) override;
+  void saveDocument(const QString& path = QString()) override;
+  IEBookInterface* plugin() override;
+  void setPlugin(IEBookInterface* plugin) override;
   //  bool isModified() override;
   //  bool readOnly() override;
   //  void setReadOnly(const bool readonly) override;
   QString title() override;
-  void setTitle(const QString &title) override;
+  void setTitle(const QString& title) override;
   QString subject() override;
-  void setSubject(const QString &subject) override;
+  void setSubject(const QString& subject) override;
   QString language() override;
-  void setLanguage(const QString &language) override;
+  void setLanguage(const QString& language) override;
   QDateTime date() override;
-  void setDate(const QDateTime &date) override;
+  void setDate(const QDateTime& date) override;
   QStringList creators();
   //  void setCreators(const QStringList& creators);
-  QString creatorNames(const QStringList &);
+  QString creatorNames(const QStringList&);
   QString publisher() override;
-  void setPublisher(const QString &publisher) override;
+  void setPublisher(const QString& publisher) override;
   QDate published() override;
-  void setPublished(const QDate &published) override;
+  void setPublished(const QDate& published) override;
   EBookDocumentType type() const override { return MOBI; }
 
   QString tocAsString() override {}
@@ -69,8 +70,8 @@ public:
   Metadata metadata();
 
 protected:
-  MobiDocumentPrivate *d_ptr;
-  MobiDocument(MobiDocumentPrivate &d);
+  MobiDocumentPrivate* d_ptr;
+  MobiDocument(MobiDocumentPrivate& d);
 
   // static variables for IPluginInterface.
   static const QString m_plugin_group;

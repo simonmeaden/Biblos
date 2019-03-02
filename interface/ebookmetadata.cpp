@@ -190,6 +190,12 @@ EBookMetadata::calibre() const
 }
 
 void
+EBookMetadata::setCalibre(const Calibre& calibre)
+{
+  m_calibre = calibre;
+}
+
+void
 EBookMetadata::writeCreator(QXmlStreamWriter* xml_writer,
                             Creator shared_creator)
 {

@@ -27,66 +27,68 @@
 #include "interface_global.h"
 #include "library.h"
 
-struct EPubContents {
+struct EPubContents
+{
   QHash<QString, QByteArray> m_svgs;
   QHash<QString, QImage> m_renderedSvgs;
-  EPubContainer *m_container;
+  EPubContainer* m_container;
   bool m_loaded;
 };
 
 class EPubDocumentPrivate;
 
-class INTERFACESHARED_EXPORT EPubDocument : public ITextDocument {
+class INTERFACESHARED_EXPORT EPubDocument : public ITextDocument
+{
   Q_OBJECT
   Q_DECLARE_PRIVATE(EPubDocument)
 
 public:
-  EPubDocument(QObject *parent = nullptr);
-  EPubDocument(EPubDocumentPrivate *doc, QObject *parent = nullptr);
-  EPubDocument(const EPubDocument &doc);
+  EPubDocument(QObject* parent = nullptr);
+  EPubDocument(EPubDocumentPrivate* doc, QObject* parent = nullptr);
+  EPubDocument(const EPubDocument& doc);
   virtual ~EPubDocument() override;
 
   bool loaded();
-  void openDocument(const QString &path) override;
-  void saveDocument() override;
+  void openDocument(const QString& path) override;
+  void saveDocument(const QString& path = QString()) override;
   //  void clearCache();
-  EPubContents *cloneData();
-  void setClonedData(EPubContents *cloneData);
+  EPubContents* cloneData();
+  void setClonedData(EPubContents* cloneData);
 
   // IEBookDocument interface
   QString filename() override;
-  void setFilename(const QString &filename) override;
+  void setFilename(const QString& filename) override;
 
   QString tocAsString() override;
 
   // IEBookDocument interface
-  IEBookInterface *plugin() override;
-  void setPlugin(IEBookInterface *plugin) override;
+  IEBookInterface* plugin() override;
+  void setPlugin(IEBookInterface* plugin) override;
   QDate published() override;
-  void setPublished(const QDate &published) override;
+  void setPublished(const QDate& published) override;
   QString buildTocFromData() override;
 
   EBookDocumentType type() const override { return EPUB; }
   bool isModified() override;
   QString title() override;
-  void setTitle(const QString &title) override;
+  void setTitle(const QString& title) override;
   QString subject() override;
-  void setSubject(const QString &subject) override;
+  void setSubject(const QString& subject) override;
   QString language() override;
-  void setLanguage(const QString &language) override;
+  void setLanguage(const QString& language) override;
   QDateTime date() override;
-  void setDate(const QDateTime &date) override;
+  void setDate(const QDateTime& date) override;
   QStringList creators() override;
   //  void setCreators(const QStringList& creators) override;
-  QString creatorNames(const QStringList &authors) override;
+  QString creatorNames(const QStringList& authors) override;
   QString publisher() override;
-  void setPublisher(const QString &publisher) override;
+  void setPublisher(const QString& publisher) override;
 
   Metadata metadata();
 
 protected:
-  EPubDocumentPrivate *d_ptr;
-  EPubDocument(EPubDocumentPrivate &doc);
+  EPubDocumentPrivate* d_ptr;
+  EPubDocument(EPubDocumentPrivate& doc);
 
   bool m_modified, m_readonly;
 

@@ -34,6 +34,7 @@ const QString MainWindow::MODIFIED = MainWindow::tr("Modified");
 const QString MainWindow::PREF_FILE = "preferences.yaml";
 const QString MainWindow::LIB_FILE = "library.yaml";
 const QString MainWindow::AUTHOR_FILE = "authors.yaml";
+const QString MainWindow::SERIES_FILE = "series.yaml";
 // const QString MainWindow::DB_NAME = "library.sqlite";
 
 MainWindow::MainWindow(QWidget* parent)
@@ -41,17 +42,20 @@ MainWindow::MainWindow(QWidget* parent)
   , m_initialising(true)
   , m_loading(false)
   , m_options(new Options(this))
-  , m_library(new LibraryDB(this))
-  , m_authors(new AuthorsDB(this))
   , m_bookcount(0)
   , m_popup(nullptr)
   , m_current_spell_checker(nullptr)
 {
   QLogger::addLogger("root", q5TRACE, CONSOLE);
 
-  setWindowTitle("Manuscript");
-  QPixmap library_icon(":/icons/library");
-  setWindowIcon(library_icon);
+  setWindowTitle(QCoreApplication::applicationName());
+  QPixmap library_icon;
+  QPixmapCache::find(m_options->lib_key, &library_icon);
+  setWindowIcon(QIcon(library_icon));
+
+  m_authors_db = AuthorsDB(new EBookAuthorsDB());
+  m_series_db = SeriesDB(new EBookSeriesDB());
+  m_library_db = LibraryDB(new EBookLibraryDB(m_series_db));
 
   connect(
     m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
@@ -59,19 +63,25 @@ MainWindow::MainWindow(QWidget* parent)
   loadPlugins();
   initBuild();
   QDir dir;
-  m_home_directiory = QStandardPaths::locate(
-    QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory);
-  m_library_directory =
-    QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-  dir.mkpath(m_library_directory);
-  m_config_directory =
-    QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-  dir.mkpath(m_config_directory);
-  m_config_file = m_config_directory + QDir::separator() + PREF_FILE;
-  m_lib_file = m_config_directory + QDir::separator() + LIB_FILE;
-  loadLibrary();
-  m_authors_file = m_config_directory + QDir::separator() + AUTHOR_FILE;
+  m_options->setHomeDirectiory(QStandardPaths::locate(
+    QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory));
+  m_options->setLibraryDirectory(
+    QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+  dir.mkpath(m_options->libraryDirectory());
+  m_options->setConfigDirectory(
+    QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+  dir.mkpath(m_options->configDirectory());
+  m_options->setConfigFile(m_options->configDirectory() + QDir::separator() +
+                           PREF_FILE);
+  m_options->setLibraryFile(m_options->configDirectory() + QDir::separator() +
+                            LIB_FILE);
+  m_options->setAuthorsFile(m_options->configDirectory() + QDir::separator() +
+                            AUTHOR_FILE);
+  m_options->setSeriesFile(m_options->configDirectory() + QDir::separator() +
+                           SERIES_FILE);
   loadAuthors();
+  loadSeries();
+  loadLibrary();
 
   //  /* The database file will be created automatically by SqLite if it
   //   * does not exist. The tables are created if they do not already exist.
@@ -285,8 +295,9 @@ MainWindow::initMenus()
 void
 MainWindow::initFileActions()
 {
-  QPixmap open_icon(":/icons/open");
-  QPixmap save_icon(":/icons/save");
+  QPixmap open_icon, save_icon;
+  QPixmapCache::find(m_options->open_key, &open_icon);
+  QPixmapCache::find(m_options->save_key, &save_icon);
 
   m_file_new = new QAction(open_icon, tr("&New"), this);
   //    m_fileopen->setCheckable(true);
@@ -466,9 +477,11 @@ MainWindow::initEditActions()
 void
 MainWindow::initEditorActions()
 {
-  QPixmap editor_icon(":/icons/editor");
-  QPixmap code_icon(":/icons/code");
-  QPixmap meta_icon(":/icons/metadata");
+  QPixmap editor_icon, code_icon, meta_icon;
+
+  QPixmapCache::find(m_options->editor_key, &editor_icon);
+  QPixmapCache::find(m_options->code_key, &code_icon);
+  QPixmapCache::find(m_options->meta_key, &meta_icon);
 
   m_open_editor = new QAction(editor_icon, tr("Open Editor"), this);
   m_open_editor->setStatusTip(tr("Switches to the Editor Window."));
@@ -524,10 +537,12 @@ MainWindow::initHelpActions()
 void
 MainWindow::initLibActions()
 {
-  QPixmap library_icon(":/icons/library");
-  QPixmap bookshelf_icon(":/icons/bookshelf");
-  QPixmap tree_icon(":icons/tree");
-  QPixmap editor_icon(":/icons/editor");
+  QPixmap library_icon, bookshelf_icon, tree_icon, editor_icon;
+
+  QPixmapCache::find(m_options->editor_key, &editor_icon);
+  QPixmapCache::find(m_options->lib_key, &library_icon);
+  QPixmapCache::find(m_options->bookshelf_key, &bookshelf_icon);
+  QPixmapCache::find(m_options->tree_key, &tree_icon);
 
   Options::ViewState state = m_options->viewState();
 
@@ -641,38 +656,50 @@ MainWindow::checkMimetype(QString filename)
 void
 MainWindow::loadOptions()
 {
-  m_options->load(m_config_file);
+  m_options->load(m_options->configFile());
   setObjectVisibility();
 }
 
 void
 MainWindow::saveOptions()
 {
-  m_options->save(m_config_file);
+  m_options->save(m_options->configFile());
 }
 
 void
 MainWindow::loadLibrary()
 {
-  m_library->load(m_lib_file);
+  m_library_db->load(m_options->libraryFile());
 }
 
 void
 MainWindow::saveLibrary()
 {
-  m_library->save();
+  m_library_db->save();
 }
 
 void
 MainWindow::loadAuthors()
 {
-  m_authors->load(m_authors_file);
+  m_authors_db->load(m_options->authorsFile());
+}
+
+void
+MainWindow::saveSeries()
+{
+  m_series_db->save();
+}
+
+void
+MainWindow::loadSeries()
+{
+  m_series_db->load(m_options->seriesFile());
 }
 
 void
 MainWindow::saveAuthors()
 {
-  m_authors->save();
+  m_authors_db->save();
 }
 
 void
@@ -830,13 +857,13 @@ MainWindow::selectAuthorNames(QString filename, QString title)
   // First see if the author name is in the title.
   QStringList names = attemptToExtractAuthorFromFilename(filename, title);
   if (!names.isEmpty()) {
-    author_dlg = new AuthorDialog(m_authors, this);
+    author_dlg = new AuthorDialog(m_options, m_authors_db, this);
     if (author_dlg->execute(AuthorDialog::FromTitle, title, names) ==
         QDialog::Accepted) {
       authors = author_dlg->authors();
     }
   } else {
-    author_dlg = new AuthorDialog(m_authors, this);
+    author_dlg = new AuthorDialog(m_options, m_authors_db, this);
     if (author_dlg->execute(AuthorDialog::NoNames, title) ==
         QDialog::Accepted) {
       authors = author_dlg->authors();
@@ -865,7 +892,7 @@ MainWindow::copyToLibraryAndOpen(QString& filename,
   ebook_document = ebook_plugin->createDocument(filename);
   QStringList author_list = ebook_document->creators();
   QString concat_authors;
-  QString newpath = m_library_directory + QDir::separator();
+  QString newpath = m_options->libraryDirectory() + QDir::separator();
   QDir dir;
   QFile in_file(filename);
   QFileInfo in_file_info(in_file);
@@ -1002,7 +1029,8 @@ MainWindow::loadDocument(QString file_name, bool from_library)
     itextdocument = dynamic_cast<ITextDocument*>(ebook_document);
     //    htmldocument->setPlugin(ebook_plugin);
     //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    wrapper = new EBookWrapper(m_options, m_authors, m_library, this);
+    wrapper = new EBookWrapper(
+      m_options, m_authors_db, m_series_db, m_library_db, this);
     wrapper->editor()->setDocument(ebook_document);
 
     EBookTOCWidget* toc_widget = new EBookTOCWidget(this);

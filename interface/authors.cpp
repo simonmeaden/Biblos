@@ -1,23 +1,40 @@
 #include "authors.h"
 
 // starts at 1 - 0 == null value
-quint64 AuthorsDB::m_highest_uid = 1;
+quint64 EBookAuthorsDB::m_highest_uid = 1;
 
-AuthorsDB::AuthorsDB(QObject *parent)
-    : QObject(parent), m_author_changed(false) {}
+EBookAuthorsDB::EBookAuthorsDB(QObject* parent)
+  : QObject(parent)
+  , m_author_changed(false)
+{}
 
-AuthorsDB::~AuthorsDB() { saveAuthors(); }
+EBookAuthorsDB::~EBookAuthorsDB()
+{
+  saveAuthors();
+}
 
-void AuthorsDB::setFilename(QString filename) { m_filename = filename; }
+void
+EBookAuthorsDB::setFilename(QString filename)
+{
+  m_filename = filename;
+}
 
-bool AuthorsDB::save() { return saveAuthors(); }
+bool
+EBookAuthorsDB::save()
+{
+  return saveAuthors();
+}
 
-bool AuthorsDB::load(QString filename) {
+bool
+EBookAuthorsDB::load(QString filename)
+{
   setFilename(filename);
   return loadAuthors();
 }
 
-quint64 AuthorsDB::insertAuthor(AuthorData author_data) {
+quint64
+EBookAuthorsDB::insertAuthor(AuthorData author_data)
+{
   if (!author_data)
     return 0;
 
@@ -61,8 +78,8 @@ quint64 AuthorsDB::insertAuthor(AuthorData author_data) {
       QString file_as = author_data->surname() + ", " +
                         author_data->forename() +
                         (author_data->middlenames().isEmpty()
-                             ? ""
-                             : " " + author_data->middlenames());
+                           ? ""
+                           : " " + author_data->middlenames());
       author_data->setFile_as(file_as);
     }
   }
@@ -71,7 +88,9 @@ quint64 AuthorsDB::insertAuthor(AuthorData author_data) {
   return author_data->uid();
 }
 
-QStringList AuthorsDB::compareAndDiscard(QStringList names) {
+QStringList
+EBookAuthorsDB::compareAndDiscard(QStringList names)
+{
   QStringList cleaned;
   foreach (QString value, names) {
     QString lower = value.toLower();
@@ -97,7 +116,9 @@ QStringList AuthorsDB::compareAndDiscard(QStringList names) {
   return cleaned;
 }
 
-bool AuthorsDB::removeBook(quint64 index) {
+bool
+EBookAuthorsDB::removeBook(quint64 index)
+{
   if (m_author_data.contains(index)) {
     AuthorData author = m_author_data.value(index);
     m_author_data.remove(index);
@@ -116,7 +137,9 @@ bool AuthorsDB::removeBook(quint64 index) {
  * \param name - display name.
  * \return the relevant AuthorData object.
  */
-AuthorData AuthorsDB::author(QString name) {
+AuthorData
+EBookAuthorsDB::author(QString name)
+{
   AuthorData data;
   data = m_author_by_displayname.value(name);
   if (!data.isNull()) {
@@ -144,84 +167,99 @@ AuthorData AuthorsDB::author(QString name) {
   return data;
 }
 
-AuthorData AuthorsDB::authorByFileAs(QString file_as) {
+AuthorData
+EBookAuthorsDB::authorByFileAs(QString file_as)
+{
   return m_author_by_fileas.value(file_as);
 }
 
-AuthorData AuthorsDB::author(quint64 uid) { return m_author_data.value(uid); }
+AuthorData
+EBookAuthorsDB::author(quint64 uid)
+{
+  return m_author_data.value(uid);
+}
 
-AuthorList AuthorsDB::authors() { return m_author_data.values(); }
+AuthorList
+EBookAuthorsDB::authors()
+{
+  return m_author_data.values();
+}
 
-AuthorList AuthorsDB::authorsBySurname(QString surname) {
+AuthorList
+EBookAuthorsDB::authorsBySurname(QString surname)
+{
   return m_author_by_surname.values(surname);
 }
 
-AuthorList AuthorsDB::authorsByForename(QString surname) {
+AuthorList
+EBookAuthorsDB::authorsByForename(QString surname)
+{
   return m_author_by_forename.values(surname);
 }
 
-bool AuthorsDB::loadAuthors() {
+bool
+EBookAuthorsDB::loadAuthors()
+{
   if (m_filename.isEmpty())
     return false;
 
   QFile file(m_filename);
   if (file.exists()) {
-    YAML::Node authors_node = YAML::LoadFile(m_filename.toStdString());
-    if (authors_node.IsMap()) {
-      if (authors_node["authors"] && authors_node["authors"].IsSequence()) {
-        YAML::Node authors = authors_node["authors"];
-        for (std::size_t i = 0; i < authors.size(); i++) {
-          YAML::Node author_node = authors[i];
+    YAML::Node authors_map = YAML::LoadFile(m_filename.toStdString());
+    if (authors_map && authors_map.IsMap()) {
+      for (YAML::const_iterator it1 = authors_map.begin();
+           it1 != authors_map.end();
+           ++it1) {
+        YAML::Node author_node = it1->second;
+        AuthorData author = AuthorData(new EBookAuthorData());
 
-          AuthorData author = AuthorData(new EBookAuthorData());
-          author->setUid(
-              (author_node["uid"] ? author_node["uid"].as<quint64>() : 0));
-          author->setSurname((author_node["surname"]
-                                  ? author_node["surname"].as<QString>()
+        quint64 uid =
+          it1->first.as<quint64>(); // author_node["uid"].as<quint64>();
+        author->setUid(uid);
+        author->setSurname(
+          (author_node["surname"] ? author_node["surname"].as<QString>() : ""));
+        author->setForename((author_node["forenames"]
+                               ? author_node["forenames"].as<QString>()
+                               : ""));
+        author->setMiddlenames((author_node["middlenames"]
+                                  ? author_node["middlenames"].as<QString>()
                                   : ""));
-          author->setForename((author_node["forenames"]
-                                   ? author_node["forenames"].as<QString>()
-                                   : ""));
-          author->setMiddlenames((author_node["middlenames"]
-                                      ? author_node["middlenames"].as<QString>()
-                                      : ""));
-          author->setDisplayName(
-              (author_node["display name"]
-                   ? author_node["display name"].as<QString>()
-                   : ""));
-          author->setFile_as((author_node["file as"]
-                                  ? author_node["file as"].as<QString>()
+        author->setDisplayName((author_node["display name"]
+                                  ? author_node["display name"].as<QString>()
                                   : ""));
-          author->setWebsite((author_node["website"]
-                                  ? author_node["website"].as<QString>()
-                                  : ""));
-          author->setWikipedia((author_node["wikipedia"]
-                                    ? author_node["wikipedia"].as<QString>()
-                                    : ""));
-          author->setSurnameLast((author_node["surname last"]
-                                      ? author_node["surname last"].as<bool>()
-                                      : true));
-          if (author_node["image"]) {
-            QPixmap pixmap = author_node["image"].as<QPixmap>();
-            if (!pixmap.isNull())
-              author->setPixmap(pixmap);
-          }
-
-          if (author->uid() > m_highest_uid) {
-            m_highest_uid = author->uid();
-          }
-
-          addAuthor(author);
+        author->setFile_as(
+          (author_node["file as"] ? author_node["file as"].as<QString>() : ""));
+        author->setWebsite(
+          (author_node["website"] ? author_node["website"].as<QString>() : ""));
+        author->setWikipedia((author_node["wikipedia"]
+                                ? author_node["wikipedia"].as<QString>()
+                                : ""));
+        author->setSurnameLast((author_node["surname last"]
+                                  ? author_node["surname last"].as<bool>()
+                                  : true));
+        if (author_node["image"]) {
+          QPixmap pixmap = author_node["image"].as<QPixmap>();
+          if (!pixmap.isNull())
+            author->setPixmap(pixmap);
         }
+
+        if (author->uid() > m_highest_uid) {
+          m_highest_uid = author->uid();
+        }
+
+        addAuthor(author);
       }
-      m_author_changed = true; // TODO change this after testing
     }
+    m_author_changed = false;
+    return true;
   }
 
   return false;
 }
 
-bool AuthorsDB::saveAuthors() {
+bool
+EBookAuthorsDB::saveAuthors()
+{
   if (m_filename.isEmpty())
     return false;
 
@@ -230,55 +268,50 @@ bool AuthorsDB::saveAuthors() {
     if (file.open((QFile::ReadWrite | QFile::Truncate))) {
       YAML::Emitter emitter;
       emitter << YAML::Comment(
-          QString("A YAML File is supposed to be user readable/editable but\n"
-                  "you need to be careful when manually editing.\n"
-                  "Remember that the uid numbers stand for unique identifier\n"
-                  "so if you edit these MAKE SURE THAT THEY ARE UNIQUE. If\n"
-                  "you repeat one the second will overwrite the first."));
-      emitter << YAML::BeginMap; // authors only so far
-      {
-        emitter << YAML::Key << "authors";
-        emitter << YAML::BeginSeq;
-        {
-          foreach (AuthorData author_data, m_author_data) {
-            // for some reason emitter wont take the result directly from the
-            // method. might need some work on the YAML files.
-            QString surname = author_data->surname();
-            QString forename = author_data->forename();
-            QString middlenames = author_data->middlenames();
-            QString display_name = author_data->displayName();
-            QString file_as = author_data->fileAs();
-            QString website = author_data->website();
-            QString wikipedia = author_data->wikipedia();
-            QPixmap pixmap = author_data->pixmap();
+        QString("A YAML File is supposed to be user readable/editable but\n"
+                "you need to be careful when manually editing.\n"
+                "Remember that the uid numbers stand for unique identifier\n"
+                "so if you edit these MAKE SURE THAT THEY ARE UNIQUE. If\n"
+                "you repeat one the second will overwrite the first."));
 
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << "uid";
-            emitter << YAML::Value << author_data->uid();
-            emitter << YAML::Key << "surname";
-            emitter << YAML::Value << surname;
-            emitter << YAML::Key << "forenames";
-            emitter << YAML::Value << forename;
-            emitter << YAML::Key << "middlenames";
-            emitter << YAML::Value << middlenames;
-            emitter << YAML::Key << "display name";
-            emitter << YAML::Value << display_name;
-            emitter << YAML::Key << "file as";
-            emitter << YAML::Value << file_as;
-            emitter << YAML::Key << "surname last";
-            emitter << YAML::Value << author_data->surnameLast();
-            emitter << YAML::Key << "website";
-            emitter << YAML::Value << website;
-            emitter << YAML::Key << "wikipedia";
-            emitter << YAML::Value << wikipedia;
-            if (!author_data->pixmap().isNull()) {
-              emitter << YAML::Key << "image";
-              emitter << YAML::Value << pixmap;
-            }
-            emitter << YAML::EndMap;
-          }
+      emitter << YAML::BeginMap;
+      foreach (AuthorData author_data, m_author_data) {
+        // for some reason emitter wont take the result directly from the
+        // method. might need some work on the YAML files.
+        quint64 uid = author_data->uid();
+        QString surname = author_data->surname();
+        QString forename = author_data->forename();
+        QString middlenames = author_data->middlenames();
+        QString display_name = author_data->displayName();
+        QString file_as = author_data->fileAs();
+        QString website = author_data->website();
+        QString wikipedia = author_data->wikipedia();
+        QPixmap pixmap = author_data->pixmap();
+
+        emitter << YAML::Key << uid;
+        emitter << YAML::Value;
+        emitter << YAML::BeginMap;
+        emitter << YAML::Key << "surname";
+        emitter << YAML::Value << surname;
+        emitter << YAML::Key << "forenames";
+        emitter << YAML::Value << forename;
+        emitter << YAML::Key << "middlenames";
+        emitter << YAML::Value << middlenames;
+        emitter << YAML::Key << "display name";
+        emitter << YAML::Value << display_name;
+        emitter << YAML::Key << "file as";
+        emitter << YAML::Value << file_as;
+        emitter << YAML::Key << "surname last";
+        emitter << YAML::Value << author_data->surnameLast();
+        emitter << YAML::Key << "website";
+        emitter << YAML::Value << website;
+        emitter << YAML::Key << "wikipedia";
+        emitter << YAML::Value << wikipedia;
+        if (!author_data->pixmap().isNull()) {
+          emitter << YAML::Key << "image";
+          emitter << YAML::Value << pixmap;
         }
-        emitter << YAML::EndSeq;
+        emitter << YAML::EndMap;
       }
       emitter << YAML::EndMap;
       QTextStream out(&file);
@@ -289,8 +322,9 @@ bool AuthorsDB::saveAuthors() {
   return false;
 }
 
-AuthorData AuthorsDB::addAuthor(QString display_name,
-                                FileAsList /*file_as_list*/) {
+AuthorData
+EBookAuthorsDB::addAuthor(QString display_name, FileAsList /*file_as_list*/)
+{
   // TODO maybe this is not used.
   /* The display name is normally in the form 'FORENAME SURNAME' or
    * vicky-verky  in the case of asian names.
@@ -310,99 +344,176 @@ AuthorData AuthorsDB::addAuthor(QString display_name,
   return data;
 }
 
-void AuthorsDB::addAuthor(AuthorData author_data) {
+void
+EBookAuthorsDB::addAuthor(AuthorData author_data)
+{
   if (author_data->isValid()) {
-    m_author_data.insert(author_data->uid(), author_data);
-    if (!author_data->surname().isEmpty())
-      m_author_by_surname.insert(author_data->surname().toLower(), author_data);
-    if (!author_data->forename().isEmpty())
-      m_author_by_forename.insert(author_data->forename().toLower(),
-                                  author_data);
-    if (!author_data->displayName().isEmpty())
-      m_author_by_displayname.insert(author_data->displayName(), author_data);
-    if (!author_data->fileAs().isEmpty())
-      m_author_by_fileas.insert(author_data->fileAs().toLower(), author_data);
+    if (!m_author_data.contains(author_data->uid())) {
+      m_author_data.insert(author_data->uid(), author_data);
+      if (!author_data->surname().isEmpty())
+        m_author_by_surname.insert(author_data->surname().toLower(),
+                                   author_data);
+      if (!author_data->forename().isEmpty())
+        m_author_by_forename.insert(author_data->forename().toLower(),
+                                    author_data);
+      if (!author_data->displayName().isEmpty())
+        m_author_by_displayname.insert(author_data->displayName(), author_data);
+      if (!author_data->fileAs().isEmpty())
+        m_author_by_fileas.insert(author_data->fileAs().toLower(), author_data);
+    }
   }
 }
 
-QString EBookAuthorData::forename() const { return m_forename; }
+QString
+EBookAuthorData::forename() const
+{
+  return m_forename;
+}
 
-void EBookAuthorData::setForename(const QString &value) {
+void
+EBookAuthorData::setForename(const QString& value)
+{
   m_modified = true;
   m_forename = value;
 }
 
-QString EBookAuthorData::middlenames() const { return m_middlenames; }
+QString
+EBookAuthorData::middlenames() const
+{
+  return m_middlenames;
+}
 
-void EBookAuthorData::setMiddlenames(const QString &value) {
+void
+EBookAuthorData::setMiddlenames(const QString& value)
+{
   m_modified = true;
   m_middlenames = value;
 }
 
-QString EBookAuthorData::surname() const { return m_surname; }
+QString
+EBookAuthorData::surname() const
+{
+  return m_surname;
+}
 
-void EBookAuthorData::setSurname(const QString &surname) {
+void
+EBookAuthorData::setSurname(const QString& surname)
+{
   m_modified = true;
   m_surname = surname;
 }
 
-QString EBookAuthorData::fileAs() const { return m_file_as; }
+QString
+EBookAuthorData::fileAs() const
+{
+  return m_file_as;
+}
 
-void EBookAuthorData::setFile_as(const QString &file_as) {
+void
+EBookAuthorData::setFile_as(const QString& file_as)
+{
   m_modified = true;
   m_file_as = file_as;
 }
 
-quint64 EBookAuthorData::uid() const { return m_uid; }
+quint64
+EBookAuthorData::uid() const
+{
+  return m_uid;
+}
 
-void EBookAuthorData::setUid(const quint64 &uid) { m_uid = uid; }
+void
+EBookAuthorData::setUid(const quint64& uid)
+{
+  m_uid = uid;
+}
 
-QString EBookAuthorData::displayName() const { return m_display_name; }
+QString
+EBookAuthorData::displayName() const
+{
+  return m_display_name;
+}
 
-void EBookAuthorData::setDisplayName(const QString &display_name) {
+void
+EBookAuthorData::setDisplayName(const QString& display_name)
+{
   m_modified = true;
   m_display_name = display_name;
 }
 
-QPixmap EBookAuthorData::pixmap() const { return m_pixmap; }
+QPixmap
+EBookAuthorData::pixmap() const
+{
+  return m_pixmap;
+}
 
-void EBookAuthorData::setPixmap(const QPixmap &pixmap) {
+void
+EBookAuthorData::setPixmap(const QPixmap& pixmap)
+{
   m_modified = true;
   m_pixmap = pixmap;
 }
 
-bool EBookAuthorData::surnameLast() const { return m_surname_last; }
+bool
+EBookAuthorData::surnameLast() const
+{
+  return m_surname_last;
+}
 
-void EBookAuthorData::setSurnameLast(bool surname_last) {
+void
+EBookAuthorData::setSurnameLast(bool surname_last)
+{
   m_modified = true;
   m_surname_last = surname_last;
 }
 
-QList<quint64> EBookAuthorData::books() const { return m_books; }
+QList<quint64>
+EBookAuthorData::books() const
+{
+  return m_books;
+}
 
-void EBookAuthorData::setBooks(const QList<quint64> &books) {
+void
+EBookAuthorData::setBooks(const QList<quint64>& books)
+{
   m_modified = true;
   m_books = books;
 }
 
-QString EBookAuthorData::wikipedia() const { return m_wikipedia; }
+QString
+EBookAuthorData::wikipedia() const
+{
+  return m_wikipedia;
+}
 
-void EBookAuthorData::setWikipedia(const QString &wikipedia) {
+void
+EBookAuthorData::setWikipedia(const QString& wikipedia)
+{
   m_modified = true;
   m_wikipedia = wikipedia;
 }
 
-QString EBookAuthorData::website() const { return m_website; }
+QString
+EBookAuthorData::website() const
+{
+  return m_website;
+}
 
-void EBookAuthorData::setWebsite(const QString &website) {
+void
+EBookAuthorData::setWebsite(const QString& website)
+{
   m_modified = true;
   m_website = website;
 }
 
 EBookAuthorData::EBookAuthorData()
-    : m_modified(false), m_uid(0), m_surname_last(true) {}
+  : m_modified(false)
+  , m_uid(0)
+  , m_surname_last(true)
+{}
 
-EBookAuthorData::EBookAuthorData(const EBookAuthorData &other) {
+EBookAuthorData::EBookAuthorData(const EBookAuthorData& other)
+{
   m_modified = other.m_modified;
   m_uid = other.m_uid;
   m_display_name = other.m_display_name;
@@ -418,18 +529,28 @@ EBookAuthorData::EBookAuthorData(const EBookAuthorData &other) {
 
 EBookAuthorData::~EBookAuthorData() {}
 
-bool EBookAuthorData::isValid() { return (m_uid > 0); }
+bool
+EBookAuthorData::isValid()
+{
+  return (m_uid > 0);
+}
 
-bool EBookAuthorData::isEmpty() {
+bool
+EBookAuthorData::isEmpty()
+{
   return (m_surname.isEmpty() && m_forename.isEmpty() &&
           m_middlenames.isEmpty());
 }
 
-bool EBookAuthorData::isModified() { return m_modified; }
+bool
+EBookAuthorData::isModified()
+{
+  return m_modified;
+}
 
-EBookAuthorData::Comparison EBookAuthorData::compare(QString forename,
-                                                     QString middlenames,
-                                                     QString surname) {
+EBookAuthorData::Comparison
+EBookAuthorData::compare(QString forename, QString middlenames, QString surname)
+{
   Comparison match = NO_MATCH;
   if (surname.toLower() == surname)
     match = SURNAME_MATCH;

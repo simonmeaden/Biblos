@@ -31,8 +31,8 @@ DISTFILES += \
     ocrplugin.json
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../interface/release/ -linterface
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../interface/debug/ -linterface
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../interface/ -linterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../interface/ -linterfaced
 else:unix: LIBS += -L$$OUT_PWD/../../interface/ -linterface
 
 INCLUDEPATH += $$PWD/../../interface

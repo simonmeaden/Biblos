@@ -7,26 +7,13 @@
 
 #include <qyaml-cpp/QYamlCpp>
 
-struct EBookSeriesData
-{
-  EBookSeriesData()
-    : uid(0)
-  {}
-  quint64 uid;
-  QString name;
-
-  static quint64 m_highest_uid;
-  static quint64 nextUid() { return ++m_highest_uid; }
-};
-typedef QSharedPointer<EBookSeriesData> SeriesData;
-typedef QMap<quint64, SeriesData> SeriesMap;
-typedef QMap<QString, SeriesData> SeriesByString;
-typedef QStringList SeriesList;
+#include "series.h"
 
 struct EBookData
 {
   EBookData()
     : uid(0)
+    , series(0)
     , modified(false)
   {}
   quint64 uid;
@@ -46,21 +33,17 @@ typedef QList<BookData> BookList;
 typedef QMap<quint64, BookData> BookMap;
 typedef QMultiMap<QString, BookData> BookByString;
 
-class LibraryDB : public QObject
+class EBookLibraryDB : public QObject
 {
   Q_OBJECT
 public:
-  explicit LibraryDB(QObject* parent = nullptr);
-  ~LibraryDB();
+  explicit EBookLibraryDB(SeriesDB series_db);
+  ~EBookLibraryDB();
 
   // yaml file stuff
   void setFilename(QString filename);
   bool save();
   bool load(QString filename);
-
-  // series data stuff
-  quint64 insertOrGetSeries(QString series);
-  bool removeSeries(quint64 index);
 
   // book stuff.
   quint64 insertOrUpdateBook(BookData book_data);
@@ -70,28 +53,25 @@ public:
   BookList bookByTitle(QString title);
   BookData bookByFile(QString filename);
 
-  SeriesList seriesList();
+  bool isModified();
+  void setModified(bool modified);
 
 signals:
 
 public slots:
 
 protected:
+  SeriesDB m_series_db;
   QString m_filename;
   BookMap m_book_data;
   BookByString m_book_by_title;
   BookByString m_book_by_file;
-  SeriesMap m_series_map;
-  SeriesByString m_series_by_name;
-  SeriesList m_series_list;
 
-  bool m_library_changed;
+  bool m_modified;
 
   bool loadLibrary();
   bool saveLibrary();
-
-  static quint64 m_highest_uid;
 };
-// typedef QSharedPointer<LibraryData> LibraryDB;
+typedef QSharedPointer<EBookLibraryDB> LibraryDB;
 
 #endif // LIBARAY_H

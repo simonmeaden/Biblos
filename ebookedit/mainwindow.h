@@ -16,9 +16,9 @@
 #include "ebookcommon.h"
 #include "iebookdocument.h"
 
-#include "options.h"
-#include "library.h"
 #include "authors.h"
+#include "library.h"
+#include "options.h"
 
 class IEBookDocument;
 class EPubDocument;
@@ -47,7 +47,7 @@ signals:
 protected:
   // main document pointer.
   IEBookDocument* m_document = nullptr;
-  QStackedWidget* m_doc_stack, *m_toc_stack;
+  QStackedWidget *m_doc_stack, *m_toc_stack;
   int m_stack_library, m_stack_editor;
   QFrame* m_tabs_frame;
   QSplitter* m_splitter;
@@ -63,14 +63,14 @@ protected:
   QStringList m_languages;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
-  QString m_home_directiory;
-  QString m_library_directory;
-  QString m_config_directory;
-  QString m_config_file;
-  QString m_lib_file;
-  QString m_authors_file;
+  //  QString m_home_directiory;
+  //  QString m_library_directory;
+  //  QString m_config_directory;
+  //  QString m_config_file;
+  //  QString m_lib_file;
+  //  QString m_authors_file;
   bool is_in_temp_store = false;
-//  DbManager* m_database;
+  //  DbManager* m_database;
 
   void resizeEvent(QResizeEvent* e);
   void moveEvent(QMoveEvent* e);
@@ -80,6 +80,8 @@ protected:
   void loadLibrary();
   void saveAuthors();
   void loadAuthors();
+  void saveSeries();
+  void loadSeries();
   void documentChanged(int index);
   void tabClosing(int);
   //  bool eventFilter(QObject *object, QEvent *event);
@@ -88,8 +90,9 @@ protected:
   YAML::Node m_preferences;
   bool m_initialising, m_loading;
   Options* m_options;
-  LibraryDB* m_library;
-  AuthorsDB *m_authors;
+  SeriesDB m_series_db;
+  LibraryDB m_library_db;
+  AuthorsDB m_authors_db;
   //  bool m_prefchanged = false;
   QString m_defbookpath;
   int m_bookcount;
@@ -121,7 +124,7 @@ protected:
   void initHelpMenu();
 
   void loadPlugins();
-  void loadDocument(QString file_name, bool from_library=false);
+  void loadDocument(QString file_name, bool from_library = false);
   void saveDocument(IEBookDocument* document);
 
   QString concatenateAuthorNames(AuthorList names);
@@ -253,13 +256,14 @@ protected: // Menu/StatusBar stuff
   static const QString PREF_FILE;
   static const QString LIB_FILE;
   static const QString AUTHOR_FILE;
+  static const QString SERIES_FILE;
 
   void loadLibraryFiles(QStringList current_lib_files, int currentindex);
   EBookDocumentType checkMimetype(QString filename);
   void setModifiedAuthors(IEBookDocument* doc, AuthorList authors);
   void setLibraryToolbarState();
-  IEBookDocument *copyToLibraryAndOpen(QString &filename, IEBookInterface *ebook_plugin);
-
+  IEBookDocument* copyToLibraryAndOpen(QString& filename,
+                                       IEBookInterface* ebook_plugin);
 };
 
 #endif // MAINWINDOW_H

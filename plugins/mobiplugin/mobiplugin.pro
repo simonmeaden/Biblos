@@ -22,7 +22,7 @@ DEFINES += \
 
 TARGET = mobiplugin
 DESTDIR = $$OUT_PWD/..
-#DESTDIR = $$PWD/../../../build/biblios/plugins
+#DESTDIR = $$PWD/../../../build/biblos/plugins
 #OBJECTS_DIR = $$DESTDIR/../build/.objd
 #MOC_DIR = $$DESTDIR/../build/.mocd
 #RCC_DIR = $$DESTDIR/../build/.qrcd

@@ -4,6 +4,7 @@
 #include <QColor>
 #include <QFont>
 #include <QObject>
+#include <QPixmapCache>
 #include <QRect>
 #include <QSize>
 #include <QString>
@@ -19,7 +20,8 @@ class Options : public QObject
   Q_OBJECT
 
 public:
-  enum CodeOptions {
+  enum CodeOptions
+  {
     NORMAL,
     TAG,
     STRING,
@@ -28,11 +30,13 @@ public:
     STYLE,
     SCRIPT,
   };
-  enum TocPosition {
+  enum TocPosition
+  {
     LEFT,
     RIGHT,
   };
-  enum ViewState {
+  enum ViewState
+  {
     VIEW_LIBRARY_TREE = 1,
     VIEW_LIBRARY_SHELF,
     VIEW_EDITOR,
@@ -41,7 +45,7 @@ public:
   Options(QObject* parent = nullptr);
   ~Options();
 
-  void save(const QString filename);
+  void save(const QString filename = QString());
   void load(const QString filename);
 
   TocPosition tocPosition() const;
@@ -71,7 +75,8 @@ public:
   void setCurrentIndex(const int index);
   bool currentFilesContains(const QString filename);
   void appendCurrentFile(const QString filename);
-//  void moveToLibFile(const QString filename);
+  void replaceCurrentFile(const QString filename);
+  //  void moveToLibFile(const QString filename);
   QStringList currentfiles() const;
   int bookCount() const;
 
@@ -83,91 +88,125 @@ public:
   static QString weightToString(const QFont::Weight weight);
 
   QColor normalColor() const;
-  void setNormalColor(const QColor &normalColor);
+  void setNormalColor(const QColor& normalColor);
 
   QColor normalBack() const;
-  void setNormalBack(const QColor &normalBack);
+  void setNormalBack(const QColor& normalBack);
 
   bool normalItalic() const;
   void setNormalItalic(bool normalItalic);
 
   QFont codeFont() const;
-  void setCodeFont(const QFont &codeFont);
+  void setCodeFont(const QFont& codeFont);
 
   QFont::Weight normalWeight() const;
-  void setNormalWeight(const QFont::Weight &normalWeight);
+  void setNormalWeight(const QFont::Weight& normalWeight);
 
   QColor attributeColor() const;
-  void setAttributeColor(const QColor &attributeColor);
+  void setAttributeColor(const QColor& attributeColor);
 
   QColor attributeBack() const;
-  void setAttributeBack(const QColor &attributeBack);
+  void setAttributeBack(const QColor& attributeBack);
 
   bool attributeItalic() const;
   void setAttribute_italic(bool attributeItalic);
 
   QFont::Weight attributeWeight() const;
-  void setAttributeWeight(const QFont::Weight &attributeWeight);
+  void setAttributeWeight(const QFont::Weight& attributeWeight);
 
   QColor tagColor() const;
-  void setTagColor(const QColor &tagColor);
+  void setTagColor(const QColor& tagColor);
 
   QColor tagBack() const;
-  void setTagBack(const QColor &tagBack);
+  void setTagBack(const QColor& tagBack);
 
   bool tagItalic() const;
   void setTagItalic(bool tagItalic);
 
   QFont::Weight tagWeight() const;
-  void setTagWeight(const QFont::Weight &tagWeight);
+  void setTagWeight(const QFont::Weight& tagWeight);
 
   QColor stringColor() const;
-  void setStringColor(const QColor &stringColor);
+  void setStringColor(const QColor& stringColor);
 
   QColor stringBack() const;
-  void setStringBack(const QColor &stringBack);
+  void setStringBack(const QColor& stringBack);
 
   bool stringItalic() const;
   void setStringItalic(bool stringItalic);
 
   QFont::Weight stringWeight() const;
-  void setStringWeight(const QFont::Weight &stringWeight);
+  void setStringWeight(const QFont::Weight& stringWeight);
 
   QColor errorColor() const;
-  void setErrorColor(const QColor &errorColor);
+  void setErrorColor(const QColor& errorColor);
 
   QColor errorBack() const;
-  void setErrorBack(const QColor &errorBack);
+  void setErrorBack(const QColor& errorBack);
 
   bool errorItalic() const;
   void setErrorItalic(bool errorItalic);
 
   QFont::Weight errorWeight() const;
-  void setErrorWeight(const QFont::Weight &errorWeight);
+  void setErrorWeight(const QFont::Weight& errorWeight);
 
   QColor scriptColor() const;
-  void setScriptColor(const QColor &scriptColor);
+  void setScriptColor(const QColor& scriptColor);
 
   QColor scriptBack() const;
-  void setScriptBack(const QColor &scriptBack);
+  void setScriptBack(const QColor& scriptBack);
 
   bool scriptItalic() const;
   void setScriptItalic(bool scriptItalic);
 
   QFont::Weight scriptWeight() const;
-  void setScriptWeight(const QFont::Weight &scriptWeight);
+  void setScriptWeight(const QFont::Weight& scriptWeight);
 
   QColor styleColor() const;
-  void setStyleColor(const QColor &styleColor);
+  void setStyleColor(const QColor& styleColor);
 
   QColor styleBack() const;
-  void setStyleBack(const QColor &styleBack);
+  void setStyleBack(const QColor& styleBack);
 
   bool styleItalic() const;
   void setStyleItalic(bool styleItalic);
 
   QFont::Weight styleWeight() const;
-  void setStyleWeight(const QFont::Weight &styleWeight);
+  void setStyleWeight(const QFont::Weight& styleWeight);
+
+  QPixmapCache::Key lib_key;
+  QPixmapCache::Key up_key;
+  QPixmapCache::Key down_key;
+  QPixmapCache::Key plus_key;
+  QPixmapCache::Key minus_key;
+  QPixmapCache::Key open_key;
+  QPixmapCache::Key save_key;
+  QPixmapCache::Key editor_key;
+  QPixmapCache::Key code_key;
+  QPixmapCache::Key meta_key;
+  QPixmapCache::Key bookshelf_key;
+  QPixmapCache::Key tree_key;
+
+  QString homeDirectiory() const;
+  void setHomeDirectiory(const QString& home_directiory);
+
+  QString libraryDirectory() const;
+  void setLibraryDirectory(const QString& library_directory);
+
+  QString configDirectory() const;
+  void setConfigDirectory(const QString& config_directory);
+
+  QString configFile() const;
+  void setConfigFile(const QString& config_file);
+
+  QString libraryFile() const;
+  void setLibraryFile(const QString& library_file);
+
+  QString authorsFile() const;
+  void setAuthorsFile(const QString& authors_file);
+
+  QString seriesFile() const;
+  void setSeriesFile(const QString& series_file);
 
 signals:
   void loadLibraryFiles(QStringList, int);
@@ -186,7 +225,6 @@ protected:
   QList<int> m_current_document_indexes;
   QList<int> m_current_document_lines;
   QStringList m_current_files;
-
 
   // Code Editor options
   QFont m_code_font;
@@ -218,6 +256,14 @@ protected:
   QColor m_style_back;
   bool m_style_italic;
   QFont::Weight m_style_weight;
+
+  QString m_home_directiory;
+  QString m_library_directory;
+  QString m_config_directory;
+  QString m_config_file;
+  QString m_lib_file;
+  QString m_authors_file;
+  QString m_series_file;
 
   // static tag strings.
   static const int DEF_WIDTH = 600;
