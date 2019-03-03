@@ -10,6 +10,7 @@
 
 #include "epubcontainer.h"
 #include "epubdocument.h"
+#include "htmlparser.h"
 
 class EPubDocumentPrivate : public ITextDocumentPrivate
 {

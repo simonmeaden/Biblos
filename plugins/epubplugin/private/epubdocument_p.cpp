@@ -70,90 +70,100 @@ EPubDocumentPrivate::loadDocument()
     return;
   }
 
-  // add the images as resources
-  QSize image_size(int(q->pageSize().width() - q->documentMargin() * 4),
-                   int(q->pageSize().height() - q->documentMargin() * 4));
+  HtmlParser parser;
+  foreach (SharedManifestItem item, m_container->manifest().html_items) {
+    QString doc_string = item->document_string;
+    if (parser.parse(doc_string)) {
+      TextList text_list = parser.getParsed();
+      parser.clearParsed();
+    }
+  }
+  //  // add the images as resources
+  //  QSize image_size(int(q->pageSize().width() - q->documentMargin() * 4),
+  //                   int(q->pageSize().height() - q->documentMargin() * 4));
+  //  //  foreach (QString name, m_container->imageKeys()) {
+  //  //    SharedManifestItem item = m_container->item(name);
+  //  //    QImage image = m_container->image(name, image_size);
+  //  //    q->addResource(QTextDocument::ImageResource, QUrl(item->path),
+  //  //                   QVariant(image));
+  //  //  }
+
+  //  //  foreach (QString name, m_container->cssKeys()) {
+  //  //    SharedManifestItem item = m_container->item(name);
+  //  //    QString data = m_container->css(name);
+  //  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(name),
+  //  //                   QVariant(data));
+  //  //  }
+
+  //  // TODO QTextDocument doesn't seem to support javascript yet
+  //  //  foreach (QString name, m_container->jsKeys()) {
+  //  //    SharedManifestItem item = m_container->item(name);
+  //  //    QString data = m_container->javascript(name);
+  //  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(item->path),
+  //  //                   QVariant(data));
+  //  //  }
+
+  //  //  QStringList spine_items = m_container->spineKeys();
+  //  QTextCursor cursor(q_ptr);
+  //  cursor.movePosition(QTextCursor::End);
+  //  //  SharedTextCursor cursor = SharedTextCursor(new QTextCursor(q_ptr));
+
+  //  QString doc_string = "<html>";
+  //  doc_string += "<head>";
+  //  foreach (QString key, m_container->manifest().css.keys()) {
+  //    q->addResource(QTextDocument::StyleSheetResource,
+  //                   QUrl(key),
+  //                   QVariant(m_container->manifest().css.value(key)));
+  //    doc_string +=
+  //      QString("<link href=\"%1\" rel=\"stylesheet\" type=\"text/css\"/>")
+  //        .arg(key);
+  //  }
+  //  doc_string += "</head>";
+  //  doc_string += "<body class=\"calibre\">";
+
   //  foreach (QString name, m_container->imageKeys()) {
   //    SharedManifestItem item = m_container->item(name);
   //    QImage image = m_container->image(name, image_size);
-  //    q->addResource(QTextDocument::ImageResource, QUrl(item->path),
-  //                   QVariant(image));
+  //    q->addResource(QTextDocument::ImageResource, QUrl(name),
+  //    QVariant(image));
   //  }
 
-  //  foreach (QString name, m_container->cssKeys()) {
-  //    SharedManifestItem item = m_container->item(name);
-  //    QString data = m_container->css(name);
-  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(name),
-  //                   QVariant(data));
+  //  QTextBlockFormat pageBreak;
+  //  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  //  //  for (const QString& chapter : spine_items) {
+  //  SharedManifestItem item = m_container->item(
+  //    /*chapter*/ m_container->spineKeys().at(m_current_document_index));
+  //  //    SharedDomDocument shared_domdocument = item->dom_document;
+  //  QString document = item->document_string;
+  //  if (document.isEmpty()) {
+  //    QLOG_WARN(QString("Got an empty document"))
+  //    return;
   //  }
+  //  doc_string += document;
 
-  // TODO QTextDocument doesn't seem to support javascript yet
-  //  foreach (QString name, m_container->jsKeys()) {
-  //    SharedManifestItem item = m_container->item(name);
-  //    QString data = m_container->javascript(name);
-  //    q->addResource(QTextDocument::StyleSheetResource, QUrl(item->path),
-  //                   QVariant(data));
-  //  }
+  //  //    // mark the start of the block
+  //  //    int start = cursor.position();
+  //  //    //    item->start = SharedTextCursor(new
+  //  QTextCursor(*cursor.data()));
 
-  //  QStringList spine_items = m_container->spineKeys();
-  QTextCursor cursor(q_ptr);
-  cursor.movePosition(QTextCursor::End);
-  //  SharedTextCursor cursor = SharedTextCursor(new QTextCursor(q_ptr));
+  //  ////    QString data = shared_domdocument->toString();
+  //  //    cursor.insertHtml(document);
+  //  //    cursor.insertBlock(pageBreak);
 
-  QString doc_string = "<html>";
-  doc_string += "<head>";
-  foreach (QString key, m_container->manifest().css.keys()) {
-    q->addResource(QTextDocument::StyleSheetResource,
-                   QUrl(key),
-                   QVariant(m_container->manifest().css.value(key)));
-    doc_string +=
-      QString("<link href=\"%1\" rel=\"stylesheet\" type=\"text/css\"/>")
-        .arg(key);
-  }
-  doc_string += "</head>";
-  doc_string += "<body class=\"calibre\">";
+  //  //    // mark the end of the block
+  //  //    int end = cursor.position();
 
-  foreach (QString name, m_container->imageKeys()) {
-    SharedManifestItem item = m_container->item(name);
-    QImage image = m_container->image(name, image_size);
-    q->addResource(QTextDocument::ImageResource, QUrl(name), QVariant(image));
-  }
+  //  //    item->start_cursor = QTextCursor(q_ptr);
+  //  //    item->start_cursor.setPosition(start);
+  //  //    item->end_cursor = QTextCursor(q_ptr);
+  //  //    item->end_cursor.setPosition(end);
+  //  //}
+  //  doc_string += "</body>";
+  //  doc_string += "</html>";
 
-  QTextBlockFormat pageBreak;
-  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  //  for (const QString& chapter : spine_items) {
-  SharedManifestItem item = m_container->item(
-    /*chapter*/ m_container->spineKeys().at(m_current_document_index));
-  //    SharedDomDocument shared_domdocument = item->dom_document;
-  QString document = item->document_string;
-  if (document.isEmpty()) {
-    QLOG_WARN(QString("Got an empty document"))
-    return;
-  }
-  doc_string += document;
-
-  //    // mark the start of the block
-  //    int start = cursor.position();
-  //    //    item->start = SharedTextCursor(new QTextCursor(*cursor.data()));
-
-  ////    QString data = shared_domdocument->toString();
-  //    cursor.insertHtml(document);
-  //    cursor.insertBlock(pageBreak);
-
-  //    // mark the end of the block
-  //    int end = cursor.position();
-
-  //    item->start_cursor = QTextCursor(q_ptr);
-  //    item->start_cursor.setPosition(start);
-  //    item->end_cursor = QTextCursor(q_ptr);
-  //    item->end_cursor.setPosition(end);
-  //}
-  doc_string += "</body>";
-  doc_string += "</html>";
-
-  cursor.insertHtml(doc_string);
-  q->setBaseUrl(QUrl()); // base url to empty.
-  m_loaded = true;
+  //  cursor.insertHtml(doc_string);
+  //  q->setBaseUrl(QUrl()); // base url to empty.
+  //  m_loaded = true;
 
   emit q->loadCompleted();
 }

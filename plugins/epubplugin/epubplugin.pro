@@ -30,14 +30,16 @@ SOURCES += \
     epubplugin.cpp \
     epubcontainer.cpp \
     epubdocument.cpp \
-    private/epubdocument_p.cpp
+    private/epubdocument_p.cpp \
+    htmlparser.cpp
 
 HEADERS += \
     epubplugin.h \
     epubplugin_global.h \
     epubcontainer.h \
     epubdocument.h \
-    private/epubdocument_p.h
+    private/epubdocument_p.h \
+    htmlparser.h
 
 DISTFILES += \
     epubplugin.json
