@@ -177,6 +177,10 @@ public:
   QPixmapCache::Key lib_key;
   QPixmapCache::Key up_key;
   QPixmapCache::Key down_key;
+  QPixmapCache::Key next_key;
+  QPixmapCache::Key previous_key;
+  QPixmapCache::Key top_key;
+  QPixmapCache::Key bottom_key;
   QPixmapCache::Key plus_key;
   QPixmapCache::Key minus_key;
   QPixmapCache::Key open_key;
@@ -186,6 +190,9 @@ public:
   QPixmapCache::Key meta_key;
   QPixmapCache::Key bookshelf_key;
   QPixmapCache::Key tree_key;
+  QPixmapCache::Key dialog_error_key;
+  QPixmapCache::Key view_refresh_key;
+  QPixmapCache::Key text_html_key;
 
   QString homeDirectiory() const;
   void setHomeDirectiory(const QString& home_directiory);

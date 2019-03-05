@@ -60,8 +60,12 @@ Options::Options(QObject* parent)
   , m_style_weight(QFont::Normal)
 {
   lib_key = QPixmapCache::insert(QPixmap(":/icons/library"));
-  up_key = QPixmapCache::insert(QPixmap(":/icons/up"));
-  down_key = QPixmapCache::insert(QPixmap(":/icons/down"));
+  up_key = QPixmapCache::insert(QPixmap(":/icons/go-up"));
+  down_key = QPixmapCache::insert(QPixmap(":/icons/go-down"));
+  previous_key = QPixmapCache::insert(QPixmap(":/icons/go-previous"));
+  next_key = QPixmapCache::insert(QPixmap(":/icons/go-next"));
+  top_key = QPixmapCache::insert(QPixmap(":/icons/go-top"));
+  bottom_key = QPixmapCache::insert(QPixmap(":/icons/go-bottom"));
   plus_key = QPixmapCache::insert(QPixmap(":/icons/add"));
   minus_key = QPixmapCache::insert(QPixmap(":/icons/remove"));
   open_key = QPixmapCache::insert(QPixmap(":/icons/opem"));
@@ -71,6 +75,9 @@ Options::Options(QObject* parent)
   meta_key = QPixmapCache::insert(QPixmap(":/icons/metadata"));
   bookshelf_key = QPixmapCache::insert(QPixmap(":/icons/bookshelf"));
   tree_key = QPixmapCache::insert(QPixmap(":/icons/tree"));
+  dialog_error_key = QPixmapCache::insert(QPixmap(":/icons/dialog-error"));
+  view_refresh_key = QPixmapCache::insert(QPixmap(":/icons/view-refresh"));
+  text_html_key = QPixmapCache::insert(QPixmap(":/icons/text-html"));
 }
 
 Options::~Options() {}

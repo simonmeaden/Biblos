@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml svg sql
+QT       += core gui xml svg sql webenginewidgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = app
@@ -61,7 +61,9 @@ SOURCES += \
     aboutdialog.cpp \
     ebooktocwidget.cpp \
     ebooktoceditor.cpp \
-    focuslineedit.cpp
+    focuslineedit.cpp \
+    ebookview.cpp \
+    webpage.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -80,7 +82,9 @@ HEADERS += \
     aboutdialog.h \
     ebooktocwidget.h \
     ebooktoceditor.h \
-    focuslineedit.h
+    focuslineedit.h \
+    ebookview.h \
+    webpage.h
 
 FORMS += \
         mainwindow.ui

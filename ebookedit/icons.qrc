@@ -4,8 +4,7 @@
         <file alias="editor">editor_48.png</file>
         <file alias="metadata">meta_48.png</file>
         <file alias="options">options_48.png</file>
-        <file alias="down">go-down.png</file>
-        <file alias="up">go-up.png</file>
+        <file alias="go-up">go-up.png</file>
         <file alias="add">list-add.png</file>
         <file alias="remove">list-remove.png</file>
         <file alias="open-recent">document-open-recent.png</file>
@@ -19,6 +18,18 @@
         <file alias="bookmark">bookmark.png</file>
         <file alias="foldertree">foldertree.png</file>
         <file alias="tree">tree.png</file>
+        <file>AppLogoColor.png</file>
+        <file alias="dialog-error">dialog-error.png</file>
+        <file>edit-clear.png</file>
+        <file>ninja.png</file>
+        <file>process-stop.png</file>
+        <file alias="view-refresh">view-refresh.png</file>
+        <file alias="go-top">go-top.png</file>
+        <file alias="go-bottom">go-bottom.png</file>
+        <file alias="go-previous">go-previous.png</file>
+        <file alias="go-next">go-next.png</file>
+        <file alias="go-down">go-down.png</file>
+        <file alias="text-html">text-html.png</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="attributions">attributions.txt</file>
