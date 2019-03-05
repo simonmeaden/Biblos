@@ -23,6 +23,7 @@
 #include "ebookcommon.h"
 #include "epubcontainer.h"
 #include "epubplugin.h"
+#include "htmlparser.h"
 #include "iebookdocument.h"
 #include "interface_global.h"
 #include "library.h"
@@ -84,7 +85,13 @@ public:
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
 
-  Metadata metadata();
+  Metadata metadata() override;
+
+signals:
+  void orderChanged();
+  void listRemoved(ItemList list);
+  void wordRemoved(int index, QString word);
+  void wordChanged(int index, QString old_word, QString new_word);
 
 protected:
   EPubDocumentPrivate* d_ptr;

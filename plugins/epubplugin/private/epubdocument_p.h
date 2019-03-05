@@ -54,6 +54,23 @@ protected:
   EPubContainer* m_container;
   bool m_modified;
 
+  // HTML Parser stuff
+  ItemList m_total_list;
+  QList<ItemList> m_lists;
+  void append(ItemList list);
+  bool insert(int index, ItemList list);
+  bool replace(int index, ItemList list);
+  bool removeAt(int index);
+  bool remove(ItemList list);
+  int indexOf(ItemList list);
+  void reorderItems();
+  //  QString toHtml(int index);
+  QString toHtml(QString html, ItemList list);
+  QString toHtml();
+  // Spell checker stuff.
+  WordList m_word_list;
+  void append(WordList list);
+
   EPubDocumentPrivate(EPubDocumentPrivate& d);
   void loadDocument();
   QString toc();

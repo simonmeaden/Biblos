@@ -74,8 +74,11 @@ EPubDocumentPrivate::loadDocument()
   foreach (SharedManifestItem item, m_container->manifest().html_items) {
     QString doc_string = item->document_string;
     if (parser.parse(doc_string)) {
-      TextList text_list = parser.getParsed();
+      ItemList text_list = parser.getParsed();
+      WordList word_list = parser.getWordList();
       parser.clearParsed();
+      append(text_list);
+      append(word_list);
     }
   }
   //  // add the images as resources
@@ -166,6 +169,110 @@ EPubDocumentPrivate::loadDocument()
   //  m_loaded = true;
 
   emit q->loadCompleted();
+}
+
+void
+EPubDocumentPrivate::append(ItemList list)
+{
+  m_total_list.append(list);
+  m_lists.append(list);
+  reorderItems();
+}
+
+void
+EPubDocumentPrivate::append(WordList list)
+{
+  m_word_list.append(list);
+  reorderItems();
+}
+
+bool
+ParsedItems::insert(int index, ItemList list)
+{
+  if (index < 0 || index >= m_lists.size())
+    return false;
+  m_lists.insert(index, list);
+  reorderItems();
+  return true;
+}
+
+bool
+EPubDocumentPrivate::replace(int index, ItemList list)
+{
+  if (index < 0 || index >= m_lists.size())
+    return false;
+  m_lists.replace(index, list);
+  reorderItems();
+  return true;
+}
+
+bool
+EPubDocumentPrivate::removeAt(int index)
+{
+  if (index < 0 || index >= m_lists.size())
+    return false;
+  m_lists.removeAt(index);
+  reorderItems();
+  return true;
+}
+
+bool
+EPubDocumentPrivate::remove(ItemList list)
+{
+  Q_Q(EPubDocument);
+  if (m_lists.contains(list)) {
+    bool result = m_lists.removeOne(list);
+    emit q->listRemoved(list);
+    reorderItems();
+    return result;
+  }
+  return false;
+}
+
+int
+EPubDocumentPrivate::indexOf(ItemList list)
+{
+  return m_lists.indexOf(list);
+}
+
+// QString
+//  EPubDocumentPrivate::toHtml(int index)
+//{
+//  if (index < 0 || index >= m_lists.size())
+//    return QString();
+//  ItemList list = m_lists.at(index);
+//  return toHtml(list);
+//}
+
+QString
+EPubDocumentPrivate::toHtml(QString html, ItemList list)
+{
+  foreach (Item item, list) {
+    html += item->toHtml();
+  }
+  return html;
+}
+
+QString
+EPubDocumentPrivate::toHtml()
+{
+  QString html;
+  foreach (ItemList list, m_lists) {
+    html += toHtml(html, list);
+  }
+  return html;
+}
+
+void
+EPubDocumentPrivate::reorderItems()
+{
+  Q_Q(EPubDocument);
+  ItemList total_list;
+  foreach (ItemList list, m_lists) {
+    total_list.append(list);
+  }
+  m_total_list = total_list;
+  emit q->orderChanged();
 }
 
 QString

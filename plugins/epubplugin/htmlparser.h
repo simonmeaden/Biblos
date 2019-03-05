@@ -5,117 +5,205 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QStack>
+#include <QTextCursor>
 
-class EBookBase;
-typedef QSharedPointer<EBookBase> Base;
-
-class EBookBase
+class EBItem
 {
 public:
-  QString getData() const;
-  void setData(const QString& value);
+  enum Type
+  {
+    NONE,
+    SPAN,
+    DIV,
+    P,
+    H1,
+    H2,
+    H3,
+    H4,
+    H5,
+    H6,
+    A,
+    IMG,
+    CHAR,
+    WORD,
+  };
+  EBItem(Type type);
+  virtual ~EBItem();
+  Type type();
+
+  int level() const;
+
+  virtual QString toHtml() = 0;
+  virtual QChar qchar();
+  virtual QString string();
+
+  static Type fromString(QString type)
+  {
+    QString t = type.toLower();
+    if (t == "span")
+      return SPAN;
+    else if (t == "div")
+      return DIV;
+    else if (t == "p")
+      return P;
+    else if (t == "a")
+      return A;
+    else if (t == "h1")
+      return H1;
+    else if (t == "h2")
+      return H2;
+    else if (t == "h3")
+      return H3;
+    else if (t == "h4")
+      return H4;
+    else if (t == "h5")
+      return H5;
+    else if (t == "h6")
+      return H6;
+    else if (t == "img")
+      return IMG;
+    else if (t == "word")
+      return WORD;
+    else if (t == "char")
+      return CHAR;
+    else
+      return NONE;
+  }
 
 protected:
-  QString data;
-};
+  Type m_type;
 
-class EBookTag : public EBookBase
+  void setType(Type type);
+  QString toString();
+};
+typedef QSharedPointer<EBItem> Item;
+typedef QList<Item> ItemList;
+typedef QStack<Item> ItemStack;
+
+class EBTagBase : public EBItem
 {
 public:
+  EBTagBase(Type type);
 };
-typedef QSharedPointer<EBookTag> Tag;
+
+class EBTag;
+typedef QSharedPointer<EBTag> Tag;
+
+class EBTag : public EBTagBase
+{
+public:
+  EBTag(Type type);
+
+  void setClosed(bool value);
+  void setAttribute(QString name, QString value);
+
+  QString toHtml() override;
+
+  static Tag fromtype(Type type)
+  {
+    Tag tag = Tag(new EBTag(type));
+    return tag;
+  }
+
+protected:
+  QMap<QString, QString> m_attributes;
+  bool m_closed;
+};
 typedef QList<Tag> TagList;
 typedef QStack<Tag> TagStack;
 
-class EBookEndTag : public EBookTag
-{
-public:
-};
-typedef QSharedPointer<EBookEndTag> EndTag;
+class EBEndTag;
+typedef QSharedPointer<EBEndTag> EndTag;
 
-class EBookSpan : public EBookTag
+class EBEndTag : public EBTagBase
 {
 public:
-};
-typedef QSharedPointer<EBookSpan> Span;
+  EBEndTag(Type type);
 
-class EBookEndSpan : public EBookEndTag
-{
-public:
-};
-typedef QSharedPointer<EBookEndSpan> EndSpan;
+  QString toHtml() override;
 
-class EBookDiv : public EBookTag
-{
-public:
+  static EndTag fromtype(Type type)
+  {
+    EndTag tag = EndTag(new EBEndTag(type));
+    return tag;
+  }
 };
-typedef QSharedPointer<EBookDiv> Div;
 
-class EBookEndDiv : public EBookEndTag
+class EBChar
+  : public QChar
+  , public EBItem
 {
 public:
+  EBChar(char c);
+  QChar qchar() override;
+  QString toHtml() override;
 };
-typedef QSharedPointer<EBookEndDiv> EndDiv;
+typedef QSharedPointer<EBChar> Char;
 
-class EBookPara : public EBookTag
+class EBWord
+  : public QString
+  , public EBItem
 {
 public:
-};
-typedef QSharedPointer<EBookPara> Para;
+  EBWord(QString word);
+  QString string() override;
+  QString toHtml() override;
 
-class EBookEndPara : public EBookEndTag
-{
-public:
-};
-typedef QSharedPointer<EBookEndPara> EndPara;
-
-class EBookHeader : public EBookTag
-{
-public:
-  int headerType();
-  void setHeaderType(int type);
+  QTextCursor cursor() const;
+  void setCursor(const QTextCursor& cursor);
 
 protected:
-  int m_type;
+  QTextCursor m_cursor;
 };
-typedef QSharedPointer<EBookHeader> Header;
-
-class EBookEndHeader : public EBookEndTag
-{
-public:
-};
-typedef QSharedPointer<EBookEndHeader> EndHeader;
-
-class EBookText : public EBookBase
-{
-public:
-  TagList getTags() const;
-  void setTags(const TagList& value);
-  void appendTag(Tag tag);
-
-protected:
-  TagList tags;
-};
-typedef QSharedPointer<EBookText> Text;
-typedef QList<Text> TextList;
+typedef QSharedPointer<EBWord> Word;
+typedef QList<Word> WordList;
 
 class HtmlParser : public QObject
 {
   Q_OBJECT
 public:
-  enum State
-  {
-
-  };
   explicit HtmlParser(QObject* parent = nullptr);
   ~HtmlParser();
 
   bool parse(QString text);
-  TextList getParsed();
+  ItemList getParsed();
+  WordList getWordList();
   void clearParsed();
 
 protected:
-  TextList m_text_list;
+  ItemList m_item_list;
+  WordList m_word_list;
+  void setTagClosed(Tag& tag, bool& tag_closed);
+};
+
+class ParsedItems : public QObject
+{
+  Q_OBJECT
+public:
+  explicit ParsedItems(QObject* parent = nullptr);
+
+  void append(ItemList list);
+  bool insert(int index, ItemList list);
+  bool replace(int index, ItemList list);
+  bool removeAt(int index);
+  bool remove(ItemList list);
+  int indexOf(ItemList list);
+  QString toHtml(int index);
+  QString toHtml(ItemList list);
+  QString toHtml();
+
+  void append(WordList list);
+
+signals:
+  void orderChanged();
+  void itemRemoved(int index, ItemList list);
+
+protected:
+  ItemList m_total_list;
+  WordList m_word_list;
+  QList<ItemList> m_lists;
+
+  void reorderItems();
 };
 
 #endif // HTMLPARSER_H
