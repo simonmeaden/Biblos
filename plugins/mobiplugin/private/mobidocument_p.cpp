@@ -3,39 +3,41 @@
 #include <qlogger/qlogger.h>
 using namespace qlogger;
 
-MobiDocumentPrivate::MobiDocumentPrivate(MobiDocument* parent) :
-    q_ptr(parent), m_loaded(false)
-{
-}
+MobiDocumentPrivate::MobiDocumentPrivate(MobiDocument* parent)
+  : q_ptr(parent)
+  , m_loaded(false)
+{}
 
 MobiDocumentPrivate::~MobiDocumentPrivate() {}
 
-void MobiDocumentPrivate::parseExthTagType(MOBIExthMeta tag, char* exth_string)
+void
+MobiDocumentPrivate::parseExthTagType(MOBIExthMeta tag, char* exth_string)
 {
   QString t(tag.name);
   QString s(exth_string);
 
   switch (tag.tag) {
-  case EXTH_TITLE:
-    m_title = s;
-    break;
-  case EXTH_AUTHOR:
-    m_creators += s;
-    break;
-  case EXTH_PUBLISHER:
-    m_publisher = s;
-    break;
-  case EXTH_PUBLISHINGDATE:
-    m_published = QDate::fromString(s, Qt::ISODate);
-    break;
-  default:
-    // unknown tags ?
-    m_exth_tags.insert(t, s);
-    break;
+    case EXTH_TITLE:
+      m_title = s;
+      break;
+    case EXTH_AUTHOR:
+      m_creators += s;
+      break;
+    case EXTH_PUBLISHER:
+      m_publisher = s;
+      break;
+    case EXTH_PUBLISHINGDATE:
+      m_published = QDate::fromString(s, Qt::ISODate);
+      break;
+    default:
+      // unknown tags ?
+      m_exth_tags.insert(t, s);
+      break;
   }
 }
 
-void MobiDocumentPrivate::extractExthTags(MOBIData* mobi_data)
+void
+MobiDocumentPrivate::extractExthTags(MOBIData* mobi_data)
 {
   const MOBIExthHeader* curr = m_exth_header;
   uint32_t val32;
@@ -67,50 +69,51 @@ void MobiDocumentPrivate::extractExthTags(MOBIData* mobi_data)
       size_t size = curr->size;
       unsigned char* data = static_cast<unsigned char*>(curr->data);
       switch (tag.type) {
-        /* numeric */
-      case EXTH_NUMERIC:
-        val32 = mobi_decode_exthvalue(data, size);
-        m_exth_numerics.insert(tag.name, val32);
-        break;
-        /* string */
-      case EXTH_STRING: {
-        char* exth_string = mobi_decode_exthstring(mobi_data, data, size);
-        if (exth_string) {
-          parseExthTagType(tag, exth_string);
-          free(exth_string);
-        }
-        break;
-      }
-        /* binary */
-      case EXTH_BINARY: {
-        char* exth_string = new char[2 * size + 1];
-        if (!exth_string) {
-          continue;
-        } else {
-          exth_string[0] = '\0';
-          while (size) {
-            uint8_t val8 = *data++;
-            sprintf(&exth_string[i], "%02x", val8);
-            i += 2;
-            size--;
+          /* numeric */
+        case EXTH_NUMERIC:
+          val32 = mobi_decode_exthvalue(data, size);
+          m_exth_numerics.insert(tag.name, val32);
+          break;
+          /* string */
+        case EXTH_STRING: {
+          char* exth_string = mobi_decode_exthstring(mobi_data, data, size);
+          if (exth_string) {
+            parseExthTagType(tag, exth_string);
+            free(exth_string);
           }
+          break;
+        }
+          /* binary */
+        case EXTH_BINARY: {
+          char* exth_string = new char[2 * size + 1];
+          if (!exth_string) {
+            continue;
+          } else {
+            exth_string[0] = '\0';
+            while (size) {
+              uint8_t val8 = *data++;
+              sprintf(&exth_string[i], "%02x", val8);
+              i += 2;
+              size--;
+            }
 
-          if (tag.tag == EXTH_FONTSIGNATURE) {
-            QString t(tag.name);
-            QString s(exth_string);
-            m_binary.insert(ExthBinaryType::FONTSIGNATURE, s);
+            if (tag.tag == EXTH_FONTSIGNATURE) {
+              QString t(tag.name);
+              QString s(exth_string);
+              m_binary.insert(ExthBinaryType::FONTSIGNATURE, s);
+            }
           }
+          free(exth_string);
+          break;
         }
-        free(exth_string);
-        break;
-      }
       }
     }
     curr = curr->next;
   }
 }
 
-void MobiDocumentPrivate::openDocument(const QString& path)
+void
+MobiDocumentPrivate::openDocument(const QString& path)
 {
   Q_Q(MobiDocument);
 
@@ -158,12 +161,14 @@ void MobiDocumentPrivate::openDocument(const QString& path)
   mobi_free(mobi_data);
 }
 
-void MobiDocumentPrivate::saveDocument()
+void
+MobiDocumentPrivate::saveDocument()
 {
   // TODO save mobidocument
 }
 
-void MobiDocumentPrivate::extractAllRecords(MOBIData* mobi_data)
+void
+MobiDocumentPrivate::extractAllRecords(MOBIData* mobi_data)
 {
   Q_Q(MobiDocument);
   const size_t maxlen = mobi_get_text_maxsize(mobi_data);
@@ -178,12 +183,12 @@ void MobiDocumentPrivate::extractAllRecords(MOBIData* mobi_data)
   QString full_data(data);
   delete[] data;
 
-  QTextCursor cursor(q_ptr);
-  cursor.movePosition(QTextCursor::End);
-  QTextBlockFormat pageBreak;
-  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
-  cursor.insertHtml(full_data);
-  cursor.insertBlock(pageBreak);
+  //  QTextCursor cursor(q_ptr);
+  //  cursor.movePosition(QTextCursor::End);
+  //  QTextBlockFormat pageBreak;
+  //  pageBreak.setPageBreakPolicy(QTextFormat::PageBreak_AlwaysBefore);
+  //  cursor.insertHtml(full_data);
+  //  cursor.insertBlock(pageBreak);
   //  q->setBaseUrl(QUrl());
   m_loaded = true;
 

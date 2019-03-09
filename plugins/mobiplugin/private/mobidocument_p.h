@@ -7,7 +7,8 @@
 
 #include "mobidocument.h"
 
-enum ExthBinaryType {
+enum ExthBinaryType
+{
   DRMSERVER = 1,
   DRMCOMMERCE = 2,
   DRMEBOOKBASE = 3,
@@ -54,7 +55,7 @@ enum ExthBinaryType {
   // record containing the thumbnail cover image
   HASFAKECOVER = 203,
   CREATORSOFT =
-      204, // Known Values: 1=mobigen, 2=Mobipocket Creator, 200=kindlegen
+    204, // Known Values: 1=mobigen, 2=Mobipocket Creator, 200=kindlegen
   // (Windows), 201=kindlegen (Linux), 202=kindlegen (Mac).
   CREATORMAJOR = 205,
   CREATORMINOR = 206,
@@ -65,7 +66,7 @@ enum ExthBinaryType {
   FONTSIGNATURE = 300,
 
   CLIPPINGLIMIT =
-      401, // Integer percentage of the text allowed to be clipped. Usually 10.
+    401, // Integer percentage of the text allowed to be clipped. Usually 10.
   PUBLISHERLIMIT = 402,
   UNK403 = 403,
   TTSDISABLE = 404, // 1 - Text to Speech disabled; 0 - Text to Speech enabled
@@ -87,7 +88,7 @@ enum ExthBinaryType {
   PUBLISHERFILEAS = 522,
   LANGUAGE = 524, /**< <dc:language> */
   ALIGNMENT =
-      525, // ?? horizontal-lr in this record /**< <primary-writing-mode> */
+    525, // ?? horizontal-lr in this record /**< <primary-writing-mode> */
   PAGEDIR = 527,
   OVERRIDEFONTS = 528, /**< <override-kindle-fonts> */
   SORCEDESC = 529,
@@ -97,21 +98,24 @@ enum ExthBinaryType {
   CREATORBUILDREV = 535,
 };
 
-class MobiDocumentPrivate : public ITextDocumentPrivate {
+class MobiDocumentPrivate : public ITextDocumentPrivate
+{
 public:
-  MobiDocumentPrivate(MobiDocument *parent);
+  MobiDocumentPrivate(MobiDocument* parent);
   virtual ~MobiDocumentPrivate();
 
-  MobiDocument *q_ptr;
+  MobiDocument* q_ptr;
 
-  void openDocument(const QString &path);
+  void openDocument(const QString& path);
   void saveDocument();
 
-  IEBookInterface *plugin() { return m_plugin; }
-  void setPlugin(IEBookInterface *plugin) { m_plugin = plugin; }
+  IEBookInterface* plugin() { return m_plugin; }
+  void setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
 
   QString title() {}
   void setTitle(QString title) {}
+  QMap<QString, QString> pages() {}
+  QList<QString> spine() {}
 
 protected:
   bool m_loaded;
@@ -120,22 +124,22 @@ protected:
   QMultiMap<QString, uint32_t> m_exth_numerics;
 
   /**< key for decryption, NULL if not set */
-  unsigned char *m_drm_key;
+  unsigned char* m_drm_key;
   /**< Palmdoc database header structure or NULL if not loaded */
-  MOBIPdbHeader *m_palm_header;
+  MOBIPdbHeader* m_palm_header;
   /**< Record0 header structure or NULL if not loaded */
-  MOBIRecord0Header *m_mobi_record_0_header;
+  MOBIRecord0Header* m_mobi_record_0_header;
   /**< MOBI header structure or NULL if not loaded */
-  MOBIMobiHeader *m_mobi_header;
+  MOBIMobiHeader* m_mobi_header;
   /**< Linked list of EXTH records or NULL if not loaded */
-  MOBIExthHeader *m_exth_header;
+  MOBIExthHeader* m_exth_header;
   /**< Linked list of palmdoc database records or NULL if not loaded */
-  MOBIPdbRecord *m_mobi_record;
+  MOBIPdbRecord* m_mobi_record;
 
-  void extractExthTags(MOBIData *mobi_data);
-  void extractAllRecords(MOBIData *mobi_data);
+  void extractExthTags(MOBIData* mobi_data);
+  void extractAllRecords(MOBIData* mobi_data);
 
-  void parseExthTagType(MOBIExthMeta tag, char *exth_string);
+  void parseExthTagType(MOBIExthMeta tag, char* exth_string);
 
 private:
   Q_DECLARE_PUBLIC(MobiDocument)

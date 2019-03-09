@@ -21,7 +21,7 @@ struct EBookData
   QString title;
   quint64 series;
   QString series_index;
-  int current_spine_index;
+  QString current_spine_id;
   int current_spine_lineno;
   bool modified;
 
@@ -52,6 +52,8 @@ public:
   BookData bookByUid(quint64 uid);
   BookList bookByTitle(QString title);
   BookData bookByFile(QString filename);
+
+  QString currentBookId(QString filename);
 
   bool isModified();
   void setModified(bool modified);

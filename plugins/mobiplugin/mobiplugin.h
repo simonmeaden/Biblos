@@ -10,7 +10,9 @@
 
 class MobiDocument;
 
-class INTERFACESHARED_EXPORT MobiPlugin : public QObject, public IEBookInterface
+class INTERFACESHARED_EXPORT MobiPlugin
+  : public QObject
+  , public IEBookInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID IEBookInterface_iid FILE "ebookinterface.json")
@@ -18,7 +20,7 @@ class INTERFACESHARED_EXPORT MobiPlugin : public QObject, public IEBookInterface
   Q_INTERFACES(IEBookInterface)
 public:
   MobiPlugin(QObject* parent = nullptr);
-//  MobiPlugin(Options* options, QObject* parent = nullptr);
+  //  MobiPlugin(Options* options, QObject* parent = nullptr);
 
   // IPluginInterface interface
   QString pluginGroup() const override;
@@ -32,12 +34,9 @@ public:
   int buildVersion() const override;
   void buildMenu() override;
   // IEBookInterface interface
-  IEBookDocument* createDocument(QString path) override;
-  IEBookDocument* createCodeDocument() override;
-  EBookDocumentType type() const override
-  {
-    return MOBI;
-  }
+  EBookDocument createDocument(QString path) override;
+  EBookDocument createCodeDocument() override;
+  EBookDocumentType type() const override { return MOBI; }
 
   // IEBookInterface interface
   QString fileFilter() override;
@@ -57,7 +56,7 @@ protected:
   static const QString m_file_description;
 
   Options* m_options;
-  IEBookDocument* m_document;
+  EBookDocument m_document;
 };
 
 #endif // MOBIPLUGIN_H

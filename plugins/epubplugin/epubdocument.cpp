@@ -10,14 +10,14 @@ EPubDocument::EPubDocument(QObject* parent)
   : ITextDocument(parent)
   , d_ptr(new EPubDocumentPrivate(this))
 {
-  setUndoRedoEnabled(false);
+  //  setUndoRedoEnabled(false);
 }
 
 EPubDocument::EPubDocument(EPubDocumentPrivate* doc, QObject* parent)
   : ITextDocument(parent)
   , d_ptr(doc)
 {
-  setUndoRedoEnabled(false);
+  //  setUndoRedoEnabled(false);
 }
 
 EPubDocument::EPubDocument(const EPubDocument& doc)
@@ -63,7 +63,7 @@ void
 EPubDocument::saveDocument(const QString& path)
 {
   Q_D(EPubDocument);
-  d->saveDocument(path);
+  d->closeDocument(path);
 }
 
 EPubContents*
@@ -196,6 +196,20 @@ EPubDocument::metadata()
 {
   Q_D(EPubDocument);
   return d->metadata();
+}
+
+QMap<QString, QString>
+EPubDocument::pages()
+{
+  Q_D(EPubDocument);
+  return d->pages();
+}
+
+QStringList
+EPubDocument::spine()
+{
+  Q_D(EPubDocument);
+  return d->spine();
 }
 
 IEBookInterface*

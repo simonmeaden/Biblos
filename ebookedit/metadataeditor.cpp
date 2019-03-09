@@ -18,7 +18,7 @@ MetadataEditor::MetadataEditor(Options* options,
 }
 
 void
-MetadataEditor::setDocument(ITextDocument* doc)
+MetadataEditor::setDocument(EBookDocument doc)
 {
   m_document = doc;
 
@@ -29,7 +29,7 @@ MetadataEditor::setDocument(ITextDocument* doc)
     m_book_data->uid = uid;
     m_book_data->filename = doc->filename();
     m_book_data->title = doc->title();
-    m_book_data->current_spine_index = 0;
+    m_book_data->current_spine_id = QString();
     m_book_data->current_spine_lineno = 0;
     m_book_data->modified = true;
   } else {

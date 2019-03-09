@@ -44,7 +44,7 @@ EBookLibraryDB::insertOrUpdateBook(BookData book_data)
     existing_book_data->title = book_data->title;
     existing_book_data->series = book_data->series;
     existing_book_data->series_index = book_data->series_index;
-    existing_book_data->current_spine_index = book_data->current_spine_index;
+    existing_book_data->current_spine_id = book_data->current_spine_id;
     existing_book_data->current_spine_lineno = book_data->current_spine_lineno;
   } else {
     m_book_data.insert(book_data->uid, book_data);
@@ -87,6 +87,12 @@ EBookLibraryDB::bookByFile(QString filename)
   return m_book_by_file.value(filename);
 }
 
+QString
+EBookLibraryDB::currentBookId(QString filename)
+{
+  return m_book_by_file.value(filename)->current_spine_id;
+}
+
 bool
 EBookLibraryDB::isModified()
 {
@@ -121,7 +127,7 @@ EBookLibraryDB::loadLibrary()
         book->filename = book_node["filename"].as<QString>();
         book->series = book_node["series uid"].as<quint64>();
         book->series_index = book_node["series index"].as<QString>();
-        book->current_spine_index = book_node["spine index"].as<int>();
+        book->current_spine_id = book_node["spine id"].as<QString>();
         book->current_spine_lineno = book_node["spine lineno"].as<int>();
 
         EBookData::m_highest_uid =
@@ -171,8 +177,8 @@ EBookLibraryDB::saveLibrary()
           emitter << YAML::Value << book_data->series;
           emitter << YAML::Key << "series index";
           emitter << YAML::Value << book_data->series_index;
-          emitter << YAML::Key << "spine index";
-          emitter << YAML::Value << book_data->current_spine_index;
+          emitter << YAML::Key << "spine id";
+          emitter << YAML::Value << book_data->current_spine_id;
           emitter << YAML::Key << "spine lineno";
           emitter << YAML::Value << book_data->current_spine_lineno;
           emitter << YAML::EndMap; // individual book map

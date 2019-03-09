@@ -18,7 +18,7 @@ public:
   void lineNumberAreaPaintEvent(QPaintEvent* event);
   int lineNumberAreaWidth();
 
-  void setDocument(IEBookDocument* document);
+  void setDocument(EBookDocument document);
   void rehighlight();
 
 protected:
@@ -49,4 +49,4 @@ private:
 
 Q_DECLARE_METATYPE(EBookCodeEditor)
 
-#endif  // EBOOKCODEEDITOR_H
+#endif // EBOOKCODEEDITOR_H

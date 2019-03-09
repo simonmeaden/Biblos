@@ -48,19 +48,23 @@ public:
   virtual QString buildTocFromData() = 0;
 
   virtual Metadata metadata() = 0;
+  virtual QMap<QString, QString> pages() = 0;
+  virtual QStringList spine() = 0;
 };
+typedef QSharedPointer<IEBookDocument> EBookDocument;
 
 /*!
  * \brief Adds a signal for completion of load. Not possible in the interface.
  */
 class ITextDocument
-  : public QTextDocument
+  : public QObject /*public QTextDocument*/
   , public IEBookDocument
 {
   Q_OBJECT
 public:
   ITextDocument(QObject* parent = nullptr)
-    : QTextDocument(parent)
+    : QObject(parent)
+  //    : QTextDocument(parent)
   {}
 
 signals:
@@ -68,6 +72,7 @@ signals:
 
 protected:
 };
+typedef QSharedPointer<ITextDocument> EITextDocument;
 
 /*!
  * \brief Variables common to all EBook types.
@@ -77,16 +82,7 @@ class ITextDocumentPrivate
 public:
   QString filename() { return m_filename; }
   void setFilename(QString filename) { m_filename = filename; }
-  //  bool isModified() { return m_modified; }
-  //  void setModified(bool modified) { m_modified = modified; }
-  //  bool readonly() { return m_readonly; }
-  //  void setReadonly(bool readonly) { m_readonly = readonly; }
-  // QStringList creators() { return m_creators; } QString creator(int i) {
-  //  return m_creators.at(i); } void addCreator(QString creator) {
-  //  m_creators.append(creator); } void addCreators(QStringList creators) {
-  //  m_creators.append(creators); } void setCreators(QStringList creators) {
-  //  m_creators = creators; } void removeCreator(QString creator) {
-  //  m_creators.removeOne(creator); }
+
   /*!
    * \brief Creates a & separated list of creators.
    * \return the list as a QString.

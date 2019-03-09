@@ -30,8 +30,12 @@
         <file alias="go-next">go-next.png</file>
         <file alias="go-down">go-down.png</file>
         <file alias="text-html">text-html.png</file>
+        <file alias="new">document-new.png</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="attributions">attributions.txt</file>
+        <file alias="jquery">jquery-3.3.1.min.js</file>
+        <file alias="one_page_js">jquery.onepage-scroll.js</file>
+        <file alias="one_page_css">onepage-scroll.css</file>
     </qresource>
 </RCC>

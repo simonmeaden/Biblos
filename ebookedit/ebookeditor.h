@@ -15,7 +15,7 @@ public:
   EBookEditor(const EBookEditor& editor);
   ~EBookEditor();
 
-  void setDocument(IEBookDocument* document);
+  void setDocument(EBookDocument document);
   QVariant data();
 
   QString buildTocFromData();

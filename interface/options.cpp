@@ -68,7 +68,8 @@ Options::Options(QObject* parent)
   bottom_key = QPixmapCache::insert(QPixmap(":/icons/go-bottom"));
   plus_key = QPixmapCache::insert(QPixmap(":/icons/add"));
   minus_key = QPixmapCache::insert(QPixmap(":/icons/remove"));
-  open_key = QPixmapCache::insert(QPixmap(":/icons/opem"));
+  new_key = QPixmapCache::insert(QPixmap(":/icons/new"));
+  open_key = QPixmapCache::insert(QPixmap(":/icons/open"));
   save_key = QPixmapCache::insert(QPixmap(":/icons/save"));
   editor_key = QPixmapCache::insert(QPixmap(":/icons/editor"));
   code_key = QPixmapCache::insert(QPixmap(":/icons/code"));

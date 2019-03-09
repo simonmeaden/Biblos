@@ -41,7 +41,8 @@ SOURCES +=  \
     authors.cpp \
     ebookmetadata.cpp \
     ebookbasemetadata.cpp \
-    series.cpp
+    series.cpp \
+    htmlparser.cpp
 
 HEADERS += \
     interface_global.h \
@@ -58,7 +59,8 @@ HEADERS += \
     authors.h \
     ebookmetadata.h \
     ebookbasemetadata.h \
-    series.h
+    series.h \
+    htmlparser.h
 
 DISTFILES += \
     spellinterface.json \

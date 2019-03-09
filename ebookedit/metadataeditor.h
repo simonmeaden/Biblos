@@ -5,6 +5,7 @@
 
 #include "authors.h"
 #include "ebookcommon.h"
+#include "iebookdocument.h"
 #include "library.h"
 #include "options.h"
 #include "series.h"
@@ -21,7 +22,7 @@ public:
                           LibraryDB library,
                           QWidget* parent = nullptr);
 
-  void setDocument(ITextDocument* doc);
+  void setDocument(EBookDocument doc);
 signals:
 
 public slots:
@@ -32,7 +33,7 @@ protected:
   QLineEdit *m_title_edit, *m_filename_edit, *m_series_edit;
   QDoubleSpinBox* m_series_spin;
   QLabel* m_fileext_lbl;
-  ITextDocument* m_document;
+  EBookDocument m_document;
   AuthorsDB m_author_db;
   SeriesDB m_series_db;
   LibraryDB m_library_db;

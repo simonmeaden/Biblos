@@ -183,6 +183,7 @@ public:
   QPixmapCache::Key bottom_key;
   QPixmapCache::Key plus_key;
   QPixmapCache::Key minus_key;
+  QPixmapCache::Key new_key;
   QPixmapCache::Key open_key;
   QPixmapCache::Key save_key;
   QPixmapCache::Key editor_key;

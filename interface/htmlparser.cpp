@@ -1,5 +1,11 @@
 #include "htmlparser.h"
 
+#include <qlogger/qlogger.h>
+using namespace qlogger;
+
+int HtmlParser::INDENT_STEP = 2;
+int HtmlParser::INDENT = 0;
+
 /*!
  * \class HtmlParser
  * \brief A simple html parser.
@@ -24,70 +30,13 @@ HtmlParser::HtmlParser(QObject* parent)
 
 HtmlParser::~HtmlParser() {}
 
-// void
-// HtmlParser::setTagId(Tag& tag, QString& in_id)
-//{
-//  if (!in_id.isEmpty()) {
-//    tag->setId(in_id);
-//    in_id.clear();
-//  }
-//}
-
-// void
-// HtmlParser::setTagClass(Tag& tag, QString& in_class)
-//{
-//  if (!in_class.isEmpty()) {
-//    tag->setClass(in_class);
-//    in_class.clear();
-//  }
-//}
-
-// void
-// HtmlParser::setTagHref(Tag& tag, QString& in_href)
-//{
-//  if (!in_href.isEmpty()) {
-//    tag->setHref(in_href);
-//    in_href.clear();
-//  }
-//}
-
-// void HtmlParser::setTagSrc(Tag &tag, QString &in_src)
-//{
-//  if (!in_src.isEmpty()) {
-//    tag->setHref(in_src);
-//    in_src.clear();
-//  }
-//}
-
-// void HtmlParser::setTagWidth(Tag &tag, QString &in_width)
-//{
-//  if (!in_width.isEmpty()) {
-//    tag->setWidth(in_width);
-//    in_width.clear();
-//  }
-//}
-
-// void HtmlParser::setTagHeight(Tag &tag, QString &in_height)
-//{
-//  if (!in_height.isEmpty()) {
-//    tag->setHeight(in_height);
-//    in_height.clear();
-//  }
-//}
-
-// void HtmlParser::setTagAlt(Tag &tag, QString &in_alt)
-//{
-//  if (!in_alt.isEmpty()) {
-//    tag->setAlt(in_alt);
-//    in_alt.clear();
-//  }
-//}
-
 void
 HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
 {
-  tag->setClosed(true);
-  tag_closed = false;
+  if (!tag.isNull()) {
+    tag->setClosed(true);
+    tag_closed = false;
+  }
 }
 
 /*!
@@ -103,7 +52,7 @@ HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
  */
 
 bool
-HtmlParser::parse(QString document_string)
+HtmlParser::parse(QString name, QString document_string)
 {
   // text is already pruned to inside <body> tag.
   bool tag_opener = false;
@@ -114,6 +63,9 @@ HtmlParser::parse(QString document_string)
   QString att_value, att_name;
   QString tag_text;
   QString data_text;
+  QString html_doc;
+  ItemList item_list;
+  WordList word_list;
 
   Tag tag;
   foreach (QChar qc, document_string) {
@@ -124,12 +76,12 @@ HtmlParser::parse(QString document_string)
         if (qc.isSpace() || qc.isPunct()) {
           if (!data_text.isEmpty()) {
             Word word = Word(new EBWord(data_text));
-            m_item_list.append(word);
-            m_word_list.append(word);
+            item_list.append(word);
+            word_list.append(word);
             data_text.clear();
           }
           Char ch = Char(new EBChar(c));
-          m_item_list.append(ch);
+          item_list.append(ch);
         } else {
           data_text += qc;
         }
@@ -154,8 +106,8 @@ HtmlParser::parse(QString document_string)
         case '<': {
           if (!data_text.isEmpty()) {
             Word word = Word(new EBWord(data_text));
-            m_item_list.append(word);
-            m_word_list.append(word);
+            item_list.append(word);
+            word_list.append(word);
             data_text.clear();
           }
           tag_opener = true;
@@ -165,7 +117,7 @@ HtmlParser::parse(QString document_string)
           if (tag_opener) {
             setTagClosed(tag, tag_closed);
             tag_opener = false;
-            m_item_list.append(tag);
+            item_list.append(tag);
             tag = Tag(nullptr);
           }
           tag_text.clear();
@@ -176,12 +128,12 @@ HtmlParser::parse(QString document_string)
             if (qc.isSpace() || qc.isPunct()) {
               if (!data_text.isEmpty()) {
                 Word word = Word(new EBWord(data_text));
-                m_item_list.append(word);
-                m_word_list.append(word);
+                item_list.append(word);
+                word_list.append(word);
                 data_text.clear();
               }
               Char ch = Char(new EBChar(c));
-              m_item_list.append(ch);
+              item_list.append(ch);
             } else {
               data_text += qc;
             }
@@ -192,7 +144,7 @@ HtmlParser::parse(QString document_string)
                 EBTag::Type type = EBItem::fromString(tag_text);
                 if (type != EBItem::NONE) {
                   EndTag end_tag = EBEndTag::fromtype(type);
-                  m_item_list.append(end_tag);
+                  item_list.append(end_tag);
                   tag_text.clear();
                   tag_opener = false;
                   tag_closed = false;
@@ -200,8 +152,8 @@ HtmlParser::parse(QString document_string)
               }
             }
           } else if (tag_opener) {
-            if ((c >= 'a' && c <= 'z') || c == ' ' || c == '=' ||
-                (c >= '0' && c <= '9')) {
+            if ((c >= 'a' && c <= 'z') || c == ' ' || c == '=' || c == '_' ||
+                c == '.' || c == '#' || (c >= '0' && c <= '9')) {
               if (c == ' ') // ignore spaces in tags.
                 continue;
               tag_text += c;
@@ -242,6 +194,10 @@ HtmlParser::parse(QString document_string)
               if (in_dquote) {
                 if (att_start) {
                   att_start = false;
+                  if (tag.isNull()) {
+                    QLOG_ERROR(tr("Missing hml tag %1").arg(att_name));
+                    continue;
+                  }
                   tag->setAttribute(att_name, att_value);
                   att_value.clear();
                   att_name.clear();
@@ -251,140 +207,142 @@ HtmlParser::parse(QString document_string)
                 continue;
               }
               in_dquote = true;
-            } else {
-            }
+            } /* else {
+               //
+             }*/
           }
         }
       } // end switch
     }   // end of latin-1 char secion.
   }     // end foreach character.
-  if (!m_item_list.isEmpty())
+  if (!item_list.isEmpty()) {
+    m_lists.append(item_list);
+    m_itemlist_map.insert(name, item_list);
+    m_word_list.append(word_list);
+    html_doc = toHtml(item_list, 0);
+    m_html_document_by_id.insert(name, html_doc);
     return true;
+  }
   return false;
-}
-
-ItemList
-HtmlParser::getParsed()
-{
-  return m_item_list;
-}
-
-WordList
-HtmlParser::getWordList()
-{
-  return m_word_list;
 }
 
 void
 HtmlParser::clearParsed()
 {
-  m_item_list.clear();
+  //  m_total_list.clear();
+  m_word_list.clear();
 }
 
-ParsedItems::ParsedItems(QObject* parent)
-  : QObject(parent)
-{}
-
-void
-ParsedItems::append(ItemList list)
+QString
+HtmlParser::htmlById(QString id)
 {
-  m_total_list.append(list);
-  m_lists.append(list);
-  reorderItems();
-}
-
-void
-ParsedItems::append(WordList list)
-{
-  m_word_list.append(list);
-  reorderItems();
+  return m_html_document_by_id.value(id);
 }
 
 bool
-ParsedItems::insert(int index, ItemList list)
+HtmlParser::insert(int index, ItemList list)
 {
   if (index < 0 || index >= m_lists.size())
     return false;
   m_lists.insert(index, list);
-  reorderItems();
   return true;
 }
 
 bool
-ParsedItems::replace(int index, ItemList list)
+HtmlParser::replace(int index, ItemList list)
 {
   if (index < 0 || index >= m_lists.size())
     return false;
   m_lists.replace(index, list);
-  reorderItems();
   return true;
 }
 
 bool
-ParsedItems::removeAt(int index)
+HtmlParser::removeAt(int index)
 {
   if (index < 0 || index >= m_lists.size())
     return false;
   m_lists.removeAt(index);
-  reorderItems();
   return true;
 }
 
 bool
-ParsedItems::remove(ItemList list)
+HtmlParser::remove(ItemList list)
 {
   if (m_lists.contains(list)) {
     bool result = m_lists.removeOne(list);
-    reorderItems();
     return result;
   }
   return false;
 }
 
 int
-ParsedItems::indexOf(ItemList list)
+HtmlParser::indexOf(ItemList list)
 {
   return m_lists.indexOf(list);
 }
 
-QString
-ParsedItems::toHtml(int index)
+QMap<QString, QString>
+HtmlParser::htmlDocumentsById() const
 {
-  if (index < 0 || index >= m_lists.size())
-    return QString();
-  ItemList list = m_lists.at(index);
-  return toHtml(list);
+  return m_html_document_by_id;
 }
 
+// QString
+// HtmlParser::toHtml(int index)
+//{
+//  if (index < 0 || index >= m_lists.size())
+//    return QString();
+//  ItemList list = m_lists.at(index);
+//  return toHtml(list, 1);
+//}
+
 QString
-ParsedItems::toHtml(ItemList list)
+HtmlParser::toHtml(ItemList list, int indent)
 {
   QString html;
+  html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  html +=
+    QStringLiteral("<html "
+                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
+                   "    epub:prefix=\"z3998: "
+                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
+                   "    xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
+  html += QStringLiteral("<head>\n");
+  html += QStringLiteral("</head>\n");
+  html += QStringLiteral("<body>\n");
+  html += QStringLiteral("<div class=\"main\">"); // for one-page-js
   foreach (Item item, list) {
-    html += item->toHtml();
+    if (!item.isNull()) {
+      html += item->toHtml(indent + 1);
+    }
   }
+  html += QStringLiteral("</div>"); // for one-page-js
+  html += QStringLiteral("</body>\n");
   return html;
 }
 
 QString
-ParsedItems::toHtml()
+HtmlParser::toHtml()
 {
   QString html;
+  html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  html +=
+    QStringLiteral("<html "
+                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
+                   "    epub:prefix=\"z3998: "
+                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
+                   "    xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
+  html += QStringLiteral("<head>\n");
+  html += QStringLiteral("</head>\n");
+  html += QStringLiteral("<body>\n");
   foreach (ItemList list, m_lists) {
-    html += toHtml(list);
+    html += toHtml(list, 1);
   }
+  html += QStringLiteral("</body>\n");
   return html;
-}
-
-void
-ParsedItems::reorderItems()
-{
-  ItemList total_list;
-  foreach (ItemList list, m_lists) {
-    total_list.append(list);
-  }
-  m_total_list = total_list;
-  emit orderChanged();
 }
 
 /* EBItem
@@ -392,6 +350,7 @@ ParsedItems::reorderItems()
 EBItem::EBItem(EBItem::Type type)
 {
   setType(type);
+  m_indentable = UNCHANGED;
 }
 
 EBItem::~EBItem() {}
@@ -400,6 +359,12 @@ EBItem::Type
 EBItem::type()
 {
   return m_type;
+}
+
+void
+EBItem::setIndentable(const Indentable& indentable)
+{
+  m_indentable = indentable;
 }
 
 QChar
@@ -423,35 +388,7 @@ EBItem::setType(EBItem::Type type)
 QString
 EBItem::toString()
 {
-  switch (m_type) {
-    case SPAN:
-      return QStringLiteral("span");
-    case DIV:
-      return QStringLiteral("div");
-    case P:
-      return QStringLiteral("p");
-    case H1:
-      return "h1";
-    case H2:
-      return "h2";
-    case H3:
-      return "h3";
-    case H4:
-      return "h4";
-    case H5:
-      return "h5";
-    case H6:
-      return "h6";
-    case A:
-      return "a";
-    case IMG:
-      return "img";
-    case CHAR:
-      return QString(qchar());
-    case WORD:
-      return string();
-      //      default : return QString();
-  }
+  return QString();
 }
 
 /* EBTagBase
@@ -467,7 +404,9 @@ EBTagBase::EBTagBase(EBItem::Type type)
 EBTag::EBTag(EBItem::Type type)
   : EBTagBase(type)
   , m_closed(false)
-{}
+{
+  setIndentable(INDENT);
+}
 
 void
 EBTag::setClosed(bool value)
@@ -482,12 +421,14 @@ EBTag::setAttribute(QString name, QString value)
 }
 
 QString
-EBTag::toHtml()
+EBTag::toHtml(int indent)
 {
-  QString html = "<" + toString();
+  QString html;
+  //  html += HtmlParser::_indent();
+  html += "<" + fromType();
   foreach (QString key, m_attributes.keys()) {
     QString value = m_attributes.value(key);
-    html += QString(" %1=\"%2\"").arg(key).arg(value);
+    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
   }
   if (m_closed) {
     html += "/";
@@ -504,9 +445,10 @@ EBEndTag::EBEndTag(EBItem::Type type)
 {}
 
 QString
-EBEndTag::toHtml()
+EBEndTag::toHtml(int indent)
 {
-  QString html = "</" + toString() + ">";
+  QString html;
+  html = "</" + fromType() + ">";
   return html;
 }
 
@@ -516,7 +458,9 @@ EBEndTag::toHtml()
 EBChar::EBChar(char c)
   : QChar(c)
   , EBItem(Type::CHAR)
-{}
+{
+  setIndentable(UNCHANGED);
+}
 
 QChar
 EBChar::qchar()
@@ -525,10 +469,17 @@ EBChar::qchar()
 }
 
 QString
-EBChar::toHtml()
+EBChar::toHtml(int indent)
 {
-  QString html = toString();
+  QString html(*this);
   return html;
+}
+
+QString
+EBChar::toString()
+{
+  QChar c(*this);
+  return QString(c);
 }
 
 /* EBWord
@@ -546,21 +497,10 @@ EBWord::string()
 }
 
 QString
-EBWord::toHtml()
+EBWord::toHtml(int indent)
 {
-  QString html = string();
-}
-
-QTextCursor
-EBWord::cursor() const
-{
-  return m_cursor;
-}
-
-void
-EBWord::setCursor(const QTextCursor& cursor)
-{
-  m_cursor = cursor;
+  QString word = string();
+  return word;
 }
 
 /*********************************************************************************/

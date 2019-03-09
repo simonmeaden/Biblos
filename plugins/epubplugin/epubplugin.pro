@@ -28,18 +28,16 @@ DESTDIR = $$OUT_PWD/..
 
 SOURCES += \
     epubplugin.cpp \
-    epubcontainer.cpp \
     epubdocument.cpp \
     private/epubdocument_p.cpp \
-    htmlparser.cpp
+    epubcommon.cpp
 
 HEADERS += \
     epubplugin.h \
     epubplugin_global.h \
-    epubcontainer.h \
     epubdocument.h \
     private/epubdocument_p.h \
-    htmlparser.h
+    epubcommon.h
 
 DISTFILES += \
     epubplugin.json

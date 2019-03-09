@@ -13,6 +13,7 @@
 //#include "qyaml-cpp.h"
 //#include <yaml-cpp/yaml.h>
 
+#include "actiontabwidget.h"
 #include "ebookcommon.h"
 #include "iebookdocument.h"
 
@@ -46,15 +47,16 @@ signals:
 
 protected:
   // main document pointer.
-  IEBookDocument* m_document = nullptr;
+  EBookDocument m_document;
   QStackedWidget *m_doc_stack, *m_toc_stack;
   int m_stack_library, m_stack_editor;
   QFrame* m_tabs_frame;
   QSplitter* m_splitter;
-  QTabWidget* m_doc_tabs;
+  ActionTabWidget* m_doc_tabs;
   QTextBrowser* m_toc;
   LibraryFrame* m_library_frame;
   QMap<int, QWidget*> m_toc_backup;
+  QString m_jquery, m_onepage_js, m_onepage_css;
 
   Options::TocPosition m_toc_position;
   QMap<QString, ISpellInterface*> m_spellchecker_plugins;
@@ -101,7 +103,7 @@ protected:
   QFrame* m_popup;
   //  QTimer* m_popuptimer;
   int m_popupindex;
-  QTextDocument* m_current_document;
+  EBookDocument m_current_document;
   ISpellInterface* m_current_spell_checker;
 
   void initBuild();
@@ -125,7 +127,7 @@ protected:
 
   void loadPlugins();
   void loadDocument(QString file_name, bool from_library = false);
-  void saveDocument(IEBookDocument* document);
+  void saveDocument(EBookDocument document);
 
   QString concatenateAuthorNames(AuthorList names);
   QString concatenateAuthorNames(QStringList names);
@@ -145,7 +147,7 @@ protected:
   void setObjectVisibility(int index = 0);
 
   void buildTocFromData();
-  void builManualToc();
+  void buildManualToc();
   void addTocAnchors();
 
 protected: // Menu/StatusBar stuff
@@ -260,10 +262,10 @@ protected: // Menu/StatusBar stuff
 
   void loadLibraryFiles(QStringList current_lib_files, int currentindex);
   EBookDocumentType checkMimetype(QString filename);
-  void setModifiedAuthors(IEBookDocument* doc, AuthorList authors);
+  void setModifiedAuthors(EBookDocument doc, AuthorList authors);
   void setLibraryToolbarState();
-  IEBookDocument* copyToLibraryAndOpen(QString& filename,
-                                       IEBookInterface* ebook_plugin);
+  EBookDocument copyToLibraryAndOpen(QString& filename,
+                                     IEBookInterface* ebook_plugin);
 };
 
 #endif // MAINWINDOW_H

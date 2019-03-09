@@ -16,8 +16,8 @@ main(int argc, char* argv[])
   //  QCoreApplication::setOrganizationDomain("smelecomp.co.uk");
   QCoreApplication::setApplicationName("Biblos");
 
-  qRegisterMetaType<EBookEditor>();
-  qRegisterMetaType<EBookCodeEditor>();
+  //  qRegisterMetaType<WebView>();
+  //  qRegisterMetaType<EBookCodeEditor>();
   //  qRegisterMetaType<EBookAuthorData>();
   //  qRegisterMetaType<EBookData>();
   //  qRegisterMetaType<EPubDocument>();

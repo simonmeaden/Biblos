@@ -83,11 +83,22 @@ MainWindow::MainWindow(QWidget* parent)
   loadSeries();
   loadLibrary();
 
-  //  /* The database file will be created automatically by SqLite if it
-  //   * does not exist. The tables are created if they do not already exist.
-  //   */
-  //  QString db_path = m_config_directory + QDir::separator() + DB_NAME;
-  //  m_database = new DbManager(db_path, parent);
+  QFile file;
+  file.setFileName(":/files/jquery");
+  file.open(QIODevice::ReadOnly);
+  m_jquery = file.readAll();
+  m_jquery.append("\nvar qt = { 'jQuery': jQuery.noConflict(true) };");
+  file.close();
+
+  file.setFileName(":/files/one_page_js");
+  file.open(QIODevice::ReadOnly);
+  m_onepage_js = file.readAll();
+  file.close();
+
+  file.setFileName(":/files/one_page_css");
+  file.open(QIODevice::ReadOnly);
+  m_onepage_css = file.readAll();
+  file.close();
 
   initSetup();
 
@@ -188,8 +199,10 @@ MainWindow::initGui()
 
   m_toc_stack = new QStackedWidget(this);
 
-  m_doc_tabs = new QTabWidget(this);
+  m_doc_tabs = new ActionTabWidget(this);
   m_doc_tabs->setTabsClosable(true);
+  installEventFilter(m_doc_tabs);
+
   connect(m_doc_tabs,
           &QTabWidget::currentChanged,
           this,
@@ -295,11 +308,12 @@ MainWindow::initMenus()
 void
 MainWindow::initFileActions()
 {
-  QPixmap open_icon, save_icon;
+  QPixmap new_icon, open_icon, save_icon;
+  QPixmapCache::find(m_options->new_key, &new_icon);
   QPixmapCache::find(m_options->open_key, &open_icon);
   QPixmapCache::find(m_options->save_key, &save_icon);
 
-  m_file_new = new QAction(open_icon, tr("&New"), this);
+  m_file_new = new QAction(new_icon, tr("&New"), this);
   //    m_fileopen->setCheckable(true);
   m_file_new->setShortcut(QKeySequence::New);
   m_file_new->setStatusTip(tr("Create a new empty file."));
@@ -610,6 +624,7 @@ MainWindow::initToolbar()
   m_lib_type_toolbar->setIconSize(QSize(48, 48));
 
   m_file_toolbar = addToolBar("file toolbar");
+  m_file_toolbar->addAction(m_file_new);
   m_file_toolbar->addAction(m_file_open);
   m_file_toolbar->addAction(m_file_save);
   // TODO maybe reinstate this ?  m_file_save->setVisible(false);
@@ -873,7 +888,7 @@ MainWindow::selectAuthorNames(QString filename, QString title)
 }
 
 void
-MainWindow::setModifiedAuthors(IEBookDocument* doc, AuthorList authors)
+MainWindow::setModifiedAuthors(EBookDocument doc, AuthorList authors)
 {
   QStringList names;
   foreach (AuthorData author, authors) {
@@ -883,11 +898,11 @@ MainWindow::setModifiedAuthors(IEBookDocument* doc, AuthorList authors)
   setStatusModified();
 }
 
-IEBookDocument*
+EBookDocument
 MainWindow::copyToLibraryAndOpen(QString& filename,
                                  IEBookInterface* ebook_plugin)
 {
-  IEBookDocument* ebook_document;
+  EBookDocument ebook_document;
   // load the supplied ebook.
   ebook_document = ebook_plugin->createDocument(filename);
   QStringList author_list = ebook_document->creators();
@@ -1015,7 +1030,7 @@ MainWindow::loadDocument(QString file_name, bool from_library)
     }
   }
 
-  IEBookDocument* ebook_document;
+  EBookDocument ebook_document;
   if (ebook_plugin) {
     if (!from_library) {
       ebook_document = copyToLibraryAndOpen(filename, ebook_plugin);
@@ -1023,15 +1038,25 @@ MainWindow::loadDocument(QString file_name, bool from_library)
 
     // reload the ebook document from the library version of the file.
     ebook_document = ebook_plugin->createDocument(filename);
-    ITextDocument* itextdocument;
+    //    ITextDocument* itextdocument=nullptr;
     EBookWrapper* wrapper;
     QString tabname;
-    itextdocument = dynamic_cast<ITextDocument*>(ebook_document);
+    EITextDocument itextdocument = ebook_document.dynamicCast<ITextDocument>();
+    //    ebook_document.dynamicCast<ITextDocument>();///dynamic_cast<ITextDocument*>(ebook_document);
     //    htmldocument->setPlugin(ebook_plugin);
-    //    IEBookDocument* codeDocument = ebook_plugin->createCodeDocument();
-    wrapper = new EBookWrapper(
-      m_options, m_authors_db, m_series_db, m_library_db, this);
+    //    EBookdocument codeDocument = ebook_plugin->createCodeDocument();
+    wrapper = new EBookWrapper(m_options,
+                               m_authors_db,
+                               m_series_db,
+                               m_library_db,
+                               m_jquery,
+                               m_onepage_js,
+                               m_onepage_css,
+                               this);
+    QStringList spine = ebook_document->spine();
+    QMap<QString, QString> pages = ebook_document->pages();
     wrapper->editor()->setDocument(ebook_document);
+    wrapper->editor()->setCurrentPage(m_library_db->currentBookId(filename));
 
     EBookTOCWidget* toc_widget = new EBookTOCWidget(this);
     toc_widget->setOpenLinks(false);
@@ -1047,7 +1072,7 @@ MainWindow::loadDocument(QString file_name, bool from_library)
     connect(toc_widget,
             &EBookTOCWidget::buildManualToc,
             this,
-            &MainWindow::builManualToc);
+            &MainWindow::buildManualToc);
     connect(toc_widget,
             &EBookTOCWidget::addAnchorsToToc,
             this,
@@ -1060,8 +1085,8 @@ MainWindow::loadDocument(QString file_name, bool from_library)
                 .arg(ebook_document->title())
                 .arg(ebook_document->creatorNames(ebook_document->creators())));
     m_doc_tabs->addTab(wrapper, tabname);
-    m_current_document = dynamic_cast<QTextDocument*>(ebook_document);
-    connect(itextdocument,
+    m_current_document = ebook_document;
+    connect(itextdocument.data(),
             &ITextDocument::loadCompleted,
             wrapper,
             &EBookWrapper::update);
@@ -1171,11 +1196,11 @@ MainWindow::cleanString(QString unclean)
   return clean;
 }
 void
-MainWindow::saveDocument(IEBookDocument* document)
+MainWindow::saveDocument(EBookDocument document)
 {
   //  EBookWrapper* wrapper =
-  //  qobject_cast<EBookWrapper*>(m_tabs->currentWidget()); IEBookDocument*
-  //  current_doc =
+  //  qobject_cast<EBookWrapper*>(m_tabs->currentWidget());
+  // EBookdocument  current_doc =
   //      dynamic_cast<IEBookDocument*>(wrapper->codeEditor()->document());
   if (document) {
     //    IEBookInterface* plugin = document->plugin();
@@ -1191,12 +1216,13 @@ MainWindow::documentChanged(int index)
       m_options->setCurrentIndex(index);
       EBookWrapper* wrapper =
         qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
-      QTextDocument* textdocument =
-        dynamic_cast<QTextDocument*>(wrapper->editor()->document());
-      IEBookDocument* iebookdocument =
-        dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+      //      QTextDocument* textdocument =
+      //        dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+      EBookDocument iebookdocument = wrapper->editor()->document();
+      wrapper->editor()->setFocusPolicy(Qt::StrongFocus);
+      wrapper->editor()->setFocus();
 
-      if (textdocument->isModified()) {
+      if (iebookdocument->isModified()) {
         setStatusModified();
       } else {
         setStatusNotModified();
@@ -1208,8 +1234,8 @@ MainWindow::documentChanged(int index)
       //      }
       setStatusFilename(iebookdocument->filename());
 
-      if (textdocument) {
-        m_current_document = textdocument;
+      if (iebookdocument) {
+        m_current_document = iebookdocument;
 
         if (iebookdocument) {
           QString language = iebookdocument->language();
@@ -1232,21 +1258,20 @@ MainWindow::tabClosing(int index)
 {
   EBookWrapper* wrapper =
     qobject_cast<EBookWrapper*>(m_doc_tabs->widget(index));
-  QTextDocument* textdocument =
-    dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  EBookDocument textdocument = wrapper->editor()->document();
   if (textdocument->isModified()) {
     // TODO - Check if the user wants to save the document.
-    IEBookDocument* itextdocument =
-      dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
-    if (itextdocument) {
-      saveDocument(itextdocument);
+    //    IEBookDocument* itextdocument =
+    //      dynamic_cast<IEBookDocument*>(wrapper->editor()->document());
+    if (textdocument) {
+      saveDocument(textdocument);
     }
   }
   m_doc_tabs->removeTab(index);
 
   // load next document from m_tabs;
   wrapper = qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
-  textdocument = dynamic_cast<QTextDocument*>(wrapper->editor()->document());
+  textdocument = wrapper->editor()->document();
   if (wrapper) {
     if (textdocument) {
       m_current_document = textdocument;
@@ -1299,11 +1324,11 @@ MainWindow::fileSave()
   EBookWrapper* wrapper =
     qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   if (wrapper) {
-    QTextDocument* textdocument =
-      qobject_cast<QTextDocument*>(wrapper->editor()->document());
-    IEBookDocument* itextdocument = dynamic_cast<IEBookDocument*>(textdocument);
+    EBookDocument textdocument = wrapper->editor()->document();
+    //    IEBookDocument* itextdocument =
+    //    dynamic_cast<IEBookDocument*>(textdocument);
     if (textdocument->isModified()) {
-      saveDocument(itextdocument);
+      saveDocument(textdocument);
     }
   }
 }
@@ -1588,13 +1613,13 @@ MainWindow::tocAnchorClicked(QUrl url)
 {
   EBookWrapper* wrapper =
     qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
-  EBookEditor* editor = wrapper->editor();
+  WebView* editor = wrapper->editor();
   QString fragment = url.fragment();
-  if (fragment.isEmpty()) {
-    editor->scrollToAnchor(url.path());
-  } else {
-    editor->scrollToAnchor(fragment);
-  }
+  //  if (fragment.isEmpty()) {
+  //    editor->scrollToAnchor(url.path());
+  //  } else {
+  //    editor->scrollToAnchor(fragment);
+  //  }
 }
 
 void
@@ -1638,7 +1663,7 @@ MainWindow::buildTocFromData()
   EBookWrapper* wrapper =
     qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   int index = m_doc_tabs->currentIndex();
-  EBookEditor* editor = wrapper->editor();
+  WebView* editor = wrapper->editor();
   // get new toc data
   QString toc_string = editor->buildTocFromData();
   // create new data widget
@@ -1651,7 +1676,7 @@ MainWindow::buildTocFromData()
   connect(new_toc_widget,
           &EBookTOCWidget::buildManualToc,
           this,
-          &MainWindow::builManualToc);
+          &MainWindow::buildManualToc);
   new_toc_widget->setDocumentString(toc_string);
   // get current toc widget
   QWidget* toc_widget = m_toc_stack->currentWidget();
@@ -1666,7 +1691,7 @@ MainWindow::buildTocFromData()
 }
 
 void
-MainWindow::builManualToc()
+MainWindow::buildManualToc()
 {
   int index = m_doc_tabs->currentIndex();
 

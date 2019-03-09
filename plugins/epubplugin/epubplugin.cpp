@@ -11,9 +11,9 @@ const int EPubPlugin::m_major_version = EPUB_VERSION_MAJOR;
 const int EPubPlugin::m_minor_version = EPUB_VERSION_MINOR;
 const int EPubPlugin::m_build_version = EPUB_VERSION_BUILD;
 const QString EPubPlugin::m_version = QString("%1.%2.%3")
-                                      .arg(EPubPlugin::m_major_version)
-                                      .arg(EPubPlugin::m_minor_version)
-                                      .arg(EPubPlugin::m_build_version);
+                                        .arg(EPubPlugin::m_major_version)
+                                        .arg(EPubPlugin::m_minor_version)
+                                        .arg(EPubPlugin::m_build_version);
 bool EPubPlugin::m_loaded = false;
 
 const QString EPubPlugin::m_file_filter = "*.epub";
@@ -21,8 +21,7 @@ const QString EPubPlugin::m_file_description = "EPub Document";
 
 EPubPlugin::EPubPlugin(QObject* parent)
   : QObject(parent)
-{
-}
+{}
 
 /*!
  * \brief Creates an EBookDocument from the supplied file path.
@@ -30,9 +29,10 @@ EPubPlugin::EPubPlugin(QObject* parent)
  * \param path - the path to the required file.
  * \return a new EBookDocument;
  */
-IEBookDocument* EPubPlugin::createDocument(QString path)
+EBookDocument
+EPubPlugin::createDocument(QString path)
 {
-  m_document = new EPubDocument(this);
+  m_document = EBookDocument(new EPubDocument(this));
   m_document->openDocument(path);
   return m_document;
 }
@@ -45,80 +45,94 @@ IEBookDocument* EPubPlugin::createDocument(QString path)
  * \param doc - the original EBookDocument.
  * \return a new EBookDocument;
  */
-IEBookDocument* EPubPlugin::createCodeDocument()
+EBookDocument
+EPubPlugin::createCodeDocument()
 {
   if (m_document) {
     //    EBookContents *contents = doc->cloneData();
-//    EPubDocument* document = new EPubDocument(m_library, m_authors, parent());
-//    document->setDocumentLayout(new QPlainTextDocumentLayout(document));
+    //    EPubDocument* document = new EPubDocument(m_library, m_authors,
+    //    parent()); document->setDocumentLayout(new
+    //    QPlainTextDocumentLayout(document));
     //    document->setClonedData(contents);
-//    return document;
+    //    return document;
   }
   return nullptr;
 }
 
-// void EPubPlugin::saveDocument(IEBookDocument* document)
+// void EPubPlugin::saveDocument(EBookDocument document)
 //{
 //  QString filename = document->filename();
 //  // TODO actual save epub file.
 //}
 
-QString EPubPlugin::fileFilter()
+QString
+EPubPlugin::fileFilter()
 {
   return m_file_filter;
 }
 
-QString EPubPlugin::fileDescription()
+QString
+EPubPlugin::fileDescription()
 {
   return m_file_description;
 }
 
-QString EPubPlugin::pluginGroup() const
+QString
+EPubPlugin::pluginGroup() const
 {
   return m_plugin_group;
 }
 
-QString EPubPlugin::pluginName() const
+QString
+EPubPlugin::pluginName() const
 {
   return m_plugin_name;
 }
 
-QString EPubPlugin::vendor() const
+QString
+EPubPlugin::vendor() const
 {
   return m_vendor;
 }
 
-bool EPubPlugin::loaded() const
+bool
+EPubPlugin::loaded() const
 {
   return m_loaded;
 }
 
-void EPubPlugin::setLoaded(bool loaded)
+void
+EPubPlugin::setLoaded(bool loaded)
 {
   m_loaded = loaded;
 }
 
-QString EPubPlugin::version() const
+QString
+EPubPlugin::version() const
 {
   return m_version;
 }
 
-int EPubPlugin::majorVersion() const
+int
+EPubPlugin::majorVersion() const
 {
   return m_major_version;
 }
 
-int EPubPlugin::minorVersion() const
+int
+EPubPlugin::minorVersion() const
 {
   return m_minor_version;
 }
 
-int EPubPlugin::buildVersion() const
+int
+EPubPlugin::buildVersion() const
 {
   return m_build_version;
 }
 
-void EPubPlugin::buildMenu()
+void
+EPubPlugin::buildMenu()
 {
   // TODO.
 }

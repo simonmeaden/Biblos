@@ -1,39 +1,31 @@
 #include "ebookwrapper.h"
-#include "ebookwordreader.h"
 
 EBookWrapper::EBookWrapper(Options* options,
                            AuthorsDB authors,
                            SeriesDB series_db,
                            LibraryDB library,
+                           QString jquery,
+                           QString one_page_js,
+                           QString one_page_css,
                            QWidget* parent)
   : QStackedWidget(parent)
-  , m_editor(new EBookEditor(parent))
   , m_codeeditor(new EBookCodeEditor(options, parent))
   , m_metaeditor(
       new MetadataEditor(options, authors, series_db, library, parent))
-  /* ,m_word_reader(new EBookWordReader(m_editor, this)),*/
   , m_editorindex(0)
   , m_codeindex(0)
   , m_metaindex(0)
   , m_options(options)
 {
-  //  Qt::TextInteractionFlags flags = m_editor->textInteractionFlags();
-  //  flags ^= Qt::TextEditorInteraction; // add editing capabilities (this
-  //  should be the default) flags |= Qt::TextBrowserInteraction; // add link
-  //  interaction capabilities (this shouldn't)
-  //  m_editor->setTextInteractionFlags(flags);
+  m_profile = QWebEngineProfile::defaultProfile();
+  m_editor =
+    new WebView(options, jquery, one_page_js, one_page_css, m_profile, parent);
   m_editorindex = addWidget(m_editor);
   m_codeindex = addWidget(m_codeeditor);
   m_metaindex = addWidget(m_metaeditor);
-
-  //  connect(m_editor, &EBookEditor::documentLoaded, m_word_reader,
-  //  &EBookWordReader::documentIsLoaded); m_word_reader->start();
 }
 
-EBookWrapper::~EBookWrapper()
-{
-  /*m_word_reader->stopRunning();*/
-}
+EBookWrapper::~EBookWrapper() {}
 
 void
 EBookWrapper::setToEditor()
@@ -59,7 +51,7 @@ EBookWrapper::codeEditor()
   return m_codeeditor;
 }
 
-EBookEditor*
+WebView*
 EBookWrapper::editor()
 {
   return m_editor;
@@ -75,12 +67,6 @@ void
 EBookWrapper::optionsHaveChanged()
 {
   m_codeeditor->rehighlight();
-}
-
-void
-EBookWrapper::startWordReader()
-{
-  /*m_word_reader->start();*/
 }
 
 void

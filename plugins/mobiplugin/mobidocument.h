@@ -68,6 +68,8 @@ public:
   QString buildTocFromData() override;
 
   Metadata metadata();
+  QMap<QString, QString> pages() override {}
+  QStringList spine() override {}
 
 protected:
   MobiDocumentPrivate* d_ptr;

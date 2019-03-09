@@ -55,36 +55,36 @@ EPubContainer::EPubContainer(QObject* parent)
 
 EPubContainer::~EPubContainer() {}
 
-bool
-EPubContainer::loadFile(const QString path)
-{
-  // open the epub as a zip file
-  m_archive = new QuaZip(path);
-  m_filename = path; // stored against modification;
-  if (!m_archive->open(QuaZip::mdUnzip)) {
-    QLOG_DEBUG(tr("Failed to open %1").arg(path));
-    return false;
-  }
+// bool
+// EPubContainer::loadFile(const QString path)
+//{
+//  // open the epub as a zip file
+//  m_archive = new QuaZip(path);
+//  m_filename = path; // stored against modification;
+//  if (!m_archive->open(QuaZip::mdUnzip)) {
+//    QLOG_DEBUG(tr("Failed to open %1").arg(path));
+//    return false;
+//  }
 
-  // get list of filenames from zip file
-  m_files = m_archive->getFileNameList();
-  if (m_files.isEmpty()) {
-    QLOG_DEBUG(tr("Failed to read %1").arg(path));
-    return false;
-  }
+//  // get list of filenames from zip file
+//  m_files = m_archive->getFileNameList();
+//  if (m_files.isEmpty()) {
+//    QLOG_DEBUG(tr("Failed to read %1").arg(path));
+//    return false;
+//  }
 
-  // Get and check that the mimetype is correct.
-  // According to the standard this must be unencrypted.
-  if (!parseMimetype()) {
-    return false;
-  }
+//  // Get and check that the mimetype is correct.
+//  // According to the standard this must be unencrypted.
+//  if (!parseMimetype()) {
+//    return false;
+//  }
 
-  if (!parseContainer()) {
-    return false;
-  }
+//  if (!parseContainer()) {
+//    return false;
+//  }
 
-  return true;
-}
+//  return true;
+//}
 
 QString
 EPubContainer::filename()
@@ -223,87 +223,63 @@ EPubContainer::manifest()
   return m_manifest;
 }
 
-bool
-EPubContainer::parseMimetype()
-{
-  if (m_files.contains(MIMETYPE_FILE)) {
-    m_archive->setCurrentFile(MIMETYPE_FILE);
-    QuaZipFile mimetypeFile(m_archive);
+// bool
+// EPubContainer::parseContainer()
+//{
+//  if (m_files.contains(CONTAINER_FILE)) {
+//    m_archive->setCurrentFile(CONTAINER_FILE);
+//    QuaZipFile containerFile(m_archive);
+//    containerFile.setZip(m_archive);
 
-    if (!mimetypeFile.open(QIODevice::ReadOnly)) {
-      int error = m_archive->getZipError();
-      QLOG_DEBUG(tr("Unable to open mimetype file : error %1").arg(error));
-      return false;
-    }
+//    if (!containerFile.open(QIODevice::ReadOnly)) {
+//      int error = m_archive->getZipError();
+//      QLOG_DEBUG(tr("Unable to open container file error %1").arg(error));
+//      return false;
+//    }
 
-    m_mimetype = mimetypeFile.readAll();
-    if (m_mimetype != MIMETYPE) {
-      QLOG_DEBUG(tr("Unexpected mimetype %1").arg(QString(m_mimetype)));
-    }
-  } else {
-    QLOG_DEBUG(tr("Unable to find mimetype in file"));
-    return false;
-  }
-  return true;
-}
+//    QString container(containerFile.readAll());
+//    QDomDocument container_document;
+//    container_document.setContent(container);
+//    QDomElement root_elem = container_document.documentElement();
+//    QDomNamedNodeMap att_map = root_elem.attributes();
+//    m_container_version = root_elem.attribute("version");
+//    m_container_xmlns = root_elem.attribute("xmlns");
 
-bool
-EPubContainer::parseContainer()
-{
-  if (m_files.contains(CONTAINER_FILE)) {
-    m_archive->setCurrentFile(CONTAINER_FILE);
-    QuaZipFile containerFile(m_archive);
-    containerFile.setZip(m_archive);
+//    QDomNodeList root_files = root_elem.elementsByTagName("rootfiles");
+//    if (root_files.size() > 0) {
+//      QDomElement rootfiles_elem = root_files.at(0).toElement();
+//      QDomNodeList root_nodes = root_elem.elementsByTagName("rootfile");
+//      for (int i = 0; i < root_nodes.count(); i++) {
+//        QDomElement root_element = root_nodes.at(i).toElement();
+//        m_container_fullpath = root_element.attribute("full-path");
+//        m_container_mediatype = root_element.attribute("media-type");
+//        if (m_container_fullpath.isEmpty()) {
+//          QLOG_WARN(tr("Invalid root file entry"));
+//          continue;
+//        }
+//        if (parsePackageFile(m_container_fullpath)) {
+//          return true;
+//        }
+//      }
+//    }
 
-    if (!containerFile.open(QIODevice::ReadOnly)) {
-      int error = m_archive->getZipError();
-      QLOG_DEBUG(tr("Unable to open container file error %1").arg(error));
-      return false;
-    }
+//  } else {
+//    QLOG_DEBUG(tr("Unable to find container information"));
+//    return false;
+//  }
 
-    QString container(containerFile.readAll());
-    QDomDocument container_document;
-    container_document.setContent(container);
-    QDomElement root_elem = container_document.documentElement();
-    QDomNamedNodeMap att_map = root_elem.attributes();
-    m_container_version = root_elem.attribute("version");
-    m_container_xmlns = root_elem.attribute("xmlns");
+//  // Limitations:
+//  //  - We only read one rootfile
+//  //  - We don't read the following from META-INF/
+//  //     - manifest.xml (unknown contents, just reserved)
+//  //     - metadata.xml (unused according to spec, just reserved)
+//  //     - rights.xml (reserved for DRM, not standardized)
+//  //     - signatures.xml (signatures for files, standardized)
+//  // Actually these are rarely included in an epub file anyway.
 
-    QDomNodeList root_files = root_elem.elementsByTagName("rootfiles");
-    if (root_files.size() > 0) {
-      QDomElement rootfiles_elem = root_files.at(0).toElement();
-      QDomNodeList root_nodes = root_elem.elementsByTagName("rootfile");
-      for (int i = 0; i < root_nodes.count(); i++) {
-        QDomElement root_element = root_nodes.at(i).toElement();
-        m_container_fullpath = root_element.attribute("full-path");
-        m_container_mediatype = root_element.attribute("media-type");
-        if (m_container_fullpath.isEmpty()) {
-          QLOG_WARN(tr("Invalid root file entry"));
-          continue;
-        }
-        if (parsePackageFile(m_container_fullpath)) {
-          return true;
-        }
-      }
-    }
-
-  } else {
-    QLOG_DEBUG(tr("Unable to find container information"));
-    return false;
-  }
-
-  // Limitations:
-  //  - We only read one rootfile
-  //  - We don't read the following from META-INF/
-  //     - manifest.xml (unknown contents, just reserved)
-  //     - metadata.xml (unused according to spec, just reserved)
-  //     - rights.xml (reserved for DRM, not standardized)
-  //     - signatures.xml (signatures for files, standardized)
-  // Actually these are rarely included in an epub file anyway.
-
-  QLOG_DEBUG(tr("Unable to find and use any content files"));
-  return false;
-}
+//  QLOG_DEBUG(tr("Unable to find and use any content files"));
+//  return false;
+//}
 
 // void EPubContainer::createChapterAnchorPoints(SharedSpineItem spine_item)
 //{

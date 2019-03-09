@@ -2,11 +2,13 @@
 #define EBOOKWRAPPER_H
 
 #include <QStackedWidget>
+#include <QWebEngineProfile>
 
 #include "ebookcodeeditor.h"
 #include "ebookcommon.h"
-#include "ebookeditor.h"
+//#include "ebookeditor.h"
 #include "metadataeditor.h"
+#include "webview.h"
 
 class EBookWordReader;
 
@@ -19,6 +21,9 @@ public:
                AuthorsDB authors,
                SeriesDB series_db,
                LibraryDB library,
+               QString jquery,
+               QString one_page_js,
+               QString one_page_css,
                QWidget* parent = nullptr);
   ~EBookWrapper();
 
@@ -26,15 +31,15 @@ public:
   void setToCode();
   void setToMetadata();
   EBookCodeEditor* codeEditor();
-  EBookEditor* editor();
+  WebView* editor();
   MetadataEditor* metaEditor();
   void optionsHaveChanged();
-  void startWordReader();
 
   void update();
 
 protected:
-  EBookEditor* m_editor;
+  WebView* m_editor;
+  QWebEngineProfile* m_profile;
   EBookCodeEditor* m_codeeditor;
   MetadataEditor* m_metaeditor;
   //  EBookWordReader* m_word_reader;

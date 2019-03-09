@@ -86,6 +86,8 @@ public:
   void setPublisher(const QString& publisher) override;
 
   Metadata metadata() override;
+  QMap<QString, QString> pages() override;
+  QStringList spine() override;
 
 signals:
   void orderChanged();

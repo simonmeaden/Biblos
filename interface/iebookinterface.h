@@ -10,21 +10,17 @@
 #include "library.h"
 #include "options.h"
 
-class EBookDocument;
-
 /*!
  * \brief The interface for all EBookEdit plugins.
  */
 class INTERFACESHARED_EXPORT IEBookInterface : public IPluginInterface
 {
 public:
-  virtual ~IEBookInterface()
-  {
-  }
+  virtual ~IEBookInterface() {}
 
-  virtual IEBookDocument* createDocument(QString filename) = 0;
-  virtual IEBookDocument* createCodeDocument() = 0;
-  //  virtual void saveDocument(IEBookDocument* document) = 0;
+  virtual EBookDocument createDocument(QString filename) = 0;
+  virtual EBookDocument createCodeDocument() = 0;
+  //  virtual void saveDocument(EBookDocument document) = 0;
 
   virtual QString fileFilter() = 0;
   virtual QString fileDescription() = 0;

@@ -50,7 +50,6 @@ SOURCES += \
     xhtmlhighlighter.cpp \
     ebookcodeeditor.cpp \
     ebookwrapper.cpp \
-    ebookeditor.cpp \
     deletefiledialog.cpp \
     authordialog.cpp \
     metadataeditor.cpp \
@@ -62,8 +61,9 @@ SOURCES += \
     ebooktocwidget.cpp \
     ebooktoceditor.cpp \
     focuslineedit.cpp \
-    ebookview.cpp \
-    webpage.cpp
+    webpage.cpp \
+    webview.cpp \
+    actiontabwidget.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -71,7 +71,6 @@ HEADERS += \
     xhtmlhighlighter.h \
     ebookcodeeditor.h \
     ebookwrapper.h \
-    ebookeditor.h \
     deletefiledialog.h \
     authordialog.h \
     metadataeditor.h \
@@ -83,11 +82,11 @@ HEADERS += \
     ebooktocwidget.h \
     ebooktoceditor.h \
     focuslineedit.h \
-    ebookview.h \
-    webpage.h
+    webpage.h \
+    webview.h \
+    actiontabwidget.h
 
-FORMS += \
-        mainwindow.ui
+FORMS +=
 
 RESOURCES += \
     icons.qrc
