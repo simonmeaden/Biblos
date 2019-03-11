@@ -33,6 +33,9 @@ public:
   QString buildTocFromData();
   //  bool event(QEvent* event) override;
 
+  int scrollWidth();
+  int scrollHeight();
+
 signals:
   void webActionEnabledChanged(QWebEnginePage::WebAction webAction,
                                bool enabled);

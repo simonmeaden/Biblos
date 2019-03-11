@@ -49,7 +49,7 @@ public:
   // metadata is stored in a QMultiHash to allow multiple values
   // of a key. eg. there might be more than one "creator" tag.
   QStringList itemKeys();
-  SharedManifestItem item(QString key);
+  ManifestItem item(QString key);
   QString css(QString key);
   QString javascript(QString key);
   QString itemDocument(QString key);
@@ -61,7 +61,7 @@ public:
   QStringList creators();
 
   Metadata metadata();
-  EPubManifest manifest();
+  EBookManifest manifest();
 
   QString buildTocfromHtml();
 
@@ -97,11 +97,11 @@ protected:
 
   bool parseManifestItem(const QDomNode& manifest_node,
                          const QString current_folder);
-  void extractHeadInformationFromHtmlFile(SharedManifestItem item,
+  void extractHeadInformationFromHtmlFile(ManifestItem item,
                                           QString container);
 
-  SharedSpineItem parseSpineItem(const QDomNode& metadata_element,
-                                 SharedSpineItem item);
+  SpineItem parseSpineItem(const QDomNode& metadata_element,
+                                 SpineItem item);
   bool saveSpineItem();
   bool parseTocFile();
   bool parseGuideItem(const QDomNode& guideItem);
@@ -129,11 +129,11 @@ protected:
   QMap<QString, QDomElement*> m_metadata_nodes;
   int m_toc_chapter_index;
 
-  SharedTocItem parseNavPoint(QDomElement navpoint,
+  TocItem parseNavPoint(QDomElement navpoint,
                               QString& formatted_toc_data);
 
-  void createAnchorPointForChapter(SharedTocItem toc_item,
-                                   SharedManifestItem manifest_item);
+  void createAnchorPointForChapter(TocItem toc_item,
+                                   ManifestItem manifest_item);
   //  void createChapterAnchorPoints(SharedSpineItem spine_item);
   QString extractTagText(int anchor_start, QString document_string);
   void handleSubNavpoints(QDomElement navpoint, QString& formatted_toc_string);

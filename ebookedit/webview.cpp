@@ -136,6 +136,21 @@ WebView::buildTocFromData()
   return m_ebook_document->buildTocFromData();
 }
 
+int
+WebView::scrollWidth()
+{
+  //  page()->runJavaScript("document.documentElement.scrollWidth;",
+  //                        [=](const QVariant& result) {result =});
+}
+
+int
+WebView::scrollHeight()
+{
+  //  page()->runJavaScript(
+  //    "document.documentElement.scrollHeight;",
+  //    [=](QVariant result) { int newHeight = result.toInt(); });
+}
+
 // bool
 // WebView::event(QEvent* event)
 //{

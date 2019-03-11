@@ -12,6 +12,12 @@ public:
   enum Type
   {
     NONE,
+    STYLE,
+    LINK,
+    HTML,
+    HEAD,
+    META,
+    TITLE,
     SPAN,
     DIV,
     P,
@@ -71,89 +77,8 @@ public:
   virtual QString toHtml(int indent) = 0;
   virtual QChar qchar();
   virtual QString string();
-  //  virtual int indent(int indent) { return indent; }
 
-  static Type fromString(QString type)
-  {
-    QString t = type.toLower();
-    if (t == "span")
-      return SPAN;
-    else if (t == "div")
-      return DIV;
-    else if (t == "p")
-      return P;
-    else if (t == "a")
-      return A;
-    else if (t == "h1")
-      return H1;
-    else if (t == "h2")
-      return H2;
-    else if (t == "h3")
-      return H3;
-    else if (t == "h4")
-      return H4;
-    else if (t == "h5")
-      return H5;
-    else if (t == "h6")
-      return H6;
-    else if (t == "img")
-      return IMG;
-    else if (t == "image")
-      return IMAGE;
-    else if (t == "sub")
-      return SUB;
-    else if (t == "ul")
-      return UL;
-    else if (t == "ol")
-      return OL;
-    else if (t == "li")
-      return LI;
-    else if (t == "dd")
-      return DD;
-    else if (t == "dt")
-      return DT;
-    else if (t == "dl")
-      return DL;
-    else if (t == "table")
-      return TABLE;
-    else if (t == "td")
-      return TD;
-    else if (t == "th")
-      return TH;
-    else if (t == "tr")
-      return TR;
-    else if (t == "thead")
-      return THEAD;
-    else if (t == "tfoot")
-      return TFOOT;
-    else if (t == "tbody")
-      return TBODY;
-    else if (t == "caption")
-      return CAPTION;
-    else if (t == "col")
-      return COL;
-    else if (t == "colgroup")
-      return COLGROUP;
-    else if (t == "strong")
-      return STRONG;
-    else if (t == "small")
-      return SMALL;
-    else if (t == "em")
-      return EM;
-    else if (t == "b")
-      return B;
-    else if (t == "br")
-      return BR;
-    else if (t == "center")
-      return CENTER;
-    else if (t == "hr")
-      return HR;
-    else if (t == "svg")
-      return SVG;
-    else
-      return NONE;
-    // WORD and CHAR are handled within the parser.
-  }
+  static Type fromString(QString type);
 
 protected:
   Type m_type;
@@ -173,87 +98,7 @@ public:
   EBTagBase(Type type);
 
 protected:
-  QString fromType()
-  {
-    switch (m_type) {
-      case SPAN:
-        return QStringLiteral("span");
-      case DIV:
-        return QStringLiteral("div");
-      case P:
-        return QStringLiteral("p");
-      case A:
-        return QStringLiteral("a");
-      case H1:
-        return QStringLiteral("h1");
-      case H2:
-        return QStringLiteral("h2");
-      case H3:
-        return QStringLiteral("h3");
-      case H4:
-        return QStringLiteral("h4");
-      case H5:
-        return QStringLiteral("h5");
-      case H6:
-        return QStringLiteral("h6");
-      case IMG:
-        return QStringLiteral("img");
-      case IMAGE:
-        return QStringLiteral("image");
-      case SUB:
-        return QStringLiteral("sub");
-      case UL:
-        return QStringLiteral("ul");
-      case OL:
-        return QStringLiteral("ol");
-      case LI:
-        return QStringLiteral("li");
-      case DD:
-        return QStringLiteral("dd");
-      case DT:
-        return QStringLiteral("dt");
-      case DL:
-        return QStringLiteral("dl");
-      case TABLE:
-        return QStringLiteral("table");
-      case TD:
-        return QStringLiteral("td");
-      case TH:
-        return QStringLiteral("th");
-      case TR:
-        return QStringLiteral("tr");
-      case THEAD:
-        return QStringLiteral("thead");
-      case TFOOT:
-        return QStringLiteral("tfoot");
-      case TBODY:
-        return QStringLiteral("tbody");
-      case CAPTION:
-        return QStringLiteral("caption");
-      case COL:
-        return QStringLiteral("col");
-      case COLGROUP:
-        return QStringLiteral("colgroup");
-      case STRONG:
-        return QStringLiteral("strong");
-      case SMALL:
-        return QStringLiteral("small");
-      case EM:
-        return QStringLiteral("em");
-      case B:
-        return QStringLiteral("b");
-      case BR:
-        return QStringLiteral("br");
-      case CENTER:
-        return QStringLiteral("center");
-      case HR:
-        return QStringLiteral("hr");
-      case SVG:
-        return QStringLiteral("svg");
-      default:
-        return QString();
-    }
-  }
+  QString fromType();
 };
 
 class EBTag;
@@ -265,19 +110,15 @@ public:
   EBTag(Type type);
 
   void setClosed(bool value);
-  void setAttribute(QString name, QString value);
+  virtual void setAttribute(QString name, QString value);
 
-  QString toHtml(int indent) override;
+  QString toHtml(int) override;
 
-  static Tag fromtype(Type type)
-  {
-    Tag tag = Tag(new EBTag(type));
-    return tag;
-  }
+  virtual bool isNonClosing() { return false; }
 
 protected:
-  QMap<QString, QString> m_attributes;
   bool m_closed;
+  QMap<QString, QString> m_attributes;
 };
 typedef QList<Tag> TagList;
 typedef QStack<Tag> TagStack;
@@ -290,18 +131,60 @@ class EBEndTag : public EBTagBase
 public:
   EBEndTag(Type type);
 
-  QString toHtml(int indent) override;
-  //  int indent(int indent)
-  //  {
-  //    if (indent > 0)
-  //      return indent - 1;
-  //  }
+  QString toHtml(int) override;
   static EndTag fromtype(Type type)
   {
     EndTag tag = EndTag(new EBEndTag(type));
     return tag;
   }
 };
+
+class EBNonClosedTag : public EBTag
+{
+public:
+  EBNonClosedTag(Type type);
+
+  bool isNonClosing() override { return true; }
+
+  QString toHtml(int) override;
+
+protected:
+};
+
+class EBStyleTag : public EBTag
+{
+public:
+  EBStyleTag(Type type);
+
+  void setStyle(QString style);
+  QString style();
+
+protected:
+  QString style_string;
+};
+
+class EBAlwaysClosedTag : public EBNonClosedTag
+{
+public:
+  EBAlwaysClosedTag(Type type);
+
+  QString toHtml(int) override;
+};
+
+class EBLinkTag : public EBAlwaysClosedTag
+{
+public:
+  EBLinkTag(Type type);
+
+  bool isStylesheet();
+  void setAttribute(QString name, QString value) override;
+
+protected:
+  bool is_stylesheet;
+};
+
+Tag
+fromTagType(EBTag::Type type);
 
 class EBChar
   : public QChar
@@ -322,7 +205,7 @@ class EBWord
 public:
   EBWord(QString word);
   QString string() override;
-  QString toHtml(int indent) override;
+  QString toHtml(int) override;
 
 protected:
 };
@@ -336,14 +219,14 @@ public:
   explicit HtmlParser(QObject* parent = nullptr);
   ~HtmlParser();
 
-  bool parse(QString name, QString text);
+  bool parse(QString name, QString text, QMap<QString, QString> css_map);
   void clearParsed();
 
   QString htmlById(QString id);
 
   //  QString toHtml(int index);
-  QString toHtml(ItemList list, int indent);
-  QString toHtml();
+  QString toHtml(ItemList list, QStringList styles = QStringList());
+  //  QString toHtml();
 
   bool insert(int index, ItemList list);
   bool replace(int index, ItemList list);
@@ -354,14 +237,14 @@ public:
   static int INDENT_STEP;
   static int INDENT;
 
-  static QString _indent(int index)
-  {
-    QString indent;
-    for (int i = 0; i < (INDENT_STEP * INDENT); i++) {
-      indent += " ";
-    }
-    return indent;
-  }
+  //  static QString _indent(int index)
+  //  {
+  //    QString indent;
+  //    for (int i = 0; i < (INDENT_STEP * INDENT); i++) {
+  //      indent += " ";
+  //    }
+  //    return indent;
+  //  }
 
   QMap<QString, QString> htmlDocumentsById() const;
 

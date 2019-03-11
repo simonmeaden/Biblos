@@ -5,7 +5,7 @@
 #include <QtWidgets>
 
 #include "ebooktocwidget.h"
-
+#include "tocdisplaydocument.h"
 
 class EBookTocEditor : public QDialog
 {
@@ -28,7 +28,6 @@ protected:
   void cancelClicked();
   void acceptClicked();
   void helpClicked();
-
 
   static const QString TOC_TITLE;
   static const QString LIST_START;

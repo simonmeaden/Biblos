@@ -5,6 +5,7 @@
 #include <QTextBrowser>
 
 #include <ebookcommon.h>
+#include <tocdisplaydocument.h>
 
 class EBookTOCWidget : public QTextBrowser
 {
@@ -14,7 +15,7 @@ public:
 
   void setDocumentString(QString document_string);
   void enableHtmlMenuItem(bool enable);
-  TocDisplayDocument *document();
+  TocDisplayDocument* document();
   void setDocument(TocDisplayDocument* document);
 
 signals:

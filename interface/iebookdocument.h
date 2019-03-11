@@ -9,6 +9,8 @@
 #include "ebookmetadata.h"
 
 class IEBookInterface;
+// class EBookManifestItem;
+// typedef QSharedPointer<EBookManifestItem> ManifestItem;
 
 class IEBookDocument
 {
@@ -50,6 +52,11 @@ public:
   virtual Metadata metadata() = 0;
   virtual QMap<QString, QString> pages() = 0;
   virtual QStringList spine() = 0;
+  virtual QStringList cssKeys() = 0;
+  virtual QString css(QString key) = 0;
+  virtual QStringList css() = 0;
+  virtual QString javascript(QString key) = 0;
+  virtual ManifestItem itemByHref(QString href) = 0;
 };
 typedef QSharedPointer<IEBookDocument> EBookDocument;
 

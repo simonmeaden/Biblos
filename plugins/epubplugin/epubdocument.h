@@ -88,6 +88,11 @@ public:
   Metadata metadata() override;
   QMap<QString, QString> pages() override;
   QStringList spine() override;
+  QStringList cssKeys() override;
+  QStringList css() override;
+  QString css(QString key) override;
+  QString javascript(QString key) override;
+  ManifestItem itemByHref(QString href);
 
 signals:
   void orderChanged();

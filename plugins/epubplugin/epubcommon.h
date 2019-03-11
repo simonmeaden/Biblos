@@ -4,96 +4,6 @@
 #include <QList>
 #include <QSharedPointer>
 
-struct EPubManifestItem
-{
-  QString href;
-  QString path;
-  //  SharedDomDocument dom_document;
-  QString document_string;
-  QStringList css_links;
-  QString body_class;
-  // these should point to the start and end of each chapter block;
-  //  SharedTextCursor start, end;
-  QString id;
-  QByteArray media_type;
-  QStringList properties;
-  QString fallback;
-  QString media_overlay;
-  QMap<QString, QString> non_standard_properties;
-};
-typedef QSharedPointer<EPubManifestItem> SharedManifestItem;
-typedef QMap<QString, SharedManifestItem> SharedManifestItemMap;
-typedef QList<SharedManifestItem> SharedManifestItemList;
-
-class EPubTocItem;
-typedef QSharedPointer<EPubTocItem> SharedTocItem;
-typedef QMap<int, SharedTocItem> SharedTocItemMap;
-typedef QMap<QString, SharedTocItem> SharedTocItemPathMap;
-class EPubTocItem
-{
-public:
-  QString id;
-  int playorder;
-  QString tag_class;
-  QString label;
-  QString source;
-  SharedTocItemMap sub_items;
-  QString chapter_tag;
-};
-
-class EPubManifest
-{
-public:
-  QString id;
-  SharedManifestItem cover_image; // 0 or 1
-  SharedManifestItem nav;         // 1
-  SharedManifestItemMap items;    // all items
-  SharedManifestItemList html_items;
-  SharedManifestItemMap mathml;              // subset of items for math markup
-  SharedManifestItemMap svg_images;          // subset of items for images
-  QMap<QString, QImage> rendered_svg_images; // rendered svg images
-  QMap<QString, QImage> images;
-  SharedManifestItemMap remotes;
-  SharedManifestItemMap scripted;
-  SharedManifestItemMap switches;
-  QMap<QString, QString> css;          // all items
-  QMap<QString, QString> javascript;   // all items
-  SharedManifestItemMap fonts;         // all items
-  SharedManifestItemMap media_overlay; // all items
-  QString formatted_toc_string;
-  SharedTocItemMap toc_items;
-  SharedTocItemPathMap toc_paths;
-};
-
-class EPubSpineItem
-{
-public:
-  EPubSpineItem()
-  {
-    linear = false;
-    page_spread_left = false;
-    page_spread_right = false;
-  }
-  QString id;
-  QString idref;
-  bool linear;
-  bool page_spread_left;
-  bool page_spread_right;
-};
-typedef QSharedPointer<EPubSpineItem> SharedSpineItem;
-typedef QMap<QString, SharedSpineItem> SharedSpineItemMap;
-typedef QStringList SpineItemList;
-
-class EPubSpine
-{
-public:
-  QString id;
-  QString toc;
-  QString page_progression_dir;
-  SharedSpineItemMap items;
-  SpineItemList ordered_items;
-};
-
 /*!
  * \brief The EPUB guide section
  *
@@ -208,8 +118,8 @@ public:
     }
   }
 };
-typedef QSharedPointer<EPubGuideItem> SharedGuideItem;
-typedef QMap<QString, SharedGuideItem> SharedGuideItemMap;
+typedef QSharedPointer<EPubGuideItem> GuideItem;
+typedef QMap<QString, GuideItem> GuideItemMap;
 typedef QStringList GuideItemList;
 
 #endif // EPUBMANIFESTITEM_H

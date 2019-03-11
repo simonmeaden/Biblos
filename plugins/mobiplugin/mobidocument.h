@@ -51,9 +51,9 @@ public:
   void setLanguage(const QString& language) override;
   QDateTime date() override;
   void setDate(const QDateTime& date) override;
-  QStringList creators();
+  QStringList creators() override;
   //  void setCreators(const QStringList& creators);
-  QString creatorNames(const QStringList&);
+  QString creatorNames(const QStringList&) override;
   QString publisher() override;
   void setPublisher(const QString& publisher) override;
   QDate published() override;
@@ -67,9 +67,14 @@ public:
 
   QString buildTocFromData() override;
 
-  Metadata metadata();
+  Metadata metadata() override;
   QMap<QString, QString> pages() override {}
   QStringList spine() override {}
+  QStringList css() override {}
+  QString css(QString key) override {}
+  QStringList cssKeys() override {}
+  QString javascript(QString key) override {}
+  ManifestItem itemByHref(QString href) override {}
 
 protected:
   MobiDocumentPrivate* d_ptr;

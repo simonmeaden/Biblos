@@ -1614,12 +1614,11 @@ MainWindow::tocAnchorClicked(QUrl url)
   EBookWrapper* wrapper =
     qobject_cast<EBookWrapper*>(m_doc_tabs->currentWidget());
   WebView* editor = wrapper->editor();
-  QString fragment = url.fragment();
-  //  if (fragment.isEmpty()) {
-  //    editor->scrollToAnchor(url.path());
-  //  } else {
-  //    editor->scrollToAnchor(fragment);
-  //  }
+  EBookDocument doc = editor->document();
+  QString clean_url = url.toString();
+  ManifestItem item = doc->itemByHref(clean_url);
+  QString id = item->id;
+  editor->setCurrentPage(id);
 }
 
 void

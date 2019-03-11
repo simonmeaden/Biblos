@@ -212,6 +212,41 @@ EPubDocument::spine()
   return d->spine();
 }
 
+QStringList
+EPubDocument::cssKeys()
+{
+  Q_D(EPubDocument);
+  return d->cssKeys();
+}
+
+QStringList
+EPubDocument::css()
+{
+  Q_D(EPubDocument);
+  return d->cssMap();
+}
+
+QString
+EPubDocument::css(QString key)
+{
+  Q_D(EPubDocument);
+  return d->cssMap(key);
+}
+
+QString
+EPubDocument::javascript(QString key)
+{
+  Q_D(EPubDocument);
+  return d->javascript(key);
+}
+
+ManifestItem
+EPubDocument::itemByHref(QString href)
+{
+  Q_D(EPubDocument);
+  return d->itemByHref(href);
+}
+
 IEBookInterface*
 EPubDocument::plugin()
 {

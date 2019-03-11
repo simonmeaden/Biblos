@@ -87,7 +87,7 @@ EPubDocumentPrivate::buildTocfromHtml()
   QRegularExpression re_href("href=\\\"[^\"]*\"");
   int anchor_start, pos = 0;
 
-  foreach (SharedManifestItem item, m_manifest.html_items) {
+  foreach (ManifestItem item, m_manifest.html_items) {
     QString document_string = item->document_string;
     if (!document_string.isEmpty()) {
       QRegularExpressionMatchIterator i =
@@ -117,8 +117,8 @@ EPubDocumentPrivate::buildTocfromHtml()
             QStringList splits = href_attr.split("#", QString::KeepEmptyParts);
             if (splits.length() == 1) {
               QString filename = splits.at(0);
-              SharedManifestItemList files = m_manifest.html_items;
-              foreach (SharedManifestItem item, files) {
+              ManifestItemList files = m_manifest.html_items;
+              foreach (ManifestItem item, files) {
                 QString href = item->href;
                 if (href == filename) {
                   // TODO add anchor & make anchor tag.
@@ -242,9 +242,10 @@ EPubDocumentPrivate::loadDocument()
     return false;
   }
 
-  foreach (SharedManifestItem item, m_manifest.html_items) {
+  foreach (ManifestItem item, m_manifest.html_items) {
+    QMap<QString, QString> css_strings = cssMap();
     QString doc_string = item->document_string;
-    if (m_parser->parse(item->id, doc_string)) {
+    if (m_parser->parse(item->id, doc_string, css_strings)) {
       // TODO use data?
     }
   }
@@ -434,7 +435,7 @@ EPubDocumentPrivate::writeContainer(QuaZip* save_zip)
 
   writePackageFile(save_zip);
 
-  foreach (SharedManifestItem item, m_manifest.html_items) {
+  foreach (ManifestItem item, m_manifest.html_items) {
     QuaZipFile item_file(save_zip);
     item_file.setFileName(item->path);
 
@@ -576,7 +577,7 @@ EPubDocumentPrivate::parsePackageFile(QString& full_path)
   QDomNodeList spine_node_list = package_document->elementsByTagName("spine");
   for (int i = 0; i < spine_node_list.count(); i++) {
     QDomElement spine_element = spine_node_list.at(i).toElement();
-    SharedSpineItem spine_item = SharedSpineItem(new EPubSpineItem());
+    SpineItem spine_item = SpineItem(new EBookSpineItem());
     node_map = spine_element.attributes();
     node = node_map.namedItem("id");
     if (!node.isNull()) { // optional
@@ -707,7 +708,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
   QString name, value;
 
   if (tag_name == "item") {
-    SharedManifestItem item = SharedManifestItem(new EPubManifestItem());
+    ManifestItem item = ManifestItem(new EBookManifestItem());
     node = node_map.namedItem("href");
     if (!node.isNull()) {
       value = node.nodeValue();
@@ -783,26 +784,27 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         extractHeadInformationFromHtmlFile(item, container);
 
-        QString in_body;
-        QRegularExpression regex("<body[^>]*>((.|[\n\r])*)<\\/body>");
-        QRegularExpressionMatch match = regex.match(container);
-        int start, end;
-        if (match.isValid()) {
-          in_body = match.captured(0);
-          regex = QRegularExpression("<body[^>]*>");
-          match = regex.match(in_body);
-          if (match.isValid()) {
-            start = match.capturedEnd(0);
-            regex = QRegularExpression("<\\/body>");
-            match = regex.match(in_body);
-            if (match.isValid()) {
-              end = match.capturedStart(0);
-              in_body = in_body.mid(start, end - start);
-            }
-          }
-        }
+        //        QString in_body;
+        //        QRegularExpression regex("<body[^>]*>((.|[\n\r])*)<\\/body>");
+        //        QRegularExpressionMatch match = regex.match(container);
+        //        int start, end;
+        //        if (match.isValid()) {
+        //          in_body = match.captured(0);
+        //          regex = QRegularExpression("<body[^>]*>");
+        //          match = regex.match(in_body);
+        //          if (match.isValid()) {
+        //            start = match.capturedEnd(0);
+        //            regex = QRegularExpression("<\\/body>");
+        //            match = regex.match(in_body);
+        //            if (match.isValid()) {
+        //              end = match.capturedStart(0);
+        //              in_body = in_body.mid(start, end - start);
+        //            }
+        //          }
+        //        }
 
-        item->document_string = in_body.trimmed();
+        //        item->document_string = in_body.trimmed();
+        item->document_string = container;
         m_manifest.html_items.append(item);
       } else if (item->media_type == "text/css") {
         m_archive->setCurrentFile(item->path);
@@ -886,13 +888,14 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
       m_manifest.media_overlay.insert(item->id, item);
     }
 
-    m_manifest.items.insert(item->id, item);
+    m_manifest.items_by_id.insert(item->id, item);
+    m_manifest.items_by_href.insert(item->href, item);
   }
   return true;
 }
 
 void
-EPubDocumentPrivate::extractHeadInformationFromHtmlFile(SharedManifestItem item,
+EPubDocumentPrivate::extractHeadInformationFromHtmlFile(ManifestItem item,
                                                         QString container)
 {
   QDomDocument doc;
@@ -936,9 +939,8 @@ EPubDocumentPrivate::extractHeadInformationFromHtmlFile(SharedManifestItem item,
   }
 }
 
-SharedSpineItem
-EPubDocumentPrivate::parseSpineItem(const QDomNode& spine_node,
-                                    SharedSpineItem item)
+SpineItem
+EPubDocumentPrivate::parseSpineItem(const QDomNode& spine_node, SpineItem item)
 {
   Q_Q(EPubDocument);
 
@@ -1025,7 +1027,7 @@ EPubDocumentPrivate::parseTocFile()
   Q_Q(EPubDocument);
 
   QString toc_id = m_spine.toc;
-  SharedManifestItem toc_item = m_manifest.items.value(toc_id);
+  ManifestItem toc_item = m_manifest.items_by_id.value(toc_id);
   QString toc_path = toc_item->path;
 
   m_archive->setCurrentFile(toc_path);
@@ -1061,7 +1063,7 @@ EPubDocumentPrivate::parseTocFile()
     QDomElement elem = node.toElement();
     QDomElement navpoint = elem.firstChildElement("navPoint");
     while (!navpoint.isNull()) {
-      SharedTocItem toc_item = parseNavPoint(navpoint, formatted_toc_string);
+      TocItem toc_item = parseNavPoint(navpoint, formatted_toc_string);
       m_manifest.toc_items.insert(toc_item->playorder, toc_item);
       m_manifest.toc_paths.insert(toc_item->source, toc_item);
 
@@ -1094,12 +1096,12 @@ EPubDocumentPrivate::saveLandmarksItem()
   // TODO save landmarks
 }
 
-SharedTocItem
+TocItem
 EPubDocumentPrivate::parseNavPoint(QDomElement navpoint,
                                    QString& formatted_toc_data)
 {
   m_toc_chapter_index++;
-  SharedTocItem toc_item = SharedTocItem(new EPubTocItem());
+  TocItem toc_item = TocItem(new EBookTocItem());
   //  QDomNamedNodeMap attributes = navpoint.attributes();
   QString value = navpoint.attribute("class");
   if (!value.isEmpty()) {
@@ -1160,7 +1162,7 @@ EPubDocumentPrivate::parseNavPoint(QDomElement navpoint,
     formatted_toc_data += LIST_START;
 
     while (!sub_navpoint.isNull()) {
-      SharedTocItem sub_item = parseNavPoint(sub_navpoint, formatted_toc_data);
+      TocItem sub_item = parseNavPoint(sub_navpoint, formatted_toc_data);
 
       toc_item->sub_items.insert(sub_item->playorder, sub_item);
       sub_navpoint = sub_navpoint.nextSiblingElement("navPoint");
@@ -1178,7 +1180,7 @@ EPubDocumentPrivate::handleNestedNavpoints(QDomElement elem,
 {
   QDomElement subpoint = elem.firstChildElement("navPoint");
   while (!subpoint.isNull()) {
-    SharedTocItem toc_item = parseNavPoint(subpoint, formatted_toc_string);
+    TocItem toc_item = parseNavPoint(subpoint, formatted_toc_string);
     m_manifest.toc_items.insert(toc_item->playorder, toc_item);
     m_manifest.toc_paths.insert(toc_item->source, toc_item);
 
@@ -1197,9 +1199,6 @@ EPubDocumentPrivate::toc()
 QString
 EPubDocumentPrivate::tocAsString()
 {
-  //  TocDisplayDocument* toc_document = new TocDisplayDocument(this);
-  //  toc_document->setHtml(m_manifest.formatted_toc_string);
-  //  return toc_document;
   return m_manifest.formatted_toc_string;
 }
 
@@ -1333,6 +1332,12 @@ EPubDocumentPrivate::setTitle(QString title)
   }
 }
 
+QMap<QString, QString>
+EPubDocumentPrivate::cssMap()
+{
+  return m_manifest.css;
+}
+
 QString
 EPubDocumentPrivate::css(QString key)
 {
@@ -1383,6 +1388,12 @@ QMap<QString, QString>
 EPubDocumentPrivate::pages()
 {
   return m_parser->htmlDocumentsById();
+}
+
+ManifestItem
+EPubDocumentPrivate::itemByHref(QString href)
+{
+  return m_manifest.items_by_href.value(href);
 }
 
 Metadata

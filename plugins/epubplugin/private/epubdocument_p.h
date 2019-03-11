@@ -32,6 +32,7 @@ public:
   QStringList creators();
   QString title();
   void setTitle(QString title);
+  QMap<QString, QString> cssMap();
   QString css(QString key);
   QString javascript(QString key);
   QStringList spineKeys();
@@ -40,6 +41,7 @@ public:
   QStringList jsKeys();
   QStringList spine();
   QMap<QString, QString> pages();
+  ManifestItem itemByHref(QString href);
 
   IEBookInterface* plugin() { return m_plugin; }
   void setPlugin(IEBookInterface* plugin) { m_plugin = plugin; }
@@ -65,8 +67,8 @@ protected:
   QStringList m_files;
   QByteArray m_mimetype;
   Metadata m_metadata;
-  EPubManifest m_manifest;
-  EPubSpine m_spine;
+  EBookManifest m_manifest;
+  EBookSpine m_spine;
   QString m_container_version;
   QString m_container_xmlns;
   QString m_container_fullpath;
@@ -104,11 +106,9 @@ protected:
 
   bool parseManifestItem(const QDomNode& manifest_node,
                          const QString current_folder);
-  void extractHeadInformationFromHtmlFile(SharedManifestItem item,
-                                          QString container);
+  void extractHeadInformationFromHtmlFile(ManifestItem item, QString container);
 
-  SharedSpineItem parseSpineItem(const QDomNode& metadata_element,
-                                 SharedSpineItem item);
+  SpineItem parseSpineItem(const QDomNode& metadata_element, SpineItem item);
   bool saveSpineItem();
   bool parseTocFile();
   bool parseGuideItem(const QDomNode& guideItem);
@@ -116,8 +116,7 @@ protected:
   bool saveLandmarksItem();
   bool parseBindingsItem(const QDomNode& bindingsItem);
   bool saveBindingsItem();
-  SharedTocItem parseNavPoint(QDomElement navpoint,
-                              QString& formatted_toc_data);
+  TocItem parseNavPoint(QDomElement navpoint, QString& formatted_toc_data);
   void handleNestedNavpoints(QDomElement navpoint,
                              QString& formatted_toc_string);
 

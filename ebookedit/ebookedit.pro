@@ -63,7 +63,8 @@ SOURCES += \
     focuslineedit.cpp \
     webpage.cpp \
     webview.cpp \
-    actiontabwidget.cpp
+    actiontabwidget.cpp \
+    tocdisplaydocument.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -84,7 +85,8 @@ HEADERS += \
     focuslineedit.h \
     webpage.h \
     webview.h \
-    actiontabwidget.h
+    actiontabwidget.h \
+    tocdisplaydocument.h
 
 FORMS +=
 

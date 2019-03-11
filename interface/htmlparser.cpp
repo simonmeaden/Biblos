@@ -47,12 +47,16 @@ HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
  * page.Most ebooks are split into multiple pages, normally at chapter
  * boundaries, but a single page book is also supported.
  *
- * \param document_string
+ * \param name - the file name.
+ * \param document_string - the html document as a QString.
+ * \param css_strings - css files as strings.
  * \return
  */
 
 bool
-HtmlParser::parse(QString name, QString document_string)
+HtmlParser::parse(QString name,
+                  QString document_string,
+                  QMap<QString, QString> css_map)
 {
   // text is already pruned to inside <body> tag.
   bool tag_opener = false;
@@ -63,6 +67,7 @@ HtmlParser::parse(QString name, QString document_string)
   QString att_value, att_name;
   QString tag_text;
   QString data_text;
+  QString style_text;
   QString html_doc;
   ItemList item_list;
   WordList word_list;
@@ -104,18 +109,29 @@ HtmlParser::parse(QString name, QString document_string)
           break;
         }
         case '<': {
-          if (!data_text.isEmpty()) {
-            Word word = Word(new EBWord(data_text));
-            item_list.append(word);
-            word_list.append(word);
-            data_text.clear();
+          if (tag->type() == EBTag::STYLE) {
+            tag.dynamicCast<EBStyleTag>()->setStyle(style_text);
+          } else {
+            if (!data_text.isEmpty()) {
+              Word word = Word(new EBWord(data_text));
+              item_list.append(word);
+              word_list.append(word);
+              data_text.clear();
+            }
+            tag_opener = true;
           }
-          tag_opener = true;
           break;
         }
         case '>': {
           if (tag_opener) {
+            EBTag::Type type = EBItem::fromString(tag_text);
+            if (type != EBItem::NONE) {
+              tag = fromTagType(type);
+              tag_text.clear();
+            }
             setTagClosed(tag, tag_closed);
+            if (tag->isNonClosing())
+              tag_closed = true;
             tag_opener = false;
             item_list.append(tag);
             tag = Tag(nullptr);
@@ -124,20 +140,26 @@ HtmlParser::parse(QString name, QString document_string)
           break;
         } // end of '>' section
         default: {
-          if (!tag_opener) { // Not a tag but still latin characters.
-            if (qc.isSpace() || qc.isPunct()) {
-              if (!data_text.isEmpty()) {
-                Word word = Word(new EBWord(data_text));
-                item_list.append(word);
-                word_list.append(word);
-                data_text.clear();
+          if (!tag_opener) {
+            // Outside a tag but still latin characters.
+            if (tag->type() != EBTag::STYLE) {
+              if (qc.isSpace() || qc.isPunct()) {
+                if (!data_text.isEmpty()) {
+                  Word word = Word(new EBWord(data_text));
+                  item_list.append(word);
+                  word_list.append(word);
+                  data_text.clear();
+                }
+                Char ch = Char(new EBChar(c));
+                item_list.append(ch);
+              } else {
+                data_text += qc;
               }
-              Char ch = Char(new EBChar(c));
-              item_list.append(ch);
             } else {
-              data_text += qc;
+              // a style tag is treated as a special case
+              style_text += c;
             }
-          } else if (tag_closed) {
+          } else if (tag_closed) { // tag has closed so this should be text.
             if ((c >= 'a' && c <= 'z') || c == ' ' || c == '\\' || c == '=') {
               tag_text += c;
               if (tag.isNull()) {
@@ -152,6 +174,7 @@ HtmlParser::parse(QString name, QString document_string)
               }
             }
           } else if (tag_opener) {
+            // inside a tag. tag name and attributes
             if ((c >= 'a' && c <= 'z') || c == ' ' || c == '=' || c == '_' ||
                 c == '.' || c == '#' || (c >= '0' && c <= '9')) {
               if (c == ' ') // ignore spaces in tags.
@@ -162,14 +185,6 @@ HtmlParser::parse(QString name, QString document_string)
                   att_value += c;
                 }
               }
-              if (tag.isNull()) {
-                EBTag::Type type = EBItem::fromString(tag_text);
-                if (type != EBItem::NONE) {
-                  tag = EBTag::fromtype(type);
-                  tag_text.clear();
-                }
-              }
-
               if (tag_text.contains("=")) {
                 att_start = true;
                 att_name = tag_text.left(tag_text.length() - 1);
@@ -219,7 +234,7 @@ HtmlParser::parse(QString name, QString document_string)
     m_lists.append(item_list);
     m_itemlist_map.insert(name, item_list);
     m_word_list.append(word_list);
-    html_doc = toHtml(item_list, 0);
+    html_doc = toHtml(item_list, css_map);
     m_html_document_by_id.insert(name, html_doc);
     return true;
   }
@@ -298,52 +313,55 @@ HtmlParser::htmlDocumentsById() const
 //}
 
 QString
-HtmlParser::toHtml(ItemList list, int indent)
+HtmlParser::toHtml(ItemList list, QStringList styles)
 {
   QString html;
   html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  html +=
-    QStringLiteral("<html "
-                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
-                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
-                   "    epub:prefix=\"z3998: "
-                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
-                   "    xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
-  html += QStringLiteral("<head>\n");
-  html += QStringLiteral("</head>\n");
-  html += QStringLiteral("<body>\n");
-  html += QStringLiteral("<div class=\"main\">"); // for one-page-js
+  //  html +=
+  //    QStringLiteral("<html "
+  //                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+  //                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
+  //                   "    epub:prefix=\"z3998: "
+  //                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
+  //                   "
+  //                   xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
+  //  html += QStringLiteral("<head>\n");
+  //  //  foreach (QString style, styles) {
+  //  //    html += QStringLiteral("<style>");
+  //  //    html += style;
+  //  //    html += QStringLiteral("</style>");
+  //  //  }
+  //  html += QStringLiteral("</head>\n");
+  //  html += QStringLiteral("<body>\n");
   foreach (Item item, list) {
-    if (!item.isNull()) {
-      html += item->toHtml(indent + 1);
-    }
+    if (!item.isNull())
+      html += item->toHtml(0);
   }
-  html += QStringLiteral("</div>"); // for one-page-js
-  html += QStringLiteral("</body>\n");
+  //  html += QStringLiteral("</body>\n");
   return html;
 }
 
-QString
-HtmlParser::toHtml()
-{
-  QString html;
-  html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  html +=
-    QStringLiteral("<html "
-                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
-                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
-                   "    epub:prefix=\"z3998: "
-                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
-                   "    xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
-  html += QStringLiteral("<head>\n");
-  html += QStringLiteral("</head>\n");
-  html += QStringLiteral("<body>\n");
-  foreach (ItemList list, m_lists) {
-    html += toHtml(list, 1);
-  }
-  html += QStringLiteral("</body>\n");
-  return html;
-}
+// QString
+// HtmlParser::toHtml()
+//{
+//  QString html;
+//  html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+//  html +=
+//    QStringLiteral("<html "
+//                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+//                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
+//                   "    epub:prefix=\"z3998: "
+//                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
+//                   " xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
+//  html += QStringLiteral("<head>\n");
+//  html += QStringLiteral("</head>\n");
+//  html += QStringLiteral("<body>\n");
+//  foreach (ItemList list, m_lists) {
+//    html += toHtml(list);
+//  }
+//  html += QStringLiteral("</body>\n");
+//  return html;
+//}
 
 /* EBItem
  * *************************************************************************/
@@ -379,6 +397,101 @@ EBItem::string()
   return QString();
 }
 
+EBItem::Type
+EBItem::fromString(QString type)
+{
+  QString t = type.toLower();
+  if (t == "span")
+    return SPAN;
+  else if (t == "div")
+    return DIV;
+  else if (t == "p")
+    return P;
+  else if (t == "a")
+    return A;
+  else if (t == "h1")
+    return H1;
+  else if (t == "h2")
+    return H2;
+  else if (t == "h3")
+    return H3;
+  else if (t == "h4")
+    return H4;
+  else if (t == "h5")
+    return H5;
+  else if (t == "h6")
+    return H6;
+  else if (t == "img")
+    return IMG;
+  else if (t == "image")
+    return IMAGE;
+  else if (t == "sub")
+    return SUB;
+  else if (t == "ul")
+    return UL;
+  else if (t == "ol")
+    return OL;
+  else if (t == "li")
+    return LI;
+  else if (t == "dd")
+    return DD;
+  else if (t == "dt")
+    return DT;
+  else if (t == "dl")
+    return DL;
+  else if (t == "table")
+    return TABLE;
+  else if (t == "td")
+    return TD;
+  else if (t == "th")
+    return TH;
+  else if (t == "tr")
+    return TR;
+  else if (t == "thead")
+    return THEAD;
+  else if (t == "tfoot")
+    return TFOOT;
+  else if (t == "tbody")
+    return TBODY;
+  else if (t == "caption")
+    return CAPTION;
+  else if (t == "col")
+    return COL;
+  else if (t == "colgroup")
+    return COLGROUP;
+  else if (t == "strong")
+    return STRONG;
+  else if (t == "small")
+    return SMALL;
+  else if (t == "em")
+    return EM;
+  else if (t == "b")
+    return B;
+  else if (t == "br")
+    return BR;
+  else if (t == "center")
+    return CENTER;
+  else if (t == "hr")
+    return HR;
+  else if (t == "svg")
+    return SVG;
+  else if (t == "style")
+    return STYLE;
+  else if (t == "style")
+    return LINK;
+  else if (t == "html")
+    return HTML;
+  else if (t == "head")
+    return HEAD;
+  else if (t == "meta")
+    return META;
+  else if (t == "title")
+    return TITLE;
+  else
+    return NONE;
+  // WORD and CHAR are handled within the parser.
+}
+
 void
 EBItem::setType(EBItem::Type type)
 {
@@ -397,6 +510,105 @@ EBItem::toString()
 EBTagBase::EBTagBase(EBItem::Type type)
   : EBItem(type)
 {}
+
+QString
+EBTagBase::fromType()
+{
+  switch (m_type) {
+    case SPAN:
+      return QStringLiteral("span");
+    case DIV:
+      return QStringLiteral("div");
+    case P:
+      return QStringLiteral("p");
+    case A:
+      return QStringLiteral("a");
+    case H1:
+      return QStringLiteral("h1");
+    case H2:
+      return QStringLiteral("h2");
+    case H3:
+      return QStringLiteral("h3");
+    case H4:
+      return QStringLiteral("h4");
+    case H5:
+      return QStringLiteral("h5");
+    case H6:
+      return QStringLiteral("h6");
+    case IMG:
+      return QStringLiteral("img");
+    case IMAGE:
+      return QStringLiteral("image");
+    case SUB:
+      return QStringLiteral("sub");
+    case UL:
+      return QStringLiteral("ul");
+    case OL:
+      return QStringLiteral("ol");
+    case LI:
+      return QStringLiteral("li");
+    case DD:
+      return QStringLiteral("dd");
+    case DT:
+      return QStringLiteral("dt");
+    case DL:
+      return QStringLiteral("dl");
+    case TABLE:
+      return QStringLiteral("table");
+    case TD:
+      return QStringLiteral("td");
+    case TH:
+      return QStringLiteral("th");
+    case TR:
+      return QStringLiteral("tr");
+    case THEAD:
+      return QStringLiteral("thead");
+    case TFOOT:
+      return QStringLiteral("tfoot");
+    case TBODY:
+      return QStringLiteral("tbody");
+    case CAPTION:
+      return QStringLiteral("caption");
+    case COL:
+      return QStringLiteral("col");
+    case COLGROUP:
+      return QStringLiteral("colgroup");
+    case STRONG:
+      return QStringLiteral("strong");
+    case SMALL:
+      return QStringLiteral("small");
+    case EM:
+      return QStringLiteral("em");
+    case B:
+      return QStringLiteral("b");
+    case I:
+      return QStringLiteral("i");
+    case BR:
+      return QStringLiteral("br");
+    case CENTER:
+      return QStringLiteral("center");
+    case HR:
+      return QStringLiteral("hr");
+    case SVG:
+      return QStringLiteral("svg");
+    case STYLE:
+      return QStringLiteral("style");
+    case LINK:
+      return QStringLiteral("link");
+    case HTML:
+      return QStringLiteral("html");
+    case HEAD:
+      return QStringLiteral("head");
+    case META:
+      return QStringLiteral("meta");
+    case TITLE:
+      return QStringLiteral("title");
+    case WORD:
+    case CHAR:
+    case NONE:
+      return QString();
+  }
+}
 
 /* EBTag
  * *************************************************************************/
@@ -421,7 +633,7 @@ EBTag::setAttribute(QString name, QString value)
 }
 
 QString
-EBTag::toHtml(int indent)
+EBTag::toHtml(int /*indent*/)
 {
   QString html;
   //  html += HtmlParser::_indent();
@@ -445,7 +657,7 @@ EBEndTag::EBEndTag(EBItem::Type type)
 {}
 
 QString
-EBEndTag::toHtml(int indent)
+EBEndTag::toHtml(int /*indent*/)
 {
   QString html;
   html = "</" + fromType() + ">";
@@ -497,10 +709,117 @@ EBWord::string()
 }
 
 QString
-EBWord::toHtml(int indent)
+EBWord::toHtml(int /*indent*/)
 {
   QString word = string();
   return word;
+}
+
+/* EBWord
+ * ************************************************************************/
+
+EBStyleTag::EBStyleTag(EBItem::Type type)
+  : EBTag(type)
+{}
+
+void
+EBStyleTag::setStyle(QString style)
+{
+  style_string = style;
+}
+
+QString
+EBStyleTag::style()
+{
+  return style_string;
+}
+
+/* EBNonClosedTag
+ * ************************************************************************/
+
+QString
+EBNonClosedTag::toHtml(int /*indent*/)
+{
+  QString html;
+  //  html += HtmlParser::_indent();
+  html += "<" + fromType();
+  foreach (QString key, m_attributes.keys()) {
+    QString value = m_attributes.value(key);
+    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
+  }
+  html += ">";
+  return html;
+}
+
+/* EBNonClosedTag
+ * ************************************************************************/
+
+EBAlwaysClosedTag::EBAlwaysClosedTag(EBItem::Type type)
+  : EBNonClosedTag(type)
+{}
+
+QString
+EBAlwaysClosedTag::toHtml(int /*indent*/)
+{
+  QString html;
+  //  html += HtmlParser::_indent();
+  html += "<" + fromType();
+  foreach (QString key, m_attributes.keys()) {
+    QString value = m_attributes.value(key);
+    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
+  }
+  html += "/>";
+  return html;
+}
+
+/* EBLinkTag
+ * ************************************************************************/
+
+EBLinkTag::EBLinkTag(EBItem::Type type)
+  : EBAlwaysClosedTag(type)
+  , is_stylesheet(false)
+{}
+
+bool
+EBLinkTag::isStylesheet()
+{
+  return is_stylesheet;
+}
+
+void
+EBLinkTag::setAttribute(QString name, QString value)
+{
+  if (name.toLower() == QStringLiteral("rel") &&
+      value.toLower() == QStringLiteral("stylesheet")) {
+    is_stylesheet = true;
+  }
+  EBTag::setAttribute(name, value);
+}
+
+/* EBLinkTag
+ * ************************************************************************/
+
+EBMetaTag::EBMetaTag(EBItem::Type type)
+  : EBAlwaysClosedTag(type)
+{}
+
+/*********************************************************************************/
+
+Tag
+fromTagType(EBItem::Type type)
+{
+  Tag tag;
+  if (type == EBTag::STYLE)
+    tag = Tag(new EBStyleTag(type));
+  else if (type == EBTag::BR)
+    tag = Tag(new EBNonClosedTag(type));
+  else if (type == EBTag::LINK)
+    tag = Tag(new EBLinkTag(type));
+  else if (type == EBTag::META)
+    tag = Tag(new EBAlwaysClosedTag(type));
+  else
+    tag = Tag(new EBTag(type));
+  return tag;
 }
 
 /*********************************************************************************/
