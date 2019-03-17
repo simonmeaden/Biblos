@@ -46,3 +46,8 @@ CMakeLists.txt.user*
 *.epub
 *.mobi
 *.pdf
+
+#Dictionaries
+*.dic
+*.aff
+*.bdic

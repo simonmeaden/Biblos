@@ -1124,14 +1124,8 @@ MainWindow::loadDocument(QString file_name, bool from_library)
     //    ebook_document.dynamicCast<ITextDocument>();///dynamic_cast<ITextDocument*>(ebook_document);
     //    htmldocument->setPlugin(ebook_plugin);
     //    EBookdocument codeDocument = ebook_plugin->createCodeDocument();
-    wrapper = new EBookWrapper(m_options,
-                               m_authors_db,
-                               m_series_db,
-                               m_library_db,
-                               m_jquery,
-                               m_onepage_js,
-                               m_onepage_css,
-                               this);
+    wrapper = new EBookWrapper(
+      m_options, m_authors_db, m_series_db, m_library_db, m_jquery, this);
     QStringList spine = ebook_document->spine();
     QMap<QString, QString> pages = ebook_document->pages();
     wrapper->editor()->setDocument(ebook_document);

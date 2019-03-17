@@ -5,8 +5,6 @@ EBookWrapper::EBookWrapper(Options options,
                            SeriesDB series_db,
                            LibraryDB library,
                            QString jquery,
-                           QString one_page_js,
-                           QString one_page_css,
                            QWidget* parent)
   : QStackedWidget(parent)
   , m_codeeditor(new EBookCodeEditor(options, parent))
@@ -18,8 +16,7 @@ EBookWrapper::EBookWrapper(Options options,
   , m_options(options)
 {
   m_profile = QWebEngineProfile::defaultProfile();
-  m_editor =
-    new WebView(options, jquery, one_page_js, one_page_css, m_profile, parent);
+  m_editor = new WebView(options, jquery, m_profile, parent);
   m_editorindex = addWidget(m_editor);
   m_codeindex = addWidget(m_codeeditor);
   m_metaindex = addWidget(m_metaeditor);

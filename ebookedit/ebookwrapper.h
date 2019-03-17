@@ -22,8 +22,6 @@ public:
                SeriesDB series_db,
                LibraryDB library,
                QString jquery,
-               QString one_page_js,
-               QString one_page_css,
                QWidget* parent = nullptr);
   ~EBookWrapper();
 
