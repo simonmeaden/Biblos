@@ -70,7 +70,7 @@ public:
   Metadata metadata() override;
   QMap<QString, QString> pages() override {}
   QStringList spine() override {}
-  QStringList css() override {}
+  CSSMap css() override {}
   QString css(QString key) override {}
   QStringList cssKeys() override {}
   QString javascript(QString key) override {}

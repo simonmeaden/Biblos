@@ -1,6 +1,6 @@
 #include "ebookwrapper.h"
 
-EBookWrapper::EBookWrapper(Options* options,
+EBookWrapper::EBookWrapper(Options options,
                            AuthorsDB authors,
                            SeriesDB series_db,
                            LibraryDB library,

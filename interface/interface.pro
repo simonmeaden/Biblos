@@ -42,7 +42,9 @@ SOURCES +=  \
     ebookmetadata.cpp \
     ebookbasemetadata.cpp \
     series.cpp \
-    htmlparser.cpp
+    htmlparser.cpp \
+    iebookdocument.cpp \
+    htmltidy.cpp
 
 HEADERS += \
     interface_global.h \
@@ -60,7 +62,8 @@ HEADERS += \
     ebookmetadata.h \
     ebookbasemetadata.h \
     series.h \
-    htmlparser.h
+    htmlparser.h \
+    htmltidy.h
 
 DISTFILES += \
     spellinterface.json \
@@ -78,3 +81,4 @@ INCLUDEPATH += /usr/local/include
 
 unix|win32: LIBS += -lqyaml-cpp
 unix|win32: LIBS += -lyaml-cpp
+unix|win32: LIBS += -ltidy

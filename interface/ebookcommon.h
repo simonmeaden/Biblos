@@ -78,9 +78,12 @@ public:
   QString chapter_tag;
 };
 
+typedef QSharedPointer<QMap<QString, QString>> CSSMap;
 class EBookManifest
 {
 public:
+  EBookManifest();
+  ~EBookManifest();
   QString id;
   ManifestItem cover_image;      // 0 or 1
   ManifestItem nav;              // 1
@@ -95,7 +98,7 @@ public:
   ManifestItemMap scripted;
   ManifestItemMap switches;
   //  QMap<QString, QString> id_by_file;          // all items
-  QMap<QString, QString> css;        // all items
+  CSSMap css;                        // all items
   QMap<QString, QString> javascript; // all items
   ManifestItemMap fonts;             // all items
   ManifestItemMap media_overlay;     // all items

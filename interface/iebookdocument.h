@@ -15,7 +15,7 @@ class IEBookInterface;
 class IEBookDocument
 {
 public:
-  virtual ~IEBookDocument() {}
+  virtual ~IEBookDocument();
 
   virtual QString filename() = 0;
   virtual void setFilename(const QString& filename) = 0;
@@ -54,7 +54,7 @@ public:
   virtual QStringList spine() = 0;
   virtual QStringList cssKeys() = 0;
   virtual QString css(QString key) = 0;
-  virtual QStringList css() = 0;
+  virtual CSSMap css() = 0;
   virtual QString javascript(QString key) = 0;
   virtual ManifestItem itemByHref(QString href) = 0;
 };
@@ -69,10 +69,7 @@ class ITextDocument
 {
   Q_OBJECT
 public:
-  ITextDocument(QObject* parent = nullptr)
-    : QObject(parent)
-  //    : QTextDocument(parent)
-  {}
+  ITextDocument(QObject* parent = nullptr);
 
 signals:
   void loadCompleted();
@@ -87,32 +84,20 @@ typedef QSharedPointer<ITextDocument> EITextDocument;
 class ITextDocumentPrivate
 {
 public:
-  QString filename() { return m_filename; }
-  void setFilename(QString filename) { m_filename = filename; }
+  QString filename();
+  void setFilename(QString filename);
 
   /*!
    * \brief Creates a & separated list of creators.
    * \return the list as a QString.
    */
-  QString creatorNames(const QStringList& names)
-  {
-    QString result;
-    foreach (QString name, names) {
-      if (result.isEmpty()) {
-        result = name;
-      } else {
-        result += ", ";
-        result += name;
-      }
-    }
-    return result;
-  }
-  QString subject() { return m_subject; }
-  void setSubject(QString subject) { m_subject = subject; }
-  QString publisher() { return m_publisher; }
-  void setPublisher(QString publisher) { m_publisher = publisher; }
-  QDate published() { return m_published; }
-  void setPublished(QDate date) { m_published = date; }
+  QString creatorNames(const QStringList& names);
+  QString subject();
+  void setSubject(QString subject);
+  QString publisher();
+  void setPublisher(QString publisher);
+  QDate published();
+  void setPublished(QDate date);
 
 protected:
   IEBookInterface* m_plugin;

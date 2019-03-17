@@ -15,7 +15,7 @@ class LibraryFrame : public QWidget
 {
   Q_OBJECT
 public:
-  explicit LibraryFrame(Options* options, QWidget* parent = nullptr);
+  explicit LibraryFrame(Options options, QWidget* parent = nullptr);
   ~LibraryFrame();
 
   void setToShelf();
@@ -23,7 +23,7 @@ public:
   bool isTree();
 
 protected:
-  Options* m_options;
+  Options m_options;
   QStackedWidget* m_stack;
   QTreeWidget* m_library_tree;
   LibraryShelf* m_library_shelf;

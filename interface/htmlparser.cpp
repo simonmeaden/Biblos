@@ -1,10 +1,13 @@
 #include "htmlparser.h"
 
-#include <qlogger/qlogger.h>
-using namespace qlogger;
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
+#include <QLoggingCategory>
 
 int HtmlParser::INDENT_STEP = 2;
 int HtmlParser::INDENT = 0;
+
+QLoggingCategory category("htmlparser");
 
 /*!
  * \class HtmlParser
@@ -39,6 +42,47 @@ HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
   }
 }
 
+// QString
+// HtmlParser::cleanHtml(QString html)
+//{
+//  const char* input = html.toStdString().c_str();
+
+//  TidyBuffer output = { 0 };
+//  TidyBuffer errbuf = { 0 };
+
+//  int rc = -1;
+//  bool ok;
+
+//  TidyDoc tdoc = tidyCreate();
+//  ok = tidyOptSetBool(tdoc, TidyXhtmlOut, yes);
+
+//  if (ok)
+//    rc = tidySetErrorBuffer(tdoc, &errbuf); // Capture diagnostics
+//  if (rc >= 0)
+//    rc = tidyParseString(tdoc, input); // Parse the input
+//  if (rc >= 0)
+//    rc = tidyCleanAndRepair(tdoc); // Tidy it up!
+//  if (rc >= 0)
+//    rc = tidyRunDiagnostics(tdoc); // Kvetch
+//  if (rc > 1)                      // If error, force output.
+//    rc = (tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1);
+//  if (rc >= 0)
+//    rc = tidySaveBuffer(tdoc, &output); // Pretty Print
+
+//  int size = output.size;
+//  QByteArray ba(reinterpret_cast<const char*>(output.bp), size);
+//  //  if (rc >= 0) {
+//  //    if (rc > 0)
+//  //      QLOG_ERROR(QString("\nDiagnostics:\n\n%1").arg(errbuf.bp));
+//  //    printf("\nAnd here is the result:\n\n%s", output.bp);
+//  //  } else
+//  //    printf("A severe error (%d) occurred.\n", rc);
+
+//  tidyBufFree(&output);
+//  tidyBufFree(&errbuf);
+//  tidyRelease(tdoc);
+//}
+
 /*!
  * \brief parsing method.
  *
@@ -54,10 +98,10 @@ HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
  */
 
 bool
-HtmlParser::parse(QString name,
-                  QString document_string,
-                  QMap<QString, QString> css_map)
+HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
 {
+  QLoggingCategory category("biblos.htmlparser");
+
   // text is already pruned to inside <body> tag.
   bool tag_opener = false;
   bool tag_closed = false;
@@ -70,9 +114,9 @@ HtmlParser::parse(QString name,
   QString style_text;
   QString html_doc;
   ItemList item_list;
-  WordList word_list;
+  QStringList word_list;
 
-  Tag tag;
+  Tag tag = Tag(new EBTag(EBItem::NONE));
   foreach (QChar qc, document_string) {
     char c = qc.toLatin1();
     if (c == 0) {
@@ -82,7 +126,7 @@ HtmlParser::parse(QString name,
           if (!data_text.isEmpty()) {
             Word word = Word(new EBWord(data_text));
             item_list.append(word);
-            word_list.append(word);
+            word_list.append(word->string());
             data_text.clear();
           }
           Char ch = Char(new EBChar(c));
@@ -115,7 +159,7 @@ HtmlParser::parse(QString name,
             if (!data_text.isEmpty()) {
               Word word = Word(new EBWord(data_text));
               item_list.append(word);
-              word_list.append(word);
+              word_list.append(word->string());
               data_text.clear();
             }
             tag_opener = true;
@@ -134,7 +178,7 @@ HtmlParser::parse(QString name,
               tag_closed = true;
             tag_opener = false;
             item_list.append(tag);
-            tag = Tag(nullptr);
+            //            tag = Tag(nullptr);
           }
           tag_text.clear();
           break;
@@ -147,7 +191,7 @@ HtmlParser::parse(QString name,
                 if (!data_text.isEmpty()) {
                   Word word = Word(new EBWord(data_text));
                   item_list.append(word);
-                  word_list.append(word);
+                  word_list.append(word->string());
                   data_text.clear();
                 }
                 Char ch = Char(new EBChar(c));
@@ -210,7 +254,8 @@ HtmlParser::parse(QString name,
                 if (att_start) {
                   att_start = false;
                   if (tag.isNull()) {
-                    QLOG_ERROR(tr("Missing hml tag %1").arg(att_name));
+                    qCWarning(category)
+                      << QString("Missing hml tag %1").arg(att_name);
                     continue;
                   }
                   tag->setAttribute(att_name, att_value);
@@ -313,31 +358,14 @@ HtmlParser::htmlDocumentsById() const
 //}
 
 QString
-HtmlParser::toHtml(ItemList list, QStringList styles)
+HtmlParser::toHtml(ItemList list, CSSMap styles)
 {
-  QString html;
-  html += QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  //  html +=
-  //    QStringLiteral("<html "
-  //                   "    xmlns=\"http://www.w3.org/1999/xhtml\"\n"
-  //                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
-  //                   "    epub:prefix=\"z3998: "
-  //                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
-  //                   "
-  //                   xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
-  //  html += QStringLiteral("<head>\n");
-  //  //  foreach (QString style, styles) {
-  //  //    html += QStringLiteral("<style>");
-  //  //    html += style;
-  //  //    html += QStringLiteral("</style>");
-  //  //  }
-  //  html += QStringLiteral("</head>\n");
-  //  html += QStringLiteral("<body>\n");
+  QString html = QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
   foreach (Item item, list) {
     if (!item.isNull())
-      html += item->toHtml(0);
+      html += item->toHtml(styles);
   }
-  //  html += QStringLiteral("</body>\n");
+  //  html = cleanHtml(html);
   return html;
 }
 
@@ -632,8 +660,7 @@ EBTag::setAttribute(QString name, QString value)
   m_attributes.insert(name, value);
 }
 
-QString
-EBTag::toHtml(int /*indent*/)
+QString EBTag::toHtml(CSSMap)
 {
   QString html;
   //  html += HtmlParser::_indent();
@@ -656,8 +683,7 @@ EBEndTag::EBEndTag(EBItem::Type type)
   : EBTagBase(type)
 {}
 
-QString
-EBEndTag::toHtml(int /*indent*/)
+QString EBEndTag::toHtml(CSSMap)
 {
   QString html;
   html = "</" + fromType() + ">";
@@ -680,8 +706,7 @@ EBChar::qchar()
   return *this;
 }
 
-QString
-EBChar::toHtml(int indent)
+QString EBChar::toHtml(CSSMap)
 {
   QString html(*this);
   return html;
@@ -698,21 +723,29 @@ EBChar::toString()
  * ************************************************************************/
 
 EBWord::EBWord(QString word)
-  : QString(word)
-  , EBItem(WORD)
-{}
+  : EBItem(WORD)
+  , m_original(word)
+{
+  m_data = String(&word);
+}
 
 QString
 EBWord::string()
 {
-  return *this;
+  return m_original;
 }
 
-QString
-EBWord::toHtml(int /*indent*/)
+QString EBWord::toHtml(CSSMap)
 {
   QString word = string();
   return word;
+}
+
+void
+EBWord::setReplacement(const QString& replacement)
+{
+  m_original = *this;
+  m_replacement = replacement;
 }
 
 /* EBWord
@@ -737,8 +770,7 @@ EBStyleTag::style()
 /* EBNonClosedTag
  * ************************************************************************/
 
-QString
-EBNonClosedTag::toHtml(int /*indent*/)
+QString EBNonClosedTag::toHtml(CSSMap)
 {
   QString html;
   //  html += HtmlParser::_indent();
@@ -758,8 +790,7 @@ EBAlwaysClosedTag::EBAlwaysClosedTag(EBItem::Type type)
   : EBNonClosedTag(type)
 {}
 
-QString
-EBAlwaysClosedTag::toHtml(int /*indent*/)
+QString EBAlwaysClosedTag::toHtml(CSSMap)
 {
   QString html;
   //  html += HtmlParser::_indent();
@@ -777,31 +808,45 @@ EBAlwaysClosedTag::toHtml(int /*indent*/)
 
 EBLinkTag::EBLinkTag(EBItem::Type type)
   : EBAlwaysClosedTag(type)
-  , is_stylesheet(false)
+  , m_is_stylesheet(false)
 {}
 
 bool
 EBLinkTag::isStylesheet()
 {
-  return is_stylesheet;
+  return m_is_stylesheet;
 }
 
 void
 EBLinkTag::setAttribute(QString name, QString value)
 {
-  if (name.toLower() == QStringLiteral("rel") &&
+  QString l_name = name.toLower();
+  if (l_name == QStringLiteral("rel") &&
       value.toLower() == QStringLiteral("stylesheet")) {
-    is_stylesheet = true;
+    m_is_stylesheet = true;
+  } else if (l_name == QStringLiteral("href")) {
+    m_stylesheet_name = value;
   }
   EBTag::setAttribute(name, value);
 }
 
-/* EBLinkTag
- * ************************************************************************/
-
-EBMetaTag::EBMetaTag(EBItem::Type type)
-  : EBAlwaysClosedTag(type)
-{}
+QString
+EBLinkTag::toHtml(CSSMap styles)
+{
+  if (m_is_stylesheet) {
+    QString html;
+    QString href = m_attributes.value("href");
+    QString stylesheet = styles->value(href);
+    if (!stylesheet.isEmpty()) {
+      html += QString("<style title=\"%1\">%2<\\style>")
+                .arg(m_stylesheet_name)
+                .arg(stylesheet);
+    }
+    return html;
+  } else {
+    return EBAlwaysClosedTag::toHtml(styles);
+  }
+}
 
 /*********************************************************************************/
 

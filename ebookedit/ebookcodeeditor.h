@@ -11,7 +11,7 @@ class EBookCodeEditor : public QPlainTextEdit
 {
 public:
   EBookCodeEditor(QWidget* parent = nullptr);
-  EBookCodeEditor(Options* options, QWidget* parent = nullptr);
+  EBookCodeEditor(Options options, QWidget* parent = nullptr);
   EBookCodeEditor(const EBookCodeEditor& editor);
   ~EBookCodeEditor() override;
 
@@ -24,7 +24,7 @@ public:
 protected:
   QWidget* lineNumberArea;
   XhtmlHighlighter* m_highlighter;
-  Options* m_options;
+  Options m_options;
 
   void resizeEvent(QResizeEvent* event) override;
   void updateLineNumberAreaWidth(int newBlockCount);

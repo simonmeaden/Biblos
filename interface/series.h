@@ -7,26 +7,40 @@
 
 #include <qyaml-cpp/QYamlCpp>
 
+#include "options.h"
+
 struct EBookSeriesData
 {
   EBookSeriesData();
   ~EBookSeriesData();
-  quint64 uid;
-  QString name;
+
+public:
+  quint64 uid() const;
+  void setUid(const quint64& uid);
+
+  QString name() const;
+  void setName(const QString& name);
+
+  QStringList seriesWords() const;
+  void setSeriesWords(const QStringList& seriesWords);
 
   static quint64 m_highest_uid;
   static quint64 nextUid() { return ++m_highest_uid; }
+
+protected:
+  quint64 m_uid;
+  QString m_name;
+  QStringList m_series_words;
 };
 typedef QSharedPointer<EBookSeriesData> SeriesData;
 typedef QMap<quint64, SeriesData> SeriesMap;
 typedef QMap<QString, SeriesData> SeriesByString;
 typedef QStringList SeriesList;
 
-class EBookSeriesDB : public QObject
+class EBookSeriesDB
 {
-  Q_OBJECT
 public:
-  explicit EBookSeriesDB();
+  explicit EBookSeriesDB(Options options);
   EBookSeriesDB(const EBookSeriesDB& other);
   ~EBookSeriesDB();
 
@@ -46,6 +60,7 @@ public:
   SeriesData seriesByName(QString name);
 
 protected:
+  Options m_options;
   QString m_filename;
   bool m_series_changed;
   SeriesMap m_series_map;

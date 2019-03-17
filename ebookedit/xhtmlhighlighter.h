@@ -3,10 +3,8 @@
 
 #include <QObject>
 #include <QRegularExpression>
-#include <QSyntaxHighlighter>
 #include <QStack>
-
-#include <qlogger/qlogger.h>
+#include <QSyntaxHighlighter>
 
 #include "ebookcommon.h"
 #include "options.h"
@@ -71,7 +69,7 @@ class XhtmlHighlighter : public QSyntaxHighlighter
   //  };
 
 public:
-  XhtmlHighlighter(Options* options, QTextDocument* parent = nullptr);
+  XhtmlHighlighter(Options options, QTextDocument* parent = nullptr);
   ~XhtmlHighlighter() override;
 
   void resetFormattingOptions();
@@ -105,28 +103,35 @@ public:
                        bool italic = false);
 
 protected:
-  bool m_tagstarted; // triggered by the '<' start tag character.
+  bool m_tagstarted;  // triggered by the '<' start tag character.
   bool m_tagcomplete; // triggered by the '>' end tag character
-  bool m_tagcloser; // triggered by '/' IF it is the second character in the tag.
-  bool m_dquot; // triggered by a start double quote '"'. A second one cancels.
+  bool
+    m_tagcloser; // triggered by '/' IF it is the second character in the tag.
+  bool m_dquot;  // triggered by a start double quote '"'. A second one cancels.
   bool m_squot; // triggered by a start single quote '\''. A second one cancels.
-  bool m_namestarted; // triggered by the first non special character after the start tag.
-  bool m_namecomplete; // trgiggerd by a space, a '/' or a '>' after m_namestarted is true.
-  bool m_attstarted; // triggered by a non-special character after m_namecomplete.
-  bool m_attcomplete; // triggered by a space, a '/', an '=' or a '>' or a non-special character.
-  bool m_endtag; // triggered by '>'
-  bool m_eqstarted; // triggered by an '=' character.
-  bool m_error; // indicates an error has occured. Normally a special character out of place.
-  bool m_style_or_script; // a 'style' or a 'script' tag name has been detected without a tag closer.
+  bool m_namestarted;  // triggered by the first non special character after the
+                       // start tag.
+  bool m_namecomplete; // trgiggerd by a space, a '/' or a '>' after
+                       // m_namestarted is true.
+  bool
+    m_attstarted; // triggered by a non-special character after m_namecomplete.
+  bool m_attcomplete; // triggered by a space, a '/', an '=' or a '>' or a
+                      // non-special character.
+  bool m_endtag;      // triggered by '>'
+  bool m_eqstarted;   // triggered by an '=' character.
+  bool m_error; // indicates an error has occured. Normally a special character
+                // out of place.
+  bool m_style_or_script; // a 'style' or a 'script' tag name has been detected
+                          // without a tag closer.
   QString m_tagname;
-//  QStack<QString> m_namestack;
+  //  QStack<QString> m_namestack;
   int m_tagpos, m_tagstartpos;
   format_t m_current_format;
-  Options* m_options;
+  Options m_options;
   //  node_t m_start_node, m_tagnode, m_current_node;
 
   void highlightBlock(const QString& text) override;
-//  void setError(QString errorstring);
+  //  void setError(QString errorstring);
 
   void resetTagFlags();
 

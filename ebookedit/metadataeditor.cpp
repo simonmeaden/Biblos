@@ -2,7 +2,7 @@
 #include "authordialog.h"
 #include "iebookdocument.h"
 
-MetadataEditor::MetadataEditor(Options* options,
+MetadataEditor::MetadataEditor(Options options,
                                AuthorsDB authors,
                                SeriesDB series_db,
                                LibraryDB library,
@@ -58,7 +58,7 @@ MetadataEditor::setDocument(EBookDocument doc)
     SeriesData series = m_series_db->series(m_book_data->series);
     QString series_index = m_book_data->series_index;
     double series_value = m_series_spin->valueFromText(series_index);
-    m_series_edit->setText(series->name);
+    m_series_edit->setText(series->name());
     m_series_spin->setValue(series_value);
   } else {
     if (!m_calibre->seriesName().isEmpty()) {
@@ -76,7 +76,7 @@ MetadataEditor::setDocument(EBookDocument doc)
       quint64 series_uid =
         m_series_db->insertOrGetSeries(m_calibre->seriesName());
       SeriesData series = m_series_db->series(series_uid);
-      m_book_data->series = series->uid;
+      m_book_data->series = series->uid();
       m_book_data->series_index = m_calibre->seriesIndex();
     } else {
       // fallback use emtpy data.
@@ -98,7 +98,8 @@ MetadataEditor::setDocument(EBookDocument doc)
 
   QStringList creators = m_document->creators();
   AuthorList author_list;
-  foreach (QString creator, creators) {
+  for (int i = 0; i < creators.size(); i++) {
+    QString creator = creators.at(i);
     AuthorData author_data = m_author_db->author(creator);
     if (!author_data) {
       QStringList names = creator.split(" ");

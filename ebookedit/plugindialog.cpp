@@ -1,11 +1,12 @@
 #include "plugindialog.h"
 
-#include <qlogger/qlogger.h>
-using namespace qlogger;
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 #include "iplugininterface.h"
 
-PluginDialog::PluginDialog(QWidget* parent) : QDialog(parent)
+PluginDialog::PluginDialog(QWidget* parent)
+  : QDialog(parent)
 {
   setWindowTitle(tr("Installed Plugins"));
 
@@ -22,8 +23,10 @@ PluginDialog::PluginDialog(QWidget* parent) : QDialog(parent)
   m_plugin_widget->setColumnCount(5);
   m_plugin_widget->setHeaderLabels(headers);
   m_plugin_widget->header()->setSectionResizeMode(
-      QHeaderView::ResizeToContents);
-  connect(m_plugin_widget, &QTreeWidget::itemClicked, this,
+    QHeaderView::ResizeToContents);
+  connect(m_plugin_widget,
+          &QTreeWidget::itemClicked,
+          this,
           &PluginDialog::itemWasClicked);
 
   layout->addWidget(m_plugin_widget, 1, 0);
@@ -31,7 +34,8 @@ PluginDialog::PluginDialog(QWidget* parent) : QDialog(parent)
   setGeometry(geometry().x(), geometry().y(), 600, 300);
 }
 
-QTreeWidgetItem* PluginDialog::addTreeRoot(QString group)
+QTreeWidgetItem*
+PluginDialog::addTreeRoot(QString group)
 {
   QTreeWidgetItem* tree_item = new QTreeWidgetItem(m_plugin_widget);
   tree_item->setText(0, group);
@@ -39,8 +43,12 @@ QTreeWidgetItem* PluginDialog::addTreeRoot(QString group)
   return tree_item;
 }
 
-void PluginDialog::addTreeChild(QTreeWidgetItem* parent, QString name,
-                                bool loaded, QString version, QString vendor)
+void
+PluginDialog::addTreeChild(QTreeWidgetItem* parent,
+                           QString name,
+                           bool loaded,
+                           QString version,
+                           QString vendor)
 {
   QTreeWidgetItem* tree_item = new QTreeWidgetItem();
   tree_item->setText(1, name);
@@ -53,19 +61,23 @@ void PluginDialog::addTreeChild(QTreeWidgetItem* parent, QString name,
   parent->addChild(tree_item);
 }
 
-void PluginDialog::itemWasClicked(QTreeWidgetItem* item, int column)
+void
+PluginDialog::itemWasClicked(QTreeWidgetItem* item, int column)
 {
+  QLoggingCategory category("biblos.plugin.dialog");
   // TODO - handle loaded changes
   if (column == 2) {
-    QLOG_DEBUG(QString("plugin item clicked : value %2 : column %1 : state %3")
-                   .arg(column)
-                   .arg(item->text(1))
-                   .arg(item->checkState(2) == Qt::Checked))
+    qCDebug(category)
+      << QString("plugin item clicked : value %2 : column %1 : state %3")
+           .arg(column)
+           .arg(item->text(1))
+           .arg(item->checkState(2) == Qt::Checked);
     emit loadedWasChanged(item->text(1), item->checkState(2) == Qt::Checked);
   }
 }
 
-void PluginDialog::addPlugin(IPluginInterface* plugin)
+void
+PluginDialog::addPlugin(IPluginInterface* plugin)
 {
   QString plugin_group = plugin->pluginGroup();
   QString name = plugin->pluginName();
@@ -75,7 +87,7 @@ void PluginDialog::addPlugin(IPluginInterface* plugin)
 
   QTreeWidgetItem* parent_item;
   QList<QTreeWidgetItem*> top_items =
-      m_plugin_widget->findItems(plugin_group, Qt::MatchFixedString);
+    m_plugin_widget->findItems(plugin_group, Qt::MatchFixedString);
   if (top_items.isEmpty()) {
     parent_item = addTreeRoot(plugin_group);
     addTreeChild(parent_item, name, loaded, version, vendor);

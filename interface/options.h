@@ -15,10 +15,8 @@
 
 #include "ebookcommon.h"
 
-class Options : public QObject
+class BiblosOptions
 {
-  Q_OBJECT
-
 public:
   enum CodeOptions
   {
@@ -42,8 +40,8 @@ public:
     VIEW_EDITOR,
   };
 
-  Options(QObject* parent = nullptr);
-  ~Options();
+  BiblosOptions();
+  ~BiblosOptions();
 
   void save(const QString filename = QString());
   void load(const QString filename);
@@ -195,14 +193,14 @@ public:
   QPixmapCache::Key view_refresh_key;
   QPixmapCache::Key text_html_key;
 
-  QString homeDirectiory() const;
-  void setHomeDirectiory(const QString& home_directiory);
+  QString homeDir() const;
+  void setHomeDir(const QString& home_directiory);
 
-  QString libraryDirectory() const;
-  void setLibraryDirectory(const QString& library_directory);
+  QString libraryDir() const;
+  void setLibraryDir(const QString& library_directory);
 
-  QString configDirectory() const;
-  void setConfigDirectory(const QString& config_directory);
+  QString configDir() const;
+  void setConfigDir(const QString& config_directory);
 
   QString configFile() const;
   void setConfigFile(const QString& config_file);
@@ -213,11 +211,13 @@ public:
   QString authorsFile() const;
   void setAuthorsFile(const QString& authors_file);
 
+  QString dicDir() const;
+  void setDicDir(const QString& dic_dir);
+  QString bdicDir() const;
+  void setBdicDir(const QString& dic_dir);
+
   QString seriesFile() const;
   void setSeriesFile(const QString& series_file);
-
-signals:
-  void loadLibraryFiles(QStringList, int);
 
 protected:
   ViewState m_view_state = VIEW_LIBRARY_TREE;
@@ -265,9 +265,11 @@ protected:
   bool m_style_italic;
   QFont::Weight m_style_weight;
 
-  QString m_home_directiory;
+  QString m_home_directory;
   QString m_library_directory;
   QString m_config_directory;
+  QString m_dic_directory;
+  QString m_bdic_directory;
   QString m_config_file;
   QString m_lib_file;
   QString m_authors_file;
@@ -308,5 +310,6 @@ protected:
   static QString TOC_POSITION;
   static QString VIEW_STATE;
 };
+typedef QSharedPointer<BiblosOptions> Options;
 
 #endif // OPTIONS_H

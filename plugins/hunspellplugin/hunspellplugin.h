@@ -8,20 +8,24 @@
 
 #include "interface_global.h"
 #include "ispellinterface.h"
+#include "options.h"
 
 class HunspellChecker;
-class Options;
+class BiblosOptions;
 
-class INTERFACESHARED_EXPORT HunspellPlugin : public QObject,
-                                              public ISpellInterface {
+class INTERFACESHARED_EXPORT HunspellPlugin
+  : public QObject
+  , public ISpellInterface
+{
   Q_OBJECT
   Q_PLUGIN_METADATA(IID SpellInterface_iid FILE "spellinterface.json")
   Q_INTERFACES(IPluginInterface)
   Q_INTERFACES(ISpellInterface)
 public:
-  explicit HunspellPlugin(QObject *parent = nullptr);
-  explicit HunspellPlugin(Options *options, QString dict_path = QString(),
-                          QObject *parent = nullptr);
+  explicit HunspellPlugin(QObject* parent = nullptr);
+  explicit HunspellPlugin(Options options,
+                          QString dict_path = QString(),
+                          QObject* parent = nullptr);
 
   // IPluginInterface interface
   QString pluginGroup() const override;
@@ -36,7 +40,7 @@ public:
   void buildMenu() override;
 
   // ISpellInterface interface
-  CountryData *dictionary(QString language_code) override;
+  CountryData* dictionary(QString language_code) override;
   QStringList languageCodes(QString language_code) override;
   QStringList compatibleLanguageCodes(QString language_code) override;
   QString language() override;
@@ -72,10 +76,10 @@ protected:
   QStringList m_author_list;
   QHash<QString, QString> m_words_matched;
 
-  CountryData *m_data;
+  CountryData* m_data;
 
-  HunspellChecker *m_checker;
-  Options *m_options;
+  HunspellChecker* m_checker;
+  Options m_options;
 
   void receivedWordCorrect(QString);
 };

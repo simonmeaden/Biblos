@@ -1,17 +1,19 @@
 #include "xhtmlhighlighter.h"
 
-using namespace qlogger;
+#include <QLoggingCategory>
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 // XhtmlHighlighter::TagNode::TagNode()
 //  : prev_node(nullptr)
 //  , next_node(nullptr)
 //{}
 
-XhtmlHighlighter::XhtmlHighlighter(Options* options, QTextDocument* parent)
+XhtmlHighlighter::XhtmlHighlighter(Options options, QTextDocument* parent)
   : QSyntaxHighlighter(parent)
   , m_error(false)
   , m_options(options)
-    //  , m_tagnode(nullptr)
+  //  , m_tagnode(nullptr)
   , m_normal_format(new QTextCharFormat())
   , m_tag_format(new QTextCharFormat())
   , m_string_format(new QTextCharFormat())
@@ -55,6 +57,7 @@ XhtmlHighlighter::~XhtmlHighlighter() {}
 void
 XhtmlHighlighter::highlightBlock(const QString& text)
 {
+  QLoggingCategory category("biblos.highlighter");
   /* These all need to be stored outside the method in
   case the tag is split over two or more text blocks.*/
   if (!m_tagstarted) {
@@ -78,153 +81,154 @@ XhtmlHighlighter::highlightBlock(const QString& text)
       // (NOT quoted text)
       if (m_tagstarted) {
         switch (c) {
-        case '/': { // TAG CLOSED ? maybe if not in quotes.
-          if (!(m_dquot || m_squot)) {
-            if (m_tagstarted && !m_namestarted) {
-              // Might be a tag closer. Should be the second character in the
-              // tag.
-              if (m_tagpos == m_tagstartpos + 1) {
-                m_tagcloser = true;
+          case '/': { // TAG CLOSED ? maybe if not in quotes.
+            if (!(m_dquot || m_squot)) {
+              if (m_tagstarted && !m_namestarted) {
+                // Might be a tag closer. Should be the second character in the
+                // tag.
+                if (m_tagpos == m_tagstartpos + 1) {
+                  m_tagcloser = true;
+                }
               }
-            }
-            if (!m_tagcloser && m_attstarted) {
-              m_attstarted = false;
-              m_attcomplete = true;
-              m_current_format = m_tag_format;
-            }
-
-            //              m_tagclosed = true;
-            m_current_format = m_tag_format;
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        case ' ': {
-          if (!(m_dquot || m_squot)) {
-            if (!m_namestarted) {
-              m_current_format = m_normal_format;
-            } else if (m_attstarted) {
-              m_attstarted = false;
-              m_attcomplete = true;
-              m_current_format = m_tag_format;
-            } else if (m_namestarted && !m_attstarted) {
-              m_namecomplete = true;
-              m_current_format = m_normal_format;
-            }
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        case '=': {
-          if (!(m_squot || m_dquot)) {
-            if (m_attstarted) {
-              m_attstarted = false;
-              m_attcomplete = true;
-              m_current_format = m_tag_format;
-            }
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        case '>': {
-          if (!(m_squot || m_dquot)) {
-            setFormat(m_tagpos, 1, *(m_current_format.get()));
-            if (m_attstarted || m_attcomplete) {
-              m_attstarted = false;
-              m_attcomplete = false;
-              m_current_format = m_normal_format;
-            }
-            if (m_namestarted) {
-              // basically name is finished and no attributes.
-              m_namecomplete = false;
-              m_namestarted = false;
-              m_tagcomplete = true;
-            }
-            m_tagstarted = false;
-          }
-          // Check if these are special tags
-          if (!m_tagcloser) {
-            if (m_tagname == "style") {
-              m_style_or_script = true;
-              m_current_format = m_style_format;
-            } else if (m_tagname == "script") {
-              m_current_format = m_script_format;
-              m_style_or_script = true;
-            }
-          } else
-            m_tagcloser = false;
-          m_tagname.clear();
-          break;
-        }
-        case '\'': {
-          if (!m_dquot) {
-            // ignore double quotes inside single quotes.
-            if (m_squot) {
-              // end of single quoted section
-              m_squot = false;
-              m_current_format = m_tag_format;
-            } else {
-              // start of single quoted section
-              m_squot = true;
-              m_current_format = m_string_format;
-            }
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        case '"': {
-          if (!m_squot) {
-            // ignore single quotes inside double quotes.
-            if (m_dquot) {
-              // end of double quoted section
-              m_dquot = false;
-              m_current_format = m_tag_format;
-            } else if (m_style_or_script) {
-              // TODO ???? not certain if I need anything here.
-            } else {
-              // start of double quoted section
-              m_dquot = true;
-              m_current_format = m_string_format;
-            }
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        case '<': {
-          if (!(m_squot || m_dquot)) {
-            m_current_format = m_error_format;
-            m_error = true;
-            QLOG_ERROR(
-              tr("Error parsing xhtml, second open tag character (<) in %1")
-              .arg(text));
-          }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
-        default: {
-          // any non-special character in text
-          if (!(m_dquot || m_squot)) {
-            if (!m_namestarted) {
-              // first non-special character after start tag.
-              m_namestarted = true;
-              m_current_format = m_tag_format;
-              m_tagname += qc;
-            } else if (m_namecomplete) {
-              // tag name is complete
-              if (m_attcomplete) {
+              if (!m_tagcloser && m_attstarted) {
+                m_attstarted = false;
+                m_attcomplete = true;
                 m_current_format = m_tag_format;
-              } else if (!m_attstarted) {
-                m_attstarted = true;
-                m_attcomplete = false;
-                m_current_format = m_attribute_format;
               }
-            } else {
-              m_tagname += qc;
+
+              //              m_tagclosed = true;
+              m_current_format = m_tag_format;
             }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
           }
-          setFormat(m_tagpos, 1, *(m_current_format.get()));
-          break;
-        }
+          case ' ': {
+            if (!(m_dquot || m_squot)) {
+              if (!m_namestarted) {
+                m_current_format = m_normal_format;
+              } else if (m_attstarted) {
+                m_attstarted = false;
+                m_attcomplete = true;
+                m_current_format = m_tag_format;
+              } else if (m_namestarted && !m_attstarted) {
+                m_namecomplete = true;
+                m_current_format = m_normal_format;
+              }
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
+          case '=': {
+            if (!(m_squot || m_dquot)) {
+              if (m_attstarted) {
+                m_attstarted = false;
+                m_attcomplete = true;
+                m_current_format = m_tag_format;
+              }
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
+          case '>': {
+            if (!(m_squot || m_dquot)) {
+              setFormat(m_tagpos, 1, *(m_current_format.get()));
+              if (m_attstarted || m_attcomplete) {
+                m_attstarted = false;
+                m_attcomplete = false;
+                m_current_format = m_normal_format;
+              }
+              if (m_namestarted) {
+                // basically name is finished and no attributes.
+                m_namecomplete = false;
+                m_namestarted = false;
+                m_tagcomplete = true;
+              }
+              m_tagstarted = false;
+            }
+            // Check if these are special tags
+            if (!m_tagcloser) {
+              if (m_tagname == "style") {
+                m_style_or_script = true;
+                m_current_format = m_style_format;
+              } else if (m_tagname == "script") {
+                m_current_format = m_script_format;
+                m_style_or_script = true;
+              }
+            } else
+              m_tagcloser = false;
+            m_tagname.clear();
+            break;
+          }
+          case '\'': {
+            if (!m_dquot) {
+              // ignore double quotes inside single quotes.
+              if (m_squot) {
+                // end of single quoted section
+                m_squot = false;
+                m_current_format = m_tag_format;
+              } else {
+                // start of single quoted section
+                m_squot = true;
+                m_current_format = m_string_format;
+              }
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
+          case '"': {
+            if (!m_squot) {
+              // ignore single quotes inside double quotes.
+              if (m_dquot) {
+                // end of double quoted section
+                m_dquot = false;
+                m_current_format = m_tag_format;
+              } else if (m_style_or_script) {
+                // TODO ???? not certain if I need anything here.
+              } else {
+                // start of double quoted section
+                m_dquot = true;
+                m_current_format = m_string_format;
+              }
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
+          case '<': {
+            if (!(m_squot || m_dquot)) {
+              m_current_format = m_error_format;
+              m_error = true;
+              qCDebug(category)
+                << tr(
+                     "Error parsing xhtml, second open tag character (<) in %1")
+                     .arg(text);
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
+          default: {
+            // any non-special character in text
+            if (!(m_dquot || m_squot)) {
+              if (!m_namestarted) {
+                // first non-special character after start tag.
+                m_namestarted = true;
+                m_current_format = m_tag_format;
+                m_tagname += qc;
+              } else if (m_namecomplete) {
+                // tag name is complete
+                if (m_attcomplete) {
+                  m_current_format = m_tag_format;
+                } else if (!m_attstarted) {
+                  m_attstarted = true;
+                  m_attcomplete = false;
+                  m_current_format = m_attribute_format;
+                }
+              } else {
+                m_tagname += qc;
+              }
+            }
+            setFormat(m_tagpos, 1, *(m_current_format.get()));
+            break;
+          }
         } // end of switch
       } else {
         // any pre-tag or first tag character code.

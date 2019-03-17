@@ -1,21 +1,19 @@
 #include "webview.h"
 
-#include <qlogger/qlogger.h>
-using namespace qlogger;
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 /* WebView
  *****************************************************************************/
-WebView::WebView(Options* options,
+WebView::WebView(Options options,
                  QString jquery,
-                 QString one_page_js,
-                 QString one_page_css,
                  QWebEngineProfile* profile,
                  QWidget* parent)
   : QWebEngineView(parent)
   , m_options(options)
   , m_jquery(jquery)
-  , m_onepage_js(one_page_js)
-  , m_onepage_css(one_page_css)
+  //  , m_onepage_js(one_page_js)
+  //  , m_onepage_css(one_page_css)
   , m_load_progress(100)
   , m_profile(profile)
 {
@@ -23,7 +21,7 @@ WebView::WebView(Options* options,
   view_refresh_key = m_options->view_refresh_key;
   text_html_key = m_options->text_html_key;
 
-  insertStyleSheet(QStringLiteral("one_page"), m_onepage_css);
+  //  insertStyleSheet(QStringLiteral("one_page"), m_onepage_css);
 
   connect(this, &QWebEngineView::loadStarted, this, &WebView::setLoadStarted);
   connect(this, &QWebEngineView::loadProgress, this, &WebView::setLoadProgress);
@@ -151,29 +149,6 @@ WebView::scrollHeight()
   //    [=](QVariant result) { int newHeight = result.toInt(); });
 }
 
-// bool
-// WebView::event(QEvent* event)
-//{
-//  foreach (QObject* obj, this->children())
-//    if (qobject_cast<QWidget*>(obj))
-//      QLOG_WARN("Help");
-//  //  return QWebEngineView::event(event);
-//}
-
-// void
-// WebView::pageUp()
-//{
-//  page()->runJavaScript(QString("window.scrollTo(%1,
-//  %2);").arg(scrollX).arg(scrollY));
-//}
-
-// void
-// WebView::pageDown()
-//{
-//    page()->runJavaScript(QString("window.scrollTo(%1,
-//    %2);").arg(scrollX).arg(scrollY));
-//}
-
 void
 WebView::setWebPage(WebPage* page)
 {
@@ -199,7 +174,7 @@ WebView::loadFinished(const bool& value)
   WebPage* web_page = qobject_cast<WebPage*>(page());
   if (web_page) {
     web_page->runJavaScript(m_jquery);
-    web_page->runJavaScript(m_onepage_js);
+    //    web_page->runJavaScript(m_onepage_js);
     web_page->highlightLinks();
   }
 }

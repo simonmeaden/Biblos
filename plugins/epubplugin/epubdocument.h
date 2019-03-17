@@ -89,10 +89,10 @@ public:
   QMap<QString, QString> pages() override;
   QStringList spine() override;
   QStringList cssKeys() override;
-  QStringList css() override;
+  CSSMap css() override;
   QString css(QString key) override;
   QString javascript(QString key) override;
-  ManifestItem itemByHref(QString href);
+  ManifestItem itemByHref(QString href) override;
 
 signals:
   void orderChanged();

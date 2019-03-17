@@ -1,9 +1,9 @@
 #ifndef OPTIONSDIALOG_H
 #define OPTIONSDIALOG_H
 
+#include <QColorDialog>
 #include <QDialog>
 #include <QtWidgets>
-#include <QColorDialog>
 
 #include "ebookcommon.h"
 #include "options.h"
@@ -12,21 +12,21 @@ class OptionsDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit OptionsDialog(Options* options, QWidget* parent = nullptr);
+  explicit OptionsDialog(Options options, QWidget* parent = nullptr);
   ~OptionsDialog();
 
-  Options* options();
+  Options options();
   bool modified() const;
 
 signals:
   void codeChanged();
   void showToc(bool);
-  void moveToc(Options::TocPosition);
+  void moveToc(BiblosOptions::TocPosition);
 
 public slots:
 
 protected:
-  Options* m_options, *m_oldoptions;
+  Options m_options, m_oldoptions;
   bool m_modified;
   QPushButton* font_btn;
   QPushButton* normal_color_btn;
@@ -101,17 +101,17 @@ protected:
 
   QColor enactColorDialog(QColor old_color);
   void buildCodeSection();
-  QFrame* initCodeTab(Options::CodeOptions options);
-  void setColorConnection(Options::CodeOptions options);
-  void setBackgroundConnection(Options::CodeOptions options);
-  void setItalicConnection(Options::CodeOptions options);
-  void setWeightConnection(Options::CodeOptions options);
-  QPushButton* getColorBtn(Options::CodeOptions options);
-  QPushButton* getBackgroundBtn(Options::CodeOptions options);
-  QCheckBox* getItalicBox(Options::CodeOptions options);
-  QComboBox* getWeightBox(Options::CodeOptions options);
-  void setCodeColor(Options::CodeOptions options);
-  void setCodeBackground(Options::CodeOptions options);
+  QFrame* initCodeTab(BiblosOptions::CodeOptions options);
+  void setColorConnection(BiblosOptions::CodeOptions options);
+  void setBackgroundConnection(BiblosOptions::CodeOptions options);
+  void setItalicConnection(BiblosOptions::CodeOptions options);
+  void setWeightConnection(BiblosOptions::CodeOptions options);
+  QPushButton* getColorBtn(BiblosOptions::CodeOptions options);
+  QPushButton* getBackgroundBtn(BiblosOptions::CodeOptions options);
+  QCheckBox* getItalicBox(BiblosOptions::CodeOptions options);
+  QComboBox* getWeightBox(BiblosOptions::CodeOptions options);
+  void setCodeColor(BiblosOptions::CodeOptions options);
+  void setCodeBackground(BiblosOptions::CodeOptions options);
   QString convertColorToStyle(QColor color, QColor back);
 
   static const QString BTN_STYLE;

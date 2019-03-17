@@ -3,14 +3,53 @@
 quint64 EBookSeriesData::m_highest_uid = 0;
 
 EBookSeriesData::EBookSeriesData()
-  : uid(0)
+  : m_uid(0)
 {}
 
 EBookSeriesData::~EBookSeriesData() {}
 
-EBookSeriesDB::EBookSeriesDB()
-  : m_series_changed(false)
-{}
+quint64
+EBookSeriesData::uid() const
+{
+  return m_uid;
+}
+
+void
+EBookSeriesData::setUid(const quint64& uid)
+{
+  m_uid = uid;
+}
+
+QString
+EBookSeriesData::name() const
+{
+  return m_name;
+}
+
+void
+EBookSeriesData::setName(const QString& name)
+{
+  m_name = name;
+}
+
+QStringList
+EBookSeriesData::seriesWords() const
+{
+  return m_series_words;
+}
+
+void
+EBookSeriesData::setSeriesWords(const QStringList& series_words)
+{
+  m_series_words = series_words;
+}
+
+EBookSeriesDB::EBookSeriesDB(Options options)
+  : m_options(options)
+  , m_series_changed(false)
+{
+  loadSeries();
+}
 
 EBookSeriesDB::EBookSeriesDB(const EBookSeriesDB& other)
 {
@@ -65,32 +104,40 @@ EBookSeriesDB::seriesByName(QString name)
 bool
 EBookSeriesDB::loadSeries()
 {
-  if (m_filename.isEmpty()) {
-    return false;
-  }
+  m_filename = m_options->seriesFile();
 
   QFile file(m_filename);
   if (file.exists()) {
     YAML::Node library_node = YAML::LoadFile(file);
     if (library_node.IsMap()) {
-      for (YAML::const_iterator it = library_node.begin();
-           it != library_node.end();
-           ++it) {
+      for (YAML::const_iterator it1 = library_node.begin();
+           it1 != library_node.end();
+           ++it1) {
         SeriesData series = SeriesData(new EBookSeriesData());
-        series->uid = it->first.as<quint64>();
-
-        //          YAML::Node series_node = it->second;
-        series->name = it->second["name"].as<QString>();
+        series->setUid(it1->first.as<quint64>());
+        YAML::Node series_node = it1->second;
+        if (!series_node.IsNull() && series_node.IsMap()) {
+          series->setName(series_node["name"].as<QString>());
+          QStringList words;
+          YAML::Node word_list = series_node["word list"];
+          if (!word_list.IsNull() && word_list.IsSequence()) {
+            for (YAML::const_iterator it2 = word_list.begin();
+                 it2 != word_list.end();
+                 ++it2) {
+              words << it2->second.as<QString>();
+            }
+          }
+        }
 
         EBookSeriesData::m_highest_uid =
-          (series->uid > EBookSeriesData::m_highest_uid
-             ? series->uid
+          (series->uid() > EBookSeriesData::m_highest_uid
+             ? series->uid()
              : EBookSeriesData::m_highest_uid);
 
         insertSeries(series);
       }
     }
-    m_series_changed = false;
+    m_series_changed = true;
   }
 
   return true;
@@ -115,12 +162,23 @@ EBookSeriesDB::saveSeries()
 
       emitter << YAML::BeginMap; // series map
       {
-        foreach (SeriesData data, m_series_map) {
-          emitter << YAML::Key << data->uid; // map key
+        for (int i = 0; i < m_series_map.keys().size(); i++) {
+          quint64 key = m_series_map.keys().at(i);
+          SeriesData data = m_series_map.value(key);
+          QString name = data->name();
+          QStringList words = data->seriesWords();
+          emitter << YAML::Key << data->uid(); // map key
           emitter << YAML::Value;
           emitter << YAML::BeginMap; // individual series data
           emitter << YAML::Key << "name";
-          emitter << YAML::Value << data->name;
+          emitter << YAML::Value << name;
+          emitter << YAML::Key << "word list";
+          emitter << YAML::BeginSeq;
+          for (int i = 0; i < words.size(); i++) {
+            QString word = words.at(i);
+            emitter << word;
+          }
+          emitter << YAML::EndSeq;
           emitter << YAML::EndMap; // end individual series data
         }
       }
@@ -141,20 +199,20 @@ EBookSeriesDB::insertOrGetSeries(QString series)
   if (!m_series_by_name.contains(series.toLower())) {
     SeriesData series_data = SeriesData(new EBookSeriesData());
     quint64 uid = series_data->nextUid();
-    series_data->uid = uid;
-    series_data->name = series;
+    series_data->setUid(uid);
+    series_data->setName(series);
     insertSeries(series_data);
     return uid;
   }
-  return m_series_by_name.value(series.toLower())->uid;
+  return m_series_by_name.value(series.toLower())->uid();
 }
 
 void
 EBookSeriesDB::insertSeries(SeriesData series_data)
 {
-  m_series_map.insert(series_data->uid, series_data);
-  m_series_by_name.insert(series_data->name.toLower(), series_data);
-  m_series_list.append(series_data->name);
+  m_series_map.insert(series_data->uid(), series_data);
+  m_series_by_name.insert(series_data->name().toLower(), series_data);
+  m_series_list.append(series_data->name());
 }
 
 bool
@@ -163,7 +221,7 @@ EBookSeriesDB::removeSeries(quint64 index)
   if (m_series_map.contains(index)) {
     SeriesData data = m_series_map.value(index);
     m_series_map.remove(index);
-    m_series_list.removeOne(data->name);
+    m_series_list.removeOne(data->name());
     return true;
   }
   return false;

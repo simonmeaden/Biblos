@@ -6,7 +6,7 @@ EBookCodeEditor::EBookCodeEditor(QWidget* parent)
   init();
 }
 
-EBookCodeEditor::EBookCodeEditor(Options* options, QWidget* parent)
+EBookCodeEditor::EBookCodeEditor(Options options, QWidget* parent)
   : QPlainTextEdit(parent)
   , m_options(options)
 {

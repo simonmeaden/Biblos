@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
-#include <qlogger/qlogger.h>
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 #include "iebookinterface.h"
 #include "iplugininterface.h"
@@ -13,7 +14,6 @@
 
 #include "ebooktoceditor.h"
 #include "ebooktocwidget.h"
-#include "ebookwordreader.h"
 #include "ebookwrapper.h"
 #include "libraryframe.h"
 
@@ -22,8 +22,6 @@
 #include "libraryframe.h"
 #include "optionsdialog.h"
 #include "plugindialog.h"
-
-using namespace qlogger;
 
 const QString MainWindow::READ_ONLY = MainWindow::tr("Read Only");
 const QString MainWindow::READ_WRITE = MainWindow::tr("Read Write");
@@ -35,53 +33,65 @@ const QString MainWindow::PREF_FILE = "preferences.yaml";
 const QString MainWindow::LIB_FILE = "library.yaml";
 const QString MainWindow::AUTHOR_FILE = "authors.yaml";
 const QString MainWindow::SERIES_FILE = "series.yaml";
+const QString MainWindow::DICT_DIR = "dictionaries";
+const QString MainWindow::BDICT_DIR = "qtwebengine_dictionaries";
 // const QString MainWindow::DB_NAME = "library.sqlite";
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
   , m_initialising(true)
   , m_loading(false)
-  , m_options(new Options(this))
+  , m_options(Options(new BiblosOptions()))
   , m_bookcount(0)
   , m_popup(nullptr)
   , m_current_spell_checker(nullptr)
 {
-  QLogger::addLogger("root", q5TRACE, CONSOLE);
+  //  QLogger::addLogger("root", q5TRACE, CONSOLE);
 
   setWindowTitle(QCoreApplication::applicationName());
   QPixmap library_icon;
   QPixmapCache::find(m_options->lib_key, &library_icon);
   setWindowIcon(QIcon(library_icon));
 
-  m_authors_db = AuthorsDB(new EBookAuthorsDB());
-  m_series_db = SeriesDB(new EBookSeriesDB());
-  m_library_db = LibraryDB(new EBookLibraryDB(m_series_db));
-
-  connect(
-    m_options, &Options::loadLibraryFiles, this, &MainWindow::loadLibraryFiles);
-
   loadPlugins();
   initBuild();
   QDir dir;
-  m_options->setHomeDirectiory(QStandardPaths::locate(
+  m_options->setHomeDir(QStandardPaths::locate(
     QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory));
-  m_options->setLibraryDirectory(
+  m_options->setLibraryDir(
     QStandardPaths::writableLocation(QStandardPaths::DataLocation));
-  dir.mkpath(m_options->libraryDirectory());
-  m_options->setConfigDirectory(
+  dir.mkpath(m_options->libraryDir());
+  m_options->setConfigDir(
     QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
-  dir.mkpath(m_options->configDirectory());
-  m_options->setConfigFile(m_options->configDirectory() + QDir::separator() +
+  dir.mkpath(m_options->configDir());
+  m_options->setConfigFile(m_options->configDir() + QDir::separator() +
                            PREF_FILE);
-  m_options->setLibraryFile(m_options->configDirectory() + QDir::separator() +
+  m_options->setLibraryFile(m_options->configDir() + QDir::separator() +
                             LIB_FILE);
-  m_options->setAuthorsFile(m_options->configDirectory() + QDir::separator() +
+  m_options->setAuthorsFile(m_options->configDir() + QDir::separator() +
                             AUTHOR_FILE);
-  m_options->setSeriesFile(m_options->configDirectory() + QDir::separator() +
+  m_options->setSeriesFile(m_options->configDir() + QDir::separator() +
                            SERIES_FILE);
-  loadAuthors();
-  loadSeries();
-  loadLibrary();
+  m_options->setDicDir(m_options->configDir() + QDir::separator() + DICT_DIR);
+  m_options->setBdicDir(m_options->configDir() + QDir::separator() + BDICT_DIR);
+  m_authors_db = AuthorsDB(new EBookAuthorsDB(m_options));
+  m_series_db = SeriesDB(new EBookSeriesDB(m_options));
+  m_library_db = LibraryDB(new EBookLibraryDB(m_options, m_series_db));
+
+  loadLibraryFiles(m_options->currentfiles(), m_options->currentIndex());
+  m_dict_handler = new DictionaryHandler(m_options);
+  m_process_thread = new QThread(this);
+  connect(m_dict_handler, SIGNAL(finished()), m_process_thread, SLOT(quit()));
+  connect(
+    m_dict_handler, SIGNAL(finished()), m_dict_handler, SLOT(deleteLater()));
+  connect(m_process_thread,
+          SIGNAL(finished()),
+          m_process_thread,
+          SLOT(deleteLater()));
+  m_process_thread->start();
+  m_dict_handler->moveToThread(m_process_thread);
+
+  m_dict_handler->loadDictionaries();
 
   QFile file;
   file.setFileName(":/files/jquery");
@@ -138,14 +148,14 @@ MainWindow::initBuild()
 }
 
 void
-MainWindow::update(Options::TocPosition position)
+MainWindow::update(BiblosOptions::TocPosition position)
 {
-  if (position == Options::LEFT) {
+  if (position == BiblosOptions::LEFT) {
     m_splitter->insertWidget(0, m_toc_stack);
     m_splitter->insertWidget(1, m_doc_tabs);
     m_splitter->setStretchFactor(0, 1);
     m_splitter->setStretchFactor(1, 3);
-  } else if (position == Options::RIGHT) {
+  } else if (position == BiblosOptions::RIGHT) {
     m_splitter->insertWidget(0, m_doc_tabs);
     m_splitter->insertWidget(1, m_toc_stack);
     m_splitter->setStretchFactor(0, 3);
@@ -212,7 +222,7 @@ MainWindow::initGui()
   if (m_doc_tabs->count() == 0)
     m_doc_tabs->setEnabled(false);
 
-  if (m_toc_position == Options::LEFT) {
+  if (m_toc_position == BiblosOptions::LEFT) {
     m_splitter->addWidget(m_toc_stack);
     m_splitter->addWidget(m_doc_tabs);
     m_splitter->setStretchFactor(0, 1);
@@ -394,7 +404,7 @@ MainWindow::initViewActions()
   m_view_toc->setStatusTip(tr("Show/Hide the table of contents viewer."));
   connect(m_view_toc, &QAction::triggered, this, &MainWindow::viewToc);
 
-  if (m_options->tocPosition() == Options::LEFT) {
+  if (m_options->tocPosition() == BiblosOptions::LEFT) {
     text = tr("Move Table of Contents to Right");
   } else {
     text = tr("Move Table of Contents to Left");
@@ -558,7 +568,7 @@ MainWindow::initLibActions()
   QPixmapCache::find(m_options->bookshelf_key, &bookshelf_icon);
   QPixmapCache::find(m_options->tree_key, &tree_icon);
 
-  Options::ViewState state = m_options->viewState();
+  BiblosOptions::ViewState state = m_options->viewState();
 
   m_show_library = new QAction(library_icon, tr("Show Library"), this);
   m_show_library->setStatusTip(tr("Shows the library page."));
@@ -710,6 +720,75 @@ MainWindow::loadSeries()
 {
   m_series_db->load(m_options->seriesFile());
 }
+
+// void
+// MainWindow::makeBdicFile(QString inname, QString outname)
+//{
+//  QString app("./qwebengine_convert_dict");
+//  QStringList arguments;
+//  arguments << inname << outname;
+//  QProcess* process = new QProcess(this);
+//  connect(process,
+//          QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+//          [=](int exitCode, QProcess::ExitStatus exitStatus) {
+//            if (exitStatus == QProcess::NormalExit) {
+//              if (exitStatus == QProcess::NormalExit) {
+//                process_count--;
+//              }
+//              if (process_count == 0) {
+//                // copy files to output directory
+//                QDir in_dir(m_options->dicDir());
+//                QDir out_dir(m_options->bdicDir());
+//                QStringList types;
+//                types << QStringLiteral("*.bdic");
+//                QStringList files = in_dir.entryList(types, QDir::Files);
+//                for (int i = 0; i < files.size(); i++) {
+//                  QFileInfo info(files.at(i));
+//                  QString out_name =
+//                    out_dir.path() + QDir::separator() + info.fileName();
+//                  if (info.exists()) {
+//                    out_dir.remove(out_name);
+//                  }
+//                  out_dir.rename(info.fileName(), out_name);
+//                }
+//              }
+//            }
+//          });
+//  process->setWorkingDirectory(m_options->dicDir());
+//  process->waitForFinished(30000);
+//  process_count++;
+//  process->start(app, arguments);
+//}
+
+// void
+// MainWindow::bdicFinished(int exitCode, QProcess::ExitStatus exitStatus)
+//{
+//  if (exitStatus == QProcess::NormalExit) {
+//    process_count--;
+//  }
+//  if (process_count == 0) {
+//    // copy files to output directory
+//    QDir in_dir(m_options->dicDir());
+//    QDir out_dir(m_options->bdicDir());
+//    QStringList types;
+//    types << QStringLiteral("*.bdic");
+//    QStringList files = in_dir.entryList(types, QDir::Files);
+//    for (int i = 0; i < files.size(); i++) {
+//      QFileInfo info(files.at(i));
+//      QString out_name = out_dir.path() + QDir::separator() + info.fileName();
+//      if (info.exists()) {
+//        out_dir.remove(out_name);
+//      }
+//      out_dir.rename(info.fileName(), out_name);
+//    }
+//  }
+//}
+
+// void
+// MainWindow::loadDictionaries()
+//{
+//  m_dictionaries = m_process_handler->loadDictionaries();
+//}
 
 void
 MainWindow::saveAuthors()
@@ -907,7 +986,7 @@ MainWindow::copyToLibraryAndOpen(QString& filename,
   ebook_document = ebook_plugin->createDocument(filename);
   QStringList author_list = ebook_document->creators();
   QString concat_authors;
-  QString newpath = m_options->libraryDirectory() + QDir::separator();
+  QString newpath = m_options->libraryDir() + QDir::separator();
   QDir dir;
   QFile in_file(filename);
   QFileInfo in_file_info(in_file);
@@ -1476,15 +1555,15 @@ void
 MainWindow::viewTocPosition()
 {
   QString text;
-  Options::TocPosition position = m_options->tocPosition();
-  if (position == Options::LEFT) {
-    m_options->setTocPosition(Options::RIGHT);
+  BiblosOptions::TocPosition position = m_options->tocPosition();
+  if (position == BiblosOptions::LEFT) {
+    m_options->setTocPosition(BiblosOptions::RIGHT);
     text = tr("Move Table of Contents to Left");
-    position = Options::RIGHT;
+    position = BiblosOptions::RIGHT;
   } else {
-    m_options->setTocPosition(Options::LEFT);
+    m_options->setTocPosition(BiblosOptions::LEFT);
     text = tr("Move Table of Contents to Right");
-    position = Options::LEFT;
+    position = BiblosOptions::LEFT;
   }
   m_view_toc_position->setText(text);
   update(position);
@@ -1636,17 +1715,17 @@ MainWindow::setObjectVisibility(int index)
         m_show_editor->setVisible(false);
       }
     } else {
-      Options::ViewState state = Options::ViewState(index);
+      BiblosOptions::ViewState state = BiblosOptions::ViewState(index);
       switch (state) {
-        case Options::VIEW_EDITOR:
+        case BiblosOptions::VIEW_EDITOR:
           m_doc_stack->setCurrentIndex(m_stack_editor);
           break;
-        case Options::VIEW_LIBRARY_TREE:
+        case BiblosOptions::VIEW_LIBRARY_TREE:
           m_doc_stack->setCurrentIndex(m_stack_library);
           m_library_frame->setToTree();
           setLibraryToolbarState();
           break;
-        case Options::VIEW_LIBRARY_SHELF:
+        case BiblosOptions::VIEW_LIBRARY_SHELF:
           m_doc_stack->setCurrentIndex(m_stack_library);
           m_library_frame->setToShelf();
           setLibraryToolbarState();
@@ -1810,6 +1889,7 @@ MainWindow::fileNew()
 void
 MainWindow::loadPlugins()
 {
+  QLoggingCategory category("biblos.mainwindow");
   QDir pluginsDir = QDir(qApp->applicationDirPath());
   pluginsDir.cd("plugins");
 
@@ -1844,7 +1924,7 @@ MainWindow::loadPlugins()
         //      }
       }
     } else {
-      QLOG_DEBUG(tr("Plugin error : %1").arg(loader.errorString()))
+      qCDebug(category) << tr("Plugin error : %1").arg(loader.errorString());
     }
   }
   // TODO handle more than one spellchecker plugin.

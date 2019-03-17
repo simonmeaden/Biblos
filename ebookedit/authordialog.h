@@ -32,7 +32,7 @@ public:
     ManageAuthors,
     ModifyAuthor,
   };
-  AuthorDialog(Options* options, AuthorsDB database, QWidget* parent = nullptr);
+  AuthorDialog(Options options, AuthorsDB database, QWidget* parent = nullptr);
 
   int execute(Type type,
               QString title = QString(),

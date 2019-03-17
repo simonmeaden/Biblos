@@ -8,7 +8,6 @@
 #include <QStringList>
 #include <QtWidgets>
 
-#include <qlogger/qlogger.h>
 #include <qyaml-cpp/QYamlCpp>
 //#include "qyaml-cpp.h"
 //#include <yaml-cpp/yaml.h>
@@ -18,6 +17,7 @@
 #include "iebookdocument.h"
 
 #include "authors.h"
+#include "dictionaryhandler.h"
 #include "library.h"
 #include "options.h"
 
@@ -57,12 +57,15 @@ protected:
   LibraryFrame* m_library_frame;
   QMap<int, QWidget*> m_toc_backup;
   QString m_jquery, m_onepage_js, m_onepage_css;
+  QThread* m_process_thread;
+  DictionaryHandler* m_dict_handler;
 
-  Options::TocPosition m_toc_position;
+  BiblosOptions::TocPosition m_toc_position;
   QMap<QString, ISpellInterface*> m_spellchecker_plugins;
   QMap<QString, IPluginInterface*> m_ebookplugins;
   QList<IPluginInterface*> m_plugins;
   QStringList m_languages;
+  QStringList m_dictionaries;
   QMap<QString, QString> m_dict_paths;
   QMap<QString, CountryData*> m_dict_data;
   //  QString m_home_directiory;
@@ -84,14 +87,24 @@ protected:
   void loadAuthors();
   void saveSeries();
   void loadSeries();
+  //  void loadDictionaries();
   void documentChanged(int index);
   void tabClosing(int);
   //  bool eventFilter(QObject *object, QEvent *event);
-  void update(Options::TocPosition position);
+  void update(BiblosOptions::TocPosition position);
+  void loadLibraryFiles(QStringList current_lib_files, int currentindex);
+  EBookDocumentType checkMimetype(QString filename);
+  void setModifiedAuthors(EBookDocument doc, AuthorList authors);
+  void setLibraryToolbarState();
+  EBookDocument copyToLibraryAndOpen(QString& filename,
+                                     IEBookInterface* ebook_plugin);
+  //  void makeBdicFile(QString inname, QString outname);
+  //  void bdicFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  int process_count;
 
   YAML::Node m_preferences;
   bool m_initialising, m_loading;
-  Options* m_options;
+  Options m_options;
   SeriesDB m_series_db;
   LibraryDB m_library_db;
   AuthorsDB m_authors_db;
@@ -259,13 +272,8 @@ protected: // Menu/StatusBar stuff
   static const QString LIB_FILE;
   static const QString AUTHOR_FILE;
   static const QString SERIES_FILE;
-
-  void loadLibraryFiles(QStringList current_lib_files, int currentindex);
-  EBookDocumentType checkMimetype(QString filename);
-  void setModifiedAuthors(EBookDocument doc, AuthorList authors);
-  void setLibraryToolbarState();
-  EBookDocument copyToLibraryAndOpen(QString& filename,
-                                     IEBookInterface* ebook_plugin);
+  static const QString DICT_DIR;
+  static const QString BDICT_DIR;
 };
 
 #endif // MAINWINDOW_H

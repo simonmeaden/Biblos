@@ -1,14 +1,16 @@
 #include "aboutdialog.h"
 
-#include <qlogger/qlogger.h>
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
+#include <QLoggingCategory>
 
 #include <csvsplitter/csvsplitter.h>
-
-using namespace qlogger;
 
 AboutDialog::AboutDialog(QWidget* parent)
   : QDialog(parent)
 {
+  QLoggingCategory category("biblos.epub.document");
+
   setWindowTitle(tr("About EbookEditor"));
 
   QGridLayout* main_layout = new QGridLayout;
@@ -20,7 +22,8 @@ AboutDialog::AboutDialog(QWidget* parent)
   QFrame* about_frame = new QFrame(this);
   QGridLayout* about_layout = new QGridLayout;
   about_frame->setLayout(about_layout);
-  QLabel* copyright = new QLabel(tr("Copyright 2018-2019 Simon Meaden. All Rights Reserved."));
+  QLabel* copyright =
+    new QLabel(tr("Copyright 2018-2019 Simon Meaden. All Rights Reserved."));
   about_layout->addWidget(copyright, 0, 0);
   m_tabs->addTab(about_frame, tr("About EbookEditor"));
 
@@ -32,25 +35,27 @@ AboutDialog::AboutDialog(QWidget* parent)
   attrib_layout->addWidget(m_attribution, 0, 0);
   m_tabs->addTab(attrib_frame, tr("Attributions"));
 
-  QPushButton *quit_Btn = new QPushButton(tr("Close Dialog"), this);
+  QPushButton* quit_Btn = new QPushButton(tr("Close Dialog"), this);
   connect(quit_Btn, &QPushButton::clicked, this, &QDialog::close);
   main_layout->addWidget(quit_Btn, 1, 0);
 
   QStringList headers;
   headers << tr("Supplied") << tr("Creator") << tr("Vendor") << tr("License");
   m_attribution->setHorizontalHeaderLabels(headers);
-  m_attribution->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  m_attribution->horizontalHeader()->setSectionResizeMode(
+    QHeaderView::ResizeToContents);
   m_attribution->horizontalHeader()->setStretchLastSection(true);
 
   QString fileName(":/files/attributions");
   QFile file(fileName);
   if (!file.open(QIODevice::ReadOnly)) {
-    QLOG_DEBUG(tr("Attributions file not opened."));
+    qCDebug(category) << tr("Attributions file not opened.");
   } else {
     QString data = file.readLine();
     QStringList list;
     int row = 0;
-    //    QString supplied, text, textlink, vendor, vendorlink, license, licenselink;
+    //    QString supplied, text, textlink, vendor, vendorlink, license,
+    //    licenselink;
     while (!data.isEmpty()) {
       m_attribution->insertRow(row);
       list = CSVSplitter::splitOnComma(data);
@@ -80,8 +85,8 @@ AboutDialog::AboutDialog(QWidget* parent)
   }
 
   file.close();
-  int x = parent->x() + (parent->width()/ 2) - 450;
-  int y = parent->y() + (parent->height()/2) - 150;
+  int x = parent->x() + (parent->width() / 2) - 450;
+  int y = parent->y() + (parent->height() / 2) - 150;
   setGeometry(x, y, 900, 300);
   update();
 }

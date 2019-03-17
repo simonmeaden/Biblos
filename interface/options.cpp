@@ -1,35 +1,34 @@
 #include "options.h"
 
-QString Options::POSITION = "window";
-QString Options::DIALOG = "options dialog";
-QString Options::PREF_CURRENT_INDEX = "current book";
-QString Options::PREF_CURRENT_ITEMS = "current book item";
-QString Options::PREF_CURRENT_LINE_NOS = "current book line nos";
-QString Options::PREF_COUNT = "count";
-QString Options::PREF_BOOKLIST = "book list";
-QString Options::PREF_LIBRARY = "library list";
-QString Options::CODE_OPTIONS = "code editor";
-QString Options::CODE_FONT = "font";
-QString Options::CODE_NORMAL = "normal";
-QString Options::CODE_ATTRIBUTE = "attribute";
-QString Options::CODE_TAG = "tag";
-QString Options::CODE_ERROR = "error";
-QString Options::CODE_STRING = "string";
-QString Options::CODE_STYLE = "style";
-QString Options::CODE_SCRIPT = "script";
-QString Options::CODE_COLOR = "color";
-QString Options::CODE_BACK = "background";
-QString Options::CODE_WEIGHT = "weight";
-QString Options::CODE_ITALIC = "italic";
-QString Options::COPY_BOOKS_TO_STORE = "copy books to store";
-QString Options::DELETE_OLD_BOOK = "delete old book";
-QString Options::SHOW_TOC = "show toc";
-QString Options::TOC_POSITION = "toc position";
-QString Options::VIEW_STATE = "view state";
+QString BiblosOptions::POSITION = "window";
+QString BiblosOptions::DIALOG = "options dialog";
+QString BiblosOptions::PREF_CURRENT_INDEX = "current book";
+QString BiblosOptions::PREF_CURRENT_ITEMS = "current book item";
+QString BiblosOptions::PREF_CURRENT_LINE_NOS = "current book line nos";
+QString BiblosOptions::PREF_COUNT = "count";
+QString BiblosOptions::PREF_BOOKLIST = "book list";
+QString BiblosOptions::PREF_LIBRARY = "library list";
+QString BiblosOptions::CODE_OPTIONS = "code editor";
+QString BiblosOptions::CODE_FONT = "font";
+QString BiblosOptions::CODE_NORMAL = "normal";
+QString BiblosOptions::CODE_ATTRIBUTE = "attribute";
+QString BiblosOptions::CODE_TAG = "tag";
+QString BiblosOptions::CODE_ERROR = "error";
+QString BiblosOptions::CODE_STRING = "string";
+QString BiblosOptions::CODE_STYLE = "style";
+QString BiblosOptions::CODE_SCRIPT = "script";
+QString BiblosOptions::CODE_COLOR = "color";
+QString BiblosOptions::CODE_BACK = "background";
+QString BiblosOptions::CODE_WEIGHT = "weight";
+QString BiblosOptions::CODE_ITALIC = "italic";
+QString BiblosOptions::COPY_BOOKS_TO_STORE = "copy books to store";
+QString BiblosOptions::DELETE_OLD_BOOK = "delete old book";
+QString BiblosOptions::SHOW_TOC = "show toc";
+QString BiblosOptions::TOC_POSITION = "toc position";
+QString BiblosOptions::VIEW_STATE = "view state";
 
-Options::Options(QObject* parent)
-  : QObject(parent)
-  , m_code_font(QFont("Courier", 10))
+BiblosOptions::BiblosOptions()
+  : m_code_font(QFont("Courier", 10))
   , m_normal_color(Qt::black)
   , m_normal_back(Qt::white)
   , m_normal_italic(false)
@@ -81,10 +80,10 @@ Options::Options(QObject* parent)
   text_html_key = QPixmapCache::insert(QPixmap(":/icons/text-html"));
 }
 
-Options::~Options() {}
+BiblosOptions::~BiblosOptions() {}
 
 void
-Options::save(const QString filename)
+BiblosOptions::save(const QString filename)
 {
   QFile* file;
   if (filename.isEmpty())
@@ -107,7 +106,7 @@ Options::save(const QString filename)
         emitter << YAML::Value << m_toc_visible;
         emitter << YAML::Key << TOC_POSITION;
         emitter << YAML::Value
-                << (m_toc_position == Options::LEFT ? "LEFT" : "RIGHT");
+                << (m_toc_position == BiblosOptions::LEFT ? "LEFT" : "RIGHT");
         emitter << YAML::Key << PREF_BOOKLIST;
         {
           // Start of PREF_BOOKLIST
@@ -232,7 +231,7 @@ Options::save(const QString filename)
 }
 
 void
-Options::load(const QString filename)
+BiblosOptions::load(const QString filename)
 {
   QFile file(filename);
   if (file.exists()) {
@@ -261,9 +260,10 @@ Options::load(const QString filename)
     }
     if (m_preferences[TOC_POSITION]) {
       QString pos = m_preferences[TOC_POSITION].as<QString>();
-      m_toc_position = (pos == "LEFT" ? Options::LEFT : Options::RIGHT);
+      m_toc_position =
+        (pos == "LEFT" ? BiblosOptions::LEFT : BiblosOptions::RIGHT);
     } else {
-      m_toc_position = Options::LEFT;
+      m_toc_position = BiblosOptions::LEFT;
     }
     // Last books loaded in library.
     YAML::Node books = m_preferences[PREF_BOOKLIST];
@@ -273,7 +273,6 @@ Options::load(const QString filename)
         m_current_files.append(books[i].as<QString>());
       }
     }
-    emit loadLibraryFiles(m_current_files, m_currentindex);
 
     YAML::Node codeoptions = m_preferences[CODE_OPTIONS];
     if (codeoptions && codeoptions.IsMap()) {
@@ -339,34 +338,34 @@ Options::load(const QString filename)
   }
 }
 
-Options::TocPosition
-Options::tocPosition() const
+BiblosOptions::TocPosition
+BiblosOptions::tocPosition() const
 {
   return m_toc_position;
 }
 
 void
-Options::setTocPosition(const TocPosition position)
+BiblosOptions::setTocPosition(const TocPosition position)
 {
   m_toc_position = position;
   m_pref_changed = true;
 }
 
 bool
-Options::tocVisible() const
+BiblosOptions::tocVisible() const
 {
   return m_toc_visible;
 }
 
 void
-Options::setTocVisible(const bool visible)
+BiblosOptions::setTocVisible(const bool visible)
 {
   m_toc_visible = visible;
   m_pref_changed = true;
 }
 
 QString
-Options::codeOptionToString(const CodeOptions options)
+BiblosOptions::codeOptionToString(const CodeOptions options)
 {
   switch (options) {
     case NORMAL:
@@ -388,7 +387,7 @@ Options::codeOptionToString(const CodeOptions options)
 }
 
 QString
-Options::weightToString(const QFont::Weight weight)
+BiblosOptions::weightToString(const QFont::Weight weight)
 {
   switch (weight) {
     case QFont::Thin:
@@ -414,513 +413,537 @@ Options::weightToString(const QFont::Weight weight)
 }
 
 QColor
-Options::normalColor() const
+BiblosOptions::normalColor() const
 {
   return m_normal_color;
 }
 
 void
-Options::setNormalColor(const QColor& normal_color)
+BiblosOptions::setNormalColor(const QColor& normal_color)
 {
   m_normal_color = normal_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::normalBack() const
+BiblosOptions::normalBack() const
 {
   return m_normal_back;
 }
 
 void
-Options::setNormalBack(const QColor& normal_back)
+BiblosOptions::setNormalBack(const QColor& normal_back)
 {
   m_normal_back = normal_back;
   m_pref_changed = true;
 }
 
 bool
-Options::normalItalic() const
+BiblosOptions::normalItalic() const
 {
   return m_normal_italic;
 }
 
 void
-Options::setNormalItalic(bool normal_italic)
+BiblosOptions::setNormalItalic(bool normal_italic)
 {
   m_normal_italic = normal_italic;
   m_pref_changed = true;
 }
 
 QFont
-Options::codeFont() const
+BiblosOptions::codeFont() const
 {
   return m_code_font;
 }
 
 void
-Options::setCodeFont(const QFont& code_font)
+BiblosOptions::setCodeFont(const QFont& code_font)
 {
   m_code_font = code_font;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::normalWeight() const
+BiblosOptions::normalWeight() const
 {
   return m_normal_weight;
 }
 
 void
-Options::setNormalWeight(const QFont::Weight& normal_weight)
+BiblosOptions::setNormalWeight(const QFont::Weight& normal_weight)
 {
   m_normal_weight = normal_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::attributeColor() const
+BiblosOptions::attributeColor() const
 {
   return m_attribute_color;
 }
 
 void
-Options::setAttributeColor(const QColor& attribute_color)
+BiblosOptions::setAttributeColor(const QColor& attribute_color)
 {
   m_attribute_color = attribute_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::attributeBack() const
+BiblosOptions::attributeBack() const
 {
   return m_attribute_back;
 }
 
 void
-Options::setAttributeBack(const QColor& attribute_back)
+BiblosOptions::setAttributeBack(const QColor& attribute_back)
 {
   m_attribute_back = attribute_back;
   m_pref_changed = true;
 }
 
 bool
-Options::attributeItalic() const
+BiblosOptions::attributeItalic() const
 {
   return m_attribute_italic;
 }
 
 void
-Options::setAttribute_italic(bool attribute_italic)
+BiblosOptions::setAttribute_italic(bool attribute_italic)
 {
   m_attribute_italic = attribute_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::attributeWeight() const
+BiblosOptions::attributeWeight() const
 {
   return m_attribute_weight;
 }
 
 void
-Options::setAttributeWeight(const QFont::Weight& attribute_weight)
+BiblosOptions::setAttributeWeight(const QFont::Weight& attribute_weight)
 {
   m_attribute_weight = attribute_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::tagColor() const
+BiblosOptions::tagColor() const
 {
   return m_tag_color;
 }
 
 void
-Options::setTagColor(const QColor& tag_color)
+BiblosOptions::setTagColor(const QColor& tag_color)
 {
   m_tag_color = tag_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::tagBack() const
+BiblosOptions::tagBack() const
 {
   return m_tag_back;
 }
 
 void
-Options::setTagBack(const QColor& tag_back)
+BiblosOptions::setTagBack(const QColor& tag_back)
 {
   m_tag_back = tag_back;
   m_pref_changed = true;
 }
 
 bool
-Options::tagItalic() const
+BiblosOptions::tagItalic() const
 {
   return m_tag_italic;
 }
 
 void
-Options::setTagItalic(bool tag_italic)
+BiblosOptions::setTagItalic(bool tag_italic)
 {
   m_tag_italic = tag_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::tagWeight() const
+BiblosOptions::tagWeight() const
 {
   return m_tag_weight;
 }
 
 void
-Options::setTagWeight(const QFont::Weight& tag_weight)
+BiblosOptions::setTagWeight(const QFont::Weight& tag_weight)
 {
   m_tag_weight = tag_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::stringColor() const
+BiblosOptions::stringColor() const
 {
   return m_string_color;
 }
 
 void
-Options::setStringColor(const QColor& string_color)
+BiblosOptions::setStringColor(const QColor& string_color)
 {
   m_string_color = string_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::stringBack() const
+BiblosOptions::stringBack() const
 {
   return m_string_back;
 }
 
 void
-Options::setStringBack(const QColor& string_back)
+BiblosOptions::setStringBack(const QColor& string_back)
 {
   m_string_back = string_back;
   m_pref_changed = true;
 }
 
 bool
-Options::stringItalic() const
+BiblosOptions::stringItalic() const
 {
   return m_string_italic;
 }
 
 void
-Options::setStringItalic(bool string_italic)
+BiblosOptions::setStringItalic(bool string_italic)
 {
   m_string_italic = string_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::stringWeight() const
+BiblosOptions::stringWeight() const
 {
   return m_string_weight;
 }
 
 void
-Options::setStringWeight(const QFont::Weight& string_weight)
+BiblosOptions::setStringWeight(const QFont::Weight& string_weight)
 {
   m_string_weight = string_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::errorColor() const
+BiblosOptions::errorColor() const
 {
   return m_error_color;
 }
 
 void
-Options::setErrorColor(const QColor& error_color)
+BiblosOptions::setErrorColor(const QColor& error_color)
 {
   m_error_color = error_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::errorBack() const
+BiblosOptions::errorBack() const
 {
   return m_error_back;
 }
 
 void
-Options::setErrorBack(const QColor& error_back)
+BiblosOptions::setErrorBack(const QColor& error_back)
 {
   m_error_back = error_back;
   m_pref_changed = true;
 }
 
 bool
-Options::errorItalic() const
+BiblosOptions::errorItalic() const
 {
   return m_error_italic;
 }
 
 void
-Options::setErrorItalic(bool error_italic)
+BiblosOptions::setErrorItalic(bool error_italic)
 {
   m_error_italic = error_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::errorWeight() const
+BiblosOptions::errorWeight() const
 {
   return m_error_weight;
 }
 
 void
-Options::setErrorWeight(const QFont::Weight& error_weight)
+BiblosOptions::setErrorWeight(const QFont::Weight& error_weight)
 {
   m_error_weight = error_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::scriptColor() const
+BiblosOptions::scriptColor() const
 {
   return m_script_color;
 }
 
 void
-Options::setScriptColor(const QColor& script_color)
+BiblosOptions::setScriptColor(const QColor& script_color)
 {
   m_script_color = script_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::scriptBack() const
+BiblosOptions::scriptBack() const
 {
   return m_script_back;
 }
 
 void
-Options::setScriptBack(const QColor& script_back)
+BiblosOptions::setScriptBack(const QColor& script_back)
 {
   m_script_back = script_back;
   m_pref_changed = true;
 }
 
 bool
-Options::scriptItalic() const
+BiblosOptions::scriptItalic() const
 {
   return m_script_italic;
 }
 
 void
-Options::setScriptItalic(bool script_italic)
+BiblosOptions::setScriptItalic(bool script_italic)
 {
   m_script_italic = script_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::scriptWeight() const
+BiblosOptions::scriptWeight() const
 {
   return m_script_weight;
 }
 
 void
-Options::setScriptWeight(const QFont::Weight& script_weight)
+BiblosOptions::setScriptWeight(const QFont::Weight& script_weight)
 {
   m_script_weight = script_weight;
   m_pref_changed = true;
 }
 
 QColor
-Options::styleColor() const
+BiblosOptions::styleColor() const
 {
   return m_style_color;
 }
 
 void
-Options::setStyleColor(const QColor& style_color)
+BiblosOptions::setStyleColor(const QColor& style_color)
 {
   m_style_color = style_color;
   m_pref_changed = true;
 }
 
 QColor
-Options::styleBack() const
+BiblosOptions::styleBack() const
 {
   return m_style_back;
 }
 
 void
-Options::setStyleBack(const QColor& style_back)
+BiblosOptions::setStyleBack(const QColor& style_back)
 {
   m_style_back = style_back;
   m_pref_changed = true;
 }
 
 bool
-Options::styleItalic() const
+BiblosOptions::styleItalic() const
 {
   return m_style_italic;
 }
 
 void
-Options::setStyleItalic(bool style_italic)
+BiblosOptions::setStyleItalic(bool style_italic)
 {
   m_style_italic = style_italic;
   m_pref_changed = true;
 }
 
 QFont::Weight
-Options::styleWeight() const
+BiblosOptions::styleWeight() const
 {
   return m_style_weight;
 }
 
 void
-Options::setStyleWeight(const QFont::Weight& style_weight)
+BiblosOptions::setStyleWeight(const QFont::Weight& style_weight)
 {
   m_style_weight = style_weight;
   m_pref_changed = true;
 }
 
 QString
-Options::homeDirectiory() const
+BiblosOptions::homeDir() const
 {
-  return m_home_directiory;
+  return m_home_directory;
 }
 
 void
-Options::setHomeDirectiory(const QString& home_directiory)
+BiblosOptions::setHomeDir(const QString& home_directiory)
 {
-  m_home_directiory = home_directiory;
+  m_home_directory = home_directiory;
 }
 
 QString
-Options::libraryDirectory() const
+BiblosOptions::libraryDir() const
 {
   return m_library_directory;
 }
 
 void
-Options::setLibraryDirectory(const QString& library_directory)
+BiblosOptions::setLibraryDir(const QString& library_directory)
 {
   m_library_directory = library_directory;
 }
 
 QString
-Options::configDirectory() const
+BiblosOptions::configDir() const
 {
   return m_config_directory;
 }
 
 void
-Options::setConfigDirectory(const QString& config_directory)
+BiblosOptions::setConfigDir(const QString& config_directory)
 {
   m_config_directory = config_directory;
 }
 
 QString
-Options::configFile() const
+BiblosOptions::configFile() const
 {
   return m_config_file;
 }
 
 void
-Options::setConfigFile(const QString& config_file)
+BiblosOptions::setConfigFile(const QString& config_file)
 {
   m_config_file = config_file;
 }
 
 QString
-Options::libraryFile() const
+BiblosOptions::libraryFile() const
 {
   return m_lib_file;
 }
 
 void
-Options::setLibraryFile(const QString& lib_file)
+BiblosOptions::setLibraryFile(const QString& lib_file)
 {
   m_lib_file = lib_file;
 }
 
 QString
-Options::authorsFile() const
+BiblosOptions::authorsFile() const
 {
   return m_authors_file;
 }
 
 void
-Options::setAuthorsFile(const QString& authors_file)
+BiblosOptions::setAuthorsFile(const QString& authors_file)
 {
   m_authors_file = authors_file;
 }
 
 QString
-Options::seriesFile() const
+BiblosOptions::dicDir() const
+{
+  return m_dic_directory;
+}
+
+void
+BiblosOptions::setDicDir(const QString& dic_dir)
+{
+  m_dic_directory = dic_dir;
+}
+
+QString
+BiblosOptions::bdicDir() const
+{
+  return m_bdic_directory;
+}
+
+void
+BiblosOptions::setBdicDir(const QString& dic_dir)
+{
+  m_bdic_directory = dic_dir;
+}
+
+QString
+BiblosOptions::seriesFile() const
 {
   return m_series_file;
 }
 
 void
-Options::setSeriesFile(const QString& seriesFile)
+BiblosOptions::setSeriesFile(const QString& seriesFile)
 {
   m_series_file = seriesFile;
 }
 
 QRect
-Options::rect() const
+BiblosOptions::rect() const
 {
   return m_rect;
 }
 
 void
-Options::setRect(const QRect& rect)
+BiblosOptions::setRect(const QRect& rect)
 {
   m_rect = rect;
   m_pref_changed = true;
 }
 
 QSize
-Options::optionsDlgSize() const
+BiblosOptions::optionsDlgSize() const
 {
   return m_options_dlg_size;
 }
 
 void
-Options::setOptionsDlgSize(const QSize& options_dlg)
+BiblosOptions::setOptionsDlgSize(const QSize& options_dlg)
 {
   m_options_dlg_size = options_dlg;
   m_pref_changed = true;
 }
 
 int
-Options::currentIndex() const
+BiblosOptions::currentIndex() const
 {
   return m_currentindex;
 }
 
 void
-Options::setCurrentIndex(const int index)
+BiblosOptions::setCurrentIndex(const int index)
 {
   m_currentindex = index;
   m_pref_changed = true;
 }
 
 bool
-Options::currentFilesContains(const QString filename)
+BiblosOptions::currentFilesContains(const QString filename)
 {
   return m_current_files.contains(filename);
 }
 
 void
-Options::appendCurrentFile(const QString filename)
+BiblosOptions::appendCurrentFile(const QString filename)
 {
   if (!m_current_files.contains(filename)) {
     m_current_files.append(filename);
@@ -929,88 +952,88 @@ Options::appendCurrentFile(const QString filename)
 }
 
 void
-Options::replaceCurrentFile(const QString filename)
+BiblosOptions::replaceCurrentFile(const QString filename)
 {
   m_current_files.replace(m_currentindex, filename);
   m_pref_changed = true;
 }
 
 QStringList
-Options::currentfiles() const
+BiblosOptions::currentfiles() const
 {
   return m_current_files;
 }
 
 int
-Options::bookCount() const
+BiblosOptions::bookCount() const
 {
   return m_current_files.size();
 }
 
-Options::ViewState
-Options::viewState() const
+BiblosOptions::ViewState
+BiblosOptions::viewState() const
 {
   return m_view_state;
 }
 
 void
-Options::setViewState(const Options::ViewState& view_state)
+BiblosOptions::setViewState(const BiblosOptions::ViewState& view_state)
 {
   m_view_state = view_state;
   m_pref_changed = true;
 }
 
 QColor
-Options::color(const CodeOptions options) const
+BiblosOptions::color(const CodeOptions options) const
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       return m_normal_color;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       return m_tag_color;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       return m_attribute_color;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       return m_error_color;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       return m_string_color;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       return m_script_color;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       return m_style_color;
   }
   return QColor();
 }
 
 void
-Options::setColor(const CodeOptions options, const QColor color)
+BiblosOptions::setColor(const CodeOptions options, const QColor color)
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       m_normal_color = color;
       m_pref_changed = true;
       break;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       m_tag_color = color;
       m_pref_changed = true;
       break;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       m_attribute_color = color;
       m_pref_changed = true;
       break;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       m_error_color = color;
       m_pref_changed = true;
       break;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       m_string_color = color;
       m_pref_changed = true;
       break;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       m_script_color = color;
       m_pref_changed = true;
       break;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       m_style_color = color;
       m_pref_changed = true;
       break;
@@ -1018,56 +1041,56 @@ Options::setColor(const CodeOptions options, const QColor color)
 }
 
 QColor
-Options::background(const CodeOptions options) const
+BiblosOptions::background(const CodeOptions options) const
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       return m_normal_back;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       return m_tag_back;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       return m_attribute_back;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       return m_error_back;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       return m_string_back;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       return m_script_back;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       return m_style_back;
   }
   return QColor();
 }
 
 void
-Options::setBackground(const CodeOptions options, const QColor color)
+BiblosOptions::setBackground(const CodeOptions options, const QColor color)
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       m_normal_back = color;
       m_pref_changed = true;
       break;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       m_tag_back = color;
       m_pref_changed = true;
       break;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       m_attribute_back = color;
       m_pref_changed = true;
       break;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       m_error_back = color;
       m_pref_changed = true;
       break;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       m_string_back = color;
       m_pref_changed = true;
       break;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       m_script_back = color;
       m_pref_changed = true;
       break;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       m_style_back = color;
       m_pref_changed = true;
       break;
@@ -1075,56 +1098,56 @@ Options::setBackground(const CodeOptions options, const QColor color)
 }
 
 bool
-Options::italic(const CodeOptions options) const
+BiblosOptions::italic(const CodeOptions options) const
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       return m_normal_italic;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       return m_tag_italic;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       return m_attribute_italic;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       return m_error_italic;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       return m_string_italic;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       return m_script_italic;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       return m_style_italic;
   }
   return false;
 }
 
 void
-Options::setItalic(const CodeOptions options, const bool italic)
+BiblosOptions::setItalic(const CodeOptions options, const bool italic)
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       m_normal_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       m_tag_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       m_attribute_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       m_error_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       m_string_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       m_script_italic = italic;
       m_pref_changed = true;
       break;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       m_style_italic = italic;
       m_pref_changed = true;
       break;
@@ -1132,56 +1155,56 @@ Options::setItalic(const CodeOptions options, const bool italic)
 }
 
 QFont::Weight
-Options::weight(const CodeOptions options) const
+BiblosOptions::weight(const CodeOptions options) const
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       return m_normal_weight;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       return m_tag_weight;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       return m_attribute_weight;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       return m_error_weight;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       return m_string_weight;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       return m_script_weight;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       return m_style_weight;
   }
   return QFont::Normal;
 }
 
 void
-Options::setWeight(const CodeOptions options, const QFont::Weight weight)
+BiblosOptions::setWeight(const CodeOptions options, const QFont::Weight weight)
 {
   switch (options) {
-    case Options::NORMAL:
+    case BiblosOptions::NORMAL:
       m_normal_weight = weight;
       m_pref_changed = true;
       break;
-    case Options::TAG:
+    case BiblosOptions::TAG:
       m_tag_weight = weight;
       m_pref_changed = true;
       break;
-    case Options::ATTRIBUTE:
+    case BiblosOptions::ATTRIBUTE:
       m_pref_changed = true;
       m_attribute_weight = weight;
       break;
-    case Options::ERROR:
+    case BiblosOptions::ERROR:
       m_error_weight = weight;
       m_pref_changed = true;
       break;
-    case Options::STRING:
+    case BiblosOptions::STRING:
       m_string_weight = weight;
       m_pref_changed = true;
       break;
-    case Options::SCRIPT:
+    case BiblosOptions::SCRIPT:
       m_script_weight = weight;
       m_pref_changed = true;
       break;
-    case Options::STYLE:
+    case BiblosOptions::STYLE:
       m_style_weight = weight;
       m_pref_changed = true;
       break;
@@ -1189,7 +1212,7 @@ Options::setWeight(const CodeOptions options, const QFont::Weight weight)
 }
 
 QColor
-Options::contrastingColor(const QColor color)
+BiblosOptions::contrastingColor(const QColor color)
 {
   int v = (color.red() + color.green() + color.blue()) / 3 > 127 ? 0 : 255;
   return QColor(v, v, v);

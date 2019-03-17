@@ -7,6 +7,7 @@
 #include <qyaml-cpp/QYamlCpp>
 
 #include "ebookbasemetadata.h"
+#include "options.h"
 
 class EBookAuthorData
 {
@@ -61,6 +62,8 @@ public:
   void setPixmap(const QPixmap& pixmap);
   bool surnameLast() const;
   void setSurnameLast(bool surnameLast);
+  QStringList wordList() const;
+  void setWordList(const QStringList& wordList);
 
 protected:
   bool m_modified;
@@ -71,6 +74,7 @@ protected:
   QString m_surname;
   QString m_file_as;
   bool m_surname_last;
+  QStringList m_word_list;
 
   QString m_website;
   QString m_wikipedia;
@@ -86,11 +90,10 @@ typedef QMap<quint64, AuthorData> AuthorMap;
 typedef QMultiMap<QString, AuthorData> AuthorByString;
 Q_DECLARE_METATYPE(AuthorData);
 
-class EBookAuthorsDB : public QObject
+class EBookAuthorsDB
 {
-  Q_OBJECT
 public:
-  explicit EBookAuthorsDB(QObject* parent = nullptr);
+  explicit EBookAuthorsDB(Options options);
   ~EBookAuthorsDB();
 
   void setFilename(QString filename);
@@ -118,6 +121,7 @@ signals:
 public slots:
 
 protected:
+  Options m_options;
   QString m_filename;
   AuthorMap m_author_data;
   AuthorByString m_author_by_fileas;

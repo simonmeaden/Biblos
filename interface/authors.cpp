@@ -3,10 +3,12 @@
 // starts at 1 - 0 == null value
 quint64 EBookAuthorsDB::m_highest_uid = 1;
 
-EBookAuthorsDB::EBookAuthorsDB(QObject* parent)
-  : QObject(parent)
+EBookAuthorsDB::EBookAuthorsDB(Options options)
+  : m_options(options)
   , m_author_changed(false)
-{}
+{
+  loadAuthors();
+}
 
 EBookAuthorsDB::~EBookAuthorsDB()
 {
@@ -200,8 +202,7 @@ EBookAuthorsDB::authorsByForename(QString surname)
 bool
 EBookAuthorsDB::loadAuthors()
 {
-  if (m_filename.isEmpty())
-    return false;
+  m_filename = m_options->authorsFile();
 
   QFile file(m_filename);
   if (file.exists()) {
@@ -465,6 +466,18 @@ EBookAuthorData::setSurnameLast(bool surname_last)
 {
   m_modified = true;
   m_surname_last = surname_last;
+}
+
+QStringList
+EBookAuthorData::wordList() const
+{
+  return m_word_list;
+}
+
+void
+EBookAuthorData::setWordList(const QStringList& word_list)
+{
+  m_word_list = word_list;
 }
 
 QList<quint64>

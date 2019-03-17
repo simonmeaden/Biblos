@@ -2,7 +2,8 @@
 
 #include <QThread>
 
-#include <qlogger/qlogger.h>
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 #include "private/mobidocument_p.h"
 

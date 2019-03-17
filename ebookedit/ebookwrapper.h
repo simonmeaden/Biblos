@@ -17,7 +17,7 @@ class EBookWrapper : public QStackedWidget
   Q_OBJECT
 
 public:
-  EBookWrapper(Options* options,
+  EBookWrapper(Options options,
                AuthorsDB authors,
                SeriesDB series_db,
                LibraryDB library,
@@ -44,7 +44,7 @@ protected:
   MetadataEditor* m_metaeditor;
   //  EBookWordReader* m_word_reader;
   int m_editorindex, m_codeindex, m_metaindex;
-  Options* m_options;
+  Options m_options;
 };
 
 #endif // EBOOKWRAPPER_H

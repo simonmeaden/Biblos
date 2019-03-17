@@ -16,7 +16,7 @@ class MetadataEditor : public QWidget
 {
   Q_OBJECT
 public:
-  explicit MetadataEditor(Options* options,
+  explicit MetadataEditor(Options options,
                           AuthorsDB authors,
                           SeriesDB series_db,
                           LibraryDB library,
@@ -29,7 +29,7 @@ public slots:
 
 protected:
   bool m_initialising;
-  Options* m_options;
+  Options m_options;
   QLineEdit *m_title_edit, *m_filename_edit, *m_series_edit;
   QDoubleSpinBox* m_series_spin;
   QLabel* m_fileext_lbl;

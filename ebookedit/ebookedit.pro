@@ -53,7 +53,6 @@ SOURCES += \
     deletefiledialog.cpp \
     authordialog.cpp \
     metadataeditor.cpp \
-    ebookwordreader.cpp \
     plugindialog.cpp \
     libraryframe.cpp \
     libraryshelf.cpp \
@@ -64,7 +63,8 @@ SOURCES += \
     webpage.cpp \
     webview.cpp \
     actiontabwidget.cpp \
-    tocdisplaydocument.cpp
+    tocdisplaydocument.cpp \
+    dictionaryhandler.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -75,7 +75,6 @@ HEADERS += \
     deletefiledialog.h \
     authordialog.h \
     metadataeditor.h \
-    ebookwordreader.h \
     plugindialog.h \
     libraryframe.h \
     libraryshelf.h \
@@ -86,7 +85,8 @@ HEADERS += \
     webpage.h \
     webview.h \
     actiontabwidget.h \
-    tocdisplaydocument.h
+    tocdisplaydocument.h \
+    dictionaryhandler.h
 
 FORMS +=
 
@@ -124,17 +124,12 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../interface/libinterface.a
 DISTFILES += \
     attributions.txt
 
+#dictionaries.files = $$files(../dictionaries/*.dic)
+#dictionaries.files += $$files(../dictionaries/*.aff)
+#dictionaries.path = $$DESTDIR/dictionaries
+#dictionaries.base = $$PWD/../dictionaries
 
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppd
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppdd
-#else:unix: LIBS += -L$$OUT_PWD/../qyaml-cpp/ -lqyaml-cppd
+##CONFIG *= file_copies
+##COPIES += dictionaries
+#INSTALLS += dictionaries
 
-#INCLUDEPATH += $$PWD/../qyaml-cpp
-#DEPENDPATH += $$PWD/../qyaml-cpp
-
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/ -lqyaml-cpp
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/ -lqyaml-cppd
-#else:unix: LIBS += -L$$OUT_PWD/ -lqyaml-cpp
-
-#INCLUDEPATH += $$PWD/../qyaml-cpp
-#DEPENDPATH += $$PWD/../qyaml-cpp

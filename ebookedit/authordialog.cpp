@@ -38,7 +38,7 @@ const QString AuthorDialog::NO_NAMES =
      "information or select from author list."
      "</html");
 
-AuthorDialog::AuthorDialog(Options* options, AuthorsDB authors, QWidget* parent)
+AuthorDialog::AuthorDialog(Options options, AuthorsDB authors, QWidget* parent)
   : QDialog(parent)
   , m_authors(authors)
   , m_max_author_row(0)
@@ -60,20 +60,24 @@ AuthorDialog::setPartialNames(QStringList names)
 {
   if (names.isEmpty()) {
     m_authors_list = m_authors->authors();
-    foreach (AuthorData author, m_authors_list) {
+    for (int i = 0; i < m_authors_list.size(); i++) {
+      AuthorData author = m_authors_list.at(i);
       QListWidgetItem* item = new QListWidgetItem(author->displayName());
       item->setData(Qt::UserRole, QVariant::fromValue<AuthorData>(author));
       m_author_list->addItem(item);
     }
   } else {
     QString surname, forename, middlenames;
-    foreach (QString name, names) {
+    for (int i = 0; i < names.size(); i++) {
+      QString name = names.at(i);
       m_authors_list = m_authors->authorsBySurname(surname);
       surname = name;
-      foreach (AuthorData author, m_authors_list) {
+      for (int i = 0; i < m_authors_list.size(); i++) {
+        AuthorData author = m_authors_list.at(i);
         QStringList reduced = m_authors->compareAndDiscard(names);
         reduced.removeOne(name); // remove surname as we already have that.
-        foreach (QString n, reduced) {
+        for (int i = 0; i < reduced.size(); i++) {
+          QString n = reduced.at(i);
           if (author->surname().toLower() == n) {
             forename = author->forename();
             middlenames = author->middlenames();
@@ -303,7 +307,8 @@ AuthorDialog::execute(AuthorList author_list)
 {
   setWindowTitle(QString("Modify Authors"));
   QStringList names;
-  foreach (AuthorData author_data, author_list) {
+  for (int i = 0; i < author_list.size(); i++) {
+    AuthorData author_data = author_list.at(i);
     names << author_data->surname() << author_data->forename();
   }
   setPartialNames(names);
@@ -334,7 +339,8 @@ AuthorDialog::authors()
 {
   AuthorList authors;
   // only return authors that have values (actually only surnames are tested.)
-  foreach (AuthorData author, m_current_authors) {
+  for (int i = 0; i < m_current_authors.size(); i++) {
+    AuthorData author = m_current_authors.at(i);
     if (author && !author->surname().isEmpty()) {
       authors.append(author);
     }

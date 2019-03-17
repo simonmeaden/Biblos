@@ -17,10 +17,10 @@ class WebView : public QWebEngineView
 {
   Q_OBJECT
 public:
-  WebView(Options* options,
+  WebView(Options options,
           QString jquery,
-          QString one_page_js,
-          QString one_page_css,
+          //          QString one_page_js,
+          //          QString one_page_css,
           QWebEngineProfile* profile,
           QWidget* parent = nullptr);
 
@@ -31,7 +31,6 @@ public:
   EBookDocument document();
   void setCurrentPage(QString page_id);
   QString buildTocFromData();
-  //  bool event(QEvent* event) override;
 
   int scrollWidth();
   int scrollHeight();
@@ -42,8 +41,8 @@ signals:
   void favIconChanged(const QIcon& icon);
 
 protected:
-  Options* m_options;
-  QString m_jquery, m_onepage_js, m_onepage_css;
+  Options m_options;
+  QString m_jquery /*, m_onepage_js, m_onepage_css*/;
   int m_load_progress;
   QWebEngineProfile* m_profile;
   QStringList m_spine;
@@ -51,9 +50,6 @@ protected:
   //  WebPage *m_page;
   EBookDocument m_ebook_document;
   QPixmapCache::Key dialog_error_key, view_refresh_key, text_html_key;
-
-  //  void pageUp();
-  //  void pageDown();
 
   void setWebPage(WebPage* page);
   void setLoadStarted();

@@ -4,7 +4,7 @@
 
 #include "libraryshelf.h"
 
-LibraryFrame::LibraryFrame(Options* options, QWidget* parent)
+LibraryFrame::LibraryFrame(Options options, QWidget* parent)
   : QWidget(parent)
   , m_options(options)
 {

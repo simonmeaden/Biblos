@@ -2,10 +2,13 @@
 
 quint64 EBookData::m_highest_uid = 0;
 
-EBookLibraryDB::EBookLibraryDB(SeriesDB series_db)
-  : m_series_db(series_db)
+EBookLibraryDB::EBookLibraryDB(Options options, SeriesDB series_db)
+  : m_options(options)
+  , m_series_db(series_db)
   , m_modified(false)
-{}
+{
+  loadLibrary();
+}
 
 EBookLibraryDB::~EBookLibraryDB()
 {
@@ -108,9 +111,7 @@ EBookLibraryDB::setModified(bool modified)
 bool
 EBookLibraryDB::loadLibrary()
 {
-  if (m_filename.isEmpty()) {
-    return false;
-  }
+  m_filename = m_options->libraryFile();
 
   QFile file(m_filename);
   if (file.exists()) {

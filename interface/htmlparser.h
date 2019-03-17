@@ -6,6 +6,13 @@
 #include <QSharedPointer>
 #include <QStack>
 
+#include <htmltidy.h>
+#include <tidybuffio.h>
+
+#include "ebookcommon.h"
+
+typedef QSharedPointer<QString> String;
+
 class EBItem
 {
 public:
@@ -74,7 +81,7 @@ public:
   int level() const;
   Indentable m_indentable;
 
-  virtual QString toHtml(int indent) = 0;
+  virtual QString toHtml(CSSMap styles = CSSMap(nullptr)) = 0;
   virtual QChar qchar();
   virtual QString string();
 
@@ -112,7 +119,7 @@ public:
   void setClosed(bool value);
   virtual void setAttribute(QString name, QString value);
 
-  QString toHtml(int) override;
+  QString toHtml(CSSMap = CSSMap(nullptr)) override;
 
   virtual bool isNonClosing() { return false; }
 
@@ -131,7 +138,7 @@ class EBEndTag : public EBTagBase
 public:
   EBEndTag(Type type);
 
-  QString toHtml(int) override;
+  QString toHtml(CSSMap = CSSMap(nullptr)) override;
   static EndTag fromtype(Type type)
   {
     EndTag tag = EndTag(new EBEndTag(type));
@@ -146,7 +153,7 @@ public:
 
   bool isNonClosing() override { return true; }
 
-  QString toHtml(int) override;
+  QString toHtml(CSSMap styles = CSSMap(nullptr)) override;
 
 protected:
 };
@@ -168,7 +175,7 @@ class EBAlwaysClosedTag : public EBNonClosedTag
 public:
   EBAlwaysClosedTag(Type type);
 
-  QString toHtml(int) override;
+  QString toHtml(CSSMap styles = CSSMap(nullptr)) override;
 };
 
 class EBLinkTag : public EBAlwaysClosedTag
@@ -179,8 +186,11 @@ public:
   bool isStylesheet();
   void setAttribute(QString name, QString value) override;
 
+  QString toHtml(CSSMap styles = CSSMap(nullptr)) override;
+
 protected:
-  bool is_stylesheet;
+  bool m_is_stylesheet;
+  QString m_stylesheet_name;
 };
 
 Tag
@@ -193,7 +203,7 @@ class EBChar
 public:
   EBChar(char c);
   QChar qchar() override;
-  QString toHtml(int indent) override;
+  QString toHtml(CSSMap = CSSMap(nullptr)) override;
   QString toString();
 };
 typedef QSharedPointer<EBChar> Char;
@@ -205,12 +215,16 @@ class EBWord
 public:
   EBWord(QString word);
   QString string() override;
-  QString toHtml(int) override;
+  QString toHtml(CSSMap = CSSMap(nullptr)) override;
+
+  void setReplacement(const QString& replacement);
 
 protected:
+  String m_data;
+  QString m_original;
+  QString m_replacement;
 };
 typedef QSharedPointer<EBWord> Word;
-typedef QList<Word> WordList;
 
 class HtmlParser : public QObject
 {
@@ -219,13 +233,13 @@ public:
   explicit HtmlParser(QObject* parent = nullptr);
   ~HtmlParser();
 
-  bool parse(QString name, QString text, QMap<QString, QString> css_map);
+  bool parse(QString name, QString text, CSSMap css_map);
   void clearParsed();
 
   QString htmlById(QString id);
 
   //  QString toHtml(int index);
-  QString toHtml(ItemList list, QStringList styles = QStringList());
+  QString toHtml(ItemList list, CSSMap styles = CSSMap(nullptr));
   //  QString toHtml();
 
   bool insert(int index, ItemList list);
@@ -237,28 +251,20 @@ public:
   static int INDENT_STEP;
   static int INDENT;
 
-  //  static QString _indent(int index)
-  //  {
-  //    QString indent;
-  //    for (int i = 0; i < (INDENT_STEP * INDENT); i++) {
-  //      indent += " ";
-  //    }
-  //    return indent;
-  //  }
-
   QMap<QString, QString> htmlDocumentsById() const;
 
 signals:
   void itemRemoved(int index, ItemList list);
 
 protected:
-  ItemList m_total_list;
-  WordList m_word_list;
-  QList<ItemList> m_lists;
+  ItemList m_total_list;   // all pages as a single page.
+  QStringList m_word_list; // a list of non-tag words for the spellchecker.
+  QList<ItemList> m_lists; // complete web pages
   ItemListMap m_itemlist_map;
   QMap<QString, QString> m_html_document_by_id;
 
   void setTagClosed(Tag& tag, bool& tag_closed);
+  //  QString cleanHtml(QString html);
 };
 
 #endif // HTMLPARSER_H

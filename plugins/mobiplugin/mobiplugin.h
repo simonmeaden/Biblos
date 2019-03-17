@@ -55,7 +55,7 @@ protected:
   static const QString m_file_filter;
   static const QString m_file_description;
 
-  Options* m_options;
+  Options m_options;
   EBookDocument m_document;
 };
 

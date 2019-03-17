@@ -32,7 +32,7 @@ public:
   QStringList creators();
   QString title();
   void setTitle(QString title);
-  QMap<QString, QString> cssMap();
+  CSSMap cssMap();
   QString css(QString key);
   QString javascript(QString key);
   QStringList spineKeys();

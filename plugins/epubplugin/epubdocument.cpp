@@ -1,10 +1,9 @@
 #include "epubdocument.h"
 
-#include <qlogger/qlogger.h>
+//#include <qlogger/qlogger.h>
+// using namespace qlogger;
 
 #include "private/epubdocument_p.h"
-
-using namespace qlogger;
 
 EPubDocument::EPubDocument(QObject* parent)
   : ITextDocument(parent)
@@ -219,7 +218,7 @@ EPubDocument::cssKeys()
   return d->cssKeys();
 }
 
-QStringList
+CSSMap
 EPubDocument::css()
 {
   Q_D(EPubDocument);
@@ -230,7 +229,7 @@ QString
 EPubDocument::css(QString key)
 {
   Q_D(EPubDocument);
-  return d->cssMap(key);
+  return d->css(key);
 }
 
 QString
