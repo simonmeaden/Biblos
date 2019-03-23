@@ -2,6 +2,7 @@
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
+#include "logging.h"
 
 #include "iplugininterface.h"
 
@@ -34,6 +35,8 @@ PluginDialog::PluginDialog(QWidget* parent)
   setGeometry(geometry().x(), geometry().y(), 600, 300);
 }
 
+PluginDialog::~PluginDialog() {}
+
 QTreeWidgetItem*
 PluginDialog::addTreeRoot(QString group)
 {
@@ -64,10 +67,9 @@ PluginDialog::addTreeChild(QTreeWidgetItem* parent,
 void
 PluginDialog::itemWasClicked(QTreeWidgetItem* item, int column)
 {
-  QLoggingCategory category("biblos.plugin.dialog");
   // TODO - handle loaded changes
   if (column == 2) {
-    qCDebug(category)
+    qCDebug(LOG_PLUGIN)
       << QString("plugin item clicked : value %2 : column %1 : state %3")
            .arg(column)
            .arg(item->text(1))

@@ -1,6 +1,6 @@
 #include "mobidocument.h"
 
-#include <QThread>
+//#include <QThread>
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;

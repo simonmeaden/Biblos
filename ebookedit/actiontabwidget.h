@@ -11,6 +11,7 @@ class ActionTabWidget : public QTabWidget
   Q_OBJECT
 public:
   explicit ActionTabWidget(QWidget* parent = nullptr);
+  ~ActionTabWidget() override;
 
 signals:
 

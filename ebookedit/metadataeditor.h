@@ -21,6 +21,7 @@ public:
                           SeriesDB series_db,
                           LibraryDB library,
                           QWidget* parent = nullptr);
+  ~MetadataEditor();
 
   void setDocument(EBookDocument doc);
 signals:

@@ -33,7 +33,7 @@ EBookSeriesData::setName(const QString& name)
 }
 
 QStringList
-EBookSeriesData::seriesWords() const
+EBookSeriesData::wordList() const
 {
   return m_series_words;
 }
@@ -137,7 +137,7 @@ EBookSeriesDB::loadSeries()
         insertSeries(series);
       }
     }
-    m_series_changed = true;
+    m_series_changed = false;
   }
 
   return true;
@@ -164,10 +164,10 @@ EBookSeriesDB::saveSeries()
       {
         for (int i = 0; i < m_series_map.keys().size(); i++) {
           quint64 key = m_series_map.keys().at(i);
-          SeriesData data = m_series_map.value(key);
-          QString name = data->name();
-          QStringList words = data->seriesWords();
-          emitter << YAML::Key << data->uid(); // map key
+          SeriesData series_data = m_series_map.value(key);
+          QString name = series_data->name();
+          QStringList words = series_data->wordList();
+          emitter << YAML::Key << series_data->uid(); // map key
           emitter << YAML::Value;
           emitter << YAML::BeginMap; // individual series data
           emitter << YAML::Key << "name";

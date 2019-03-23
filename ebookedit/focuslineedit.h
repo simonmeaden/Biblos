@@ -8,6 +8,7 @@ class FocusLineEdit : public QLineEdit
   Q_OBJECT
 public:
   FocusLineEdit(QWidget* parent = nullptr);
+  ~FocusLineEdit();
 
   void setFocussed(bool focussed);
 
@@ -15,12 +16,11 @@ signals:
   void focussed(bool hasFocus);
 
 protected:
-  virtual void focusInEvent(QFocusEvent *e);
-  virtual void focusOutEvent(QFocusEvent *e);
+  virtual void focusInEvent(QFocusEvent* e);
+  virtual void focusOutEvent(QFocusEvent* e);
 
   static const QString SELECTED_BORDER;
   static const QString UNSELECTED_BORDER;
-
 };
 
 #endif // FOCUSLINEEDIT_H

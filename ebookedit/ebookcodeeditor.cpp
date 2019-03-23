@@ -140,13 +140,13 @@ EBookCodeEditor::updateLineNumberArea(const QRect& rect, int dy)
     updateLineNumberAreaWidth(0);
 }
 
-void
-EBookCodeEditor::setDocument(EBookDocument document)
-{
-  //  QTextDocument* doc = qDym<QTextDocument*>(document);
-  //  m_highlighter = new XhtmlHighlighter(m_options, doc);
-  //  QPlainTextEdit::setDocument(doc);
-}
+// void
+// EBookCodeEditor::setDocument(EBookDocument document)
+//{
+//  //  QTextDocument* doc = qDym<QTextDocument*>(document);
+//  //  m_highlighter = new XhtmlHighlighter(m_options, doc);
+//  //  QPlainTextEdit::setDocument(doc);
+//}
 
 /*!
  * \brief Forces the internal text highlighter to rehighlight the code.
@@ -158,6 +158,16 @@ void
 EBookCodeEditor::rehighlight()
 {
   setFont(m_options->codeFont());
+  m_highlighter->resetFormattingOptions();
+  m_highlighter->rehighlight();
+}
+
+void
+EBookCodeEditor::setPlainText(const QString& text)
+{
+  QPlainTextEdit::setPlainText(text);
+  QTextDocument* doc = document();
+  m_highlighter = new XhtmlHighlighter(m_options, doc);
   m_highlighter->resetFormattingOptions();
   m_highlighter->rehighlight();
 }

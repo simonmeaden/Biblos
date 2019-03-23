@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui svg xml
+QT       += core gui svg xml webenginewidgets
 
 TEMPLATE = lib
 CONFIG         += plugin

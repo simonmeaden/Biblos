@@ -13,6 +13,7 @@ public:
   ~WebPage();
 
   void highlightLinks();
+  void insertCss() {}
 
 protected:
   int m_load_progress;

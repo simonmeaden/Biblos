@@ -55,6 +55,8 @@ AuthorDialog::AuthorDialog(Options options, AuthorsDB authors, QWidget* parent)
   initGui();
 }
 
+AuthorDialog::~AuthorDialog() {}
+
 void
 AuthorDialog::setPartialNames(QStringList names)
 {

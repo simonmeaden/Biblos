@@ -6,7 +6,7 @@
 
 TEMPLATE       = lib
 CONFIG         += plugin
-QT             += core gui xml svg
+QT             += core gui xml svg webenginewidgets
 CONFIG += c++14
 
 VERSION_MAJOR = 0
@@ -48,7 +48,7 @@ INCLUDEPATH += /usr/local/include
 # CVSSplitter library
 unix|win32: LIBS += -lcsvsplitter
 # QLogger library
-unix|win32: LIBS += -lqloggerlib
+#unix|win32: LIBS += -lqloggerlib
 # QYaml YAML Extensions
 unix|win32: LIBS += -lqyaml-cpp
 # YAML library

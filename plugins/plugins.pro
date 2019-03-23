@@ -2,12 +2,12 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    hunspellplugin \
+#    hunspellplugin \
     epubplugin \
     mobiplugin \
     ocrplugin
 
-hunspellplugin.subdir = hunspellplugin
+#hunspellplugin.subdir = hunspellplugin
 
 epubplugin.subdir = epubplugin
 

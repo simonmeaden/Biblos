@@ -4,7 +4,9 @@ WebPage::WebPage(QWebEngineProfile* profile, QString jquery, QObject* parent)
   : QWebEnginePage(profile, parent)
   , m_load_progress(100)
   , m_jquery(jquery)
-{}
+{
+  //  connect(this, &WebPage::WebAction)
+}
 
 WebPage::~WebPage() {}
 

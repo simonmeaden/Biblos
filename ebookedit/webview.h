@@ -8,6 +8,7 @@
 #include <QWebEngineView>
 #include <QtWidgets>
 
+//#include "ebookwrapper.h"
 #include "iebookdocument.h"
 #include "iebookinterface.h"
 #include "options.h"
@@ -23,6 +24,7 @@ public:
           //          QString one_page_css,
           QWebEngineProfile* profile,
           QWidget* parent = nullptr);
+  ~WebView();
 
   QIcon favIcon() const;
   int loadProgress() const;
@@ -51,6 +53,7 @@ protected:
   EBookDocument m_ebook_document;
   QPixmapCache::Key dialog_error_key, view_refresh_key, text_html_key;
 
+  //  QWebEngineView* createWindow(QWebEnginePage::WebWindowType) override;
   void setWebPage(WebPage* page);
   void setLoadStarted();
   void loadFinished(const bool& value);
@@ -60,7 +63,7 @@ protected:
   void createWebActionTrigger(QWebEnginePage* page,
                               QWebEnginePage::WebAction web_action);
   void insertStyleSheet(const QString& name, const QString& source);
-  //  bool eventFilter(QObject* obj, QEvent* event) override;
+  void handleViewSourceTriggered();
 };
 
 #endif // EBOOKVIEW_H

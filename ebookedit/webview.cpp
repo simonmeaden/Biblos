@@ -2,6 +2,10 @@
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
+#include "logging.h"
+
+#include "ebookcodeeditor.h"
+#include "ebookwrapper.h"
 
 /* WebView
  *****************************************************************************/
@@ -12,16 +16,12 @@ WebView::WebView(Options options,
   : QWebEngineView(parent)
   , m_options(options)
   , m_jquery(jquery)
-  //  , m_onepage_js(one_page_js)
-  //  , m_onepage_css(one_page_css)
   , m_load_progress(100)
   , m_profile(profile)
 {
   dialog_error_key = m_options->dialog_error_key;
   view_refresh_key = m_options->view_refresh_key;
   text_html_key = m_options->text_html_key;
-
-  //  insertStyleSheet(QStringLiteral("one_page"), m_onepage_css);
 
   connect(this, &QWebEngineView::loadStarted, this, &WebView::setLoadStarted);
   connect(this, &QWebEngineView::loadProgress, this, &WebView::setLoadProgress);
@@ -57,6 +57,8 @@ WebView::WebView(Options options,
           });
   setWebPage(new WebPage(m_profile, jquery, this));
 }
+
+WebView::~WebView() {}
 
 QIcon
 WebView::favIcon() const
@@ -100,8 +102,6 @@ WebView::setDocument(EBookDocument ebook_document)
   m_ebook_document = ebook_document;
   m_spine = ebook_document->spine();
   m_pages = ebook_document->pages();
-  QString id = m_spine.first();
-  setCurrentPage(id);
 }
 
 EBookDocument
@@ -123,9 +123,16 @@ WebView::setCurrentPage(QString page_id)
   } else {
     html = m_pages.value(page_id, QString());
   }
-  if (!html.isEmpty()) {
-    page()->setHtml(html);
+  //  if (!html.isEmpty()) {
+  WebPage* web_page = qobject_cast<WebPage*>(page());
+  QFile file("page.html");
+  if (file.open(QFile::WriteOnly)) {
+    QTextStream stream(&file);
+    stream << html;
   }
+  file.close();
+  web_page->setHtml(html);
+  //  }
 }
 
 QString
@@ -156,6 +163,7 @@ WebView::setWebPage(WebPage* page)
   createWebActionTrigger(page, QWebEnginePage::Back);
   createWebActionTrigger(page, QWebEnginePage::Reload);
   createWebActionTrigger(page, QWebEnginePage::Stop);
+  createWebActionTrigger(page, QWebEnginePage::ViewSource);
   QWebEngineView::setPage(page);
 }
 
@@ -204,6 +212,31 @@ WebView::insertStyleSheet(const QString& name, const QString& source)
 }
 
 void
+WebView::handleViewSourceTriggered()
+{
+  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(parent());
+  if (wrapper) {
+    EBookCodeEditor* editor = wrapper->codeEditor();
+    QWebEnginePage* page = this->page();
+    page->toHtml(
+      [editor](const QString& result) { editor->setPlainText(result); });
+    //    page->toPlainText(
+    //      [editor](const QString& result) { editor->setPlainText(result); });
+  }
+}
+
+// QWebEngineView* WebView::createWindow(QWebEnginePage::WebWindowType)
+//{
+//  EBookWrapper* wrapper = qobject_cast<EBookWrapper*>(parent());
+//  if (wrapper) {
+//    EBookCodeEditor* editor = wrapper->editor();
+//    QWebEnginePage* page = page();
+//    engine_view->setpl
+//  }
+//  return this;
+//}
+
+void
 WebView::setLoadProgress(const int& value)
 {
   m_load_progress = value;
@@ -229,15 +262,15 @@ WebView::contextMenuEvent(QContextMenuEvent* event)
     if (viewSource == actions.cend())
       menu->addSeparator();
 
-    //        QAction *action = new QAction(menu);
-    //        action->setText("Open inspector in new window");
-    //        connect(action, &QAction::triggered, [this]() { emit
-    //        devToolsRequested(page()); });
+    QAction* action = *viewSource;
+    connect(
+      action, &QAction::triggered, this, &WebView::handleViewSourceTriggered);
 
-    //        QAction *before(inspectElement == actions.cend() ? nullptr :
-    //        *inspectElement); menu->insertAction(before, action);
   } else {
     (*inspectElement)->setText(tr("Inspect element"));
+  }
+  if (page()->action(QWebEnginePage::ViewSource)->isEnabled()) {
+    qCDebug(LOG_WEBVIEW) << QStringLiteral("ViewSource is enabled");
   }
   menu->popup(event->globalPos());
 }

@@ -243,7 +243,15 @@ EBookAuthorsDB::loadAuthors()
           if (!pixmap.isNull())
             author->setPixmap(pixmap);
         }
-
+        QStringList words;
+        YAML::Node word_list = author_node["word list"];
+        if (!word_list.IsNull() && word_list.IsSequence()) {
+          for (YAML::const_iterator it2 = word_list.begin();
+               it2 != word_list.end();
+               ++it2) {
+            words << it2->second.as<QString>();
+          }
+        }
         if (author->uid() > m_highest_uid) {
           m_highest_uid = author->uid();
         }
@@ -288,6 +296,7 @@ EBookAuthorsDB::saveAuthors()
         QString website = author_data->website();
         QString wikipedia = author_data->wikipedia();
         QPixmap pixmap = author_data->pixmap();
+        QStringList words = author_data->wordList();
 
         emitter << YAML::Key << uid;
         emitter << YAML::Value;
@@ -312,6 +321,14 @@ EBookAuthorsDB::saveAuthors()
           emitter << YAML::Key << "image";
           emitter << YAML::Value << pixmap;
         }
+        emitter << YAML::Key << "word list";
+        emitter << YAML::BeginSeq;
+        for (int i = 0; i < words.size(); i++) {
+          QString word = words.at(i);
+          emitter << word;
+        }
+        emitter << YAML::EndSeq;
+
         emitter << YAML::EndMap;
       }
       emitter << YAML::EndMap;

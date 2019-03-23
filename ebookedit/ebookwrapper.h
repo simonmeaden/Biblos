@@ -6,7 +6,8 @@
 
 #include "ebookcodeeditor.h"
 #include "ebookcommon.h"
-//#include "ebookeditor.h"
+#include "ebookeditor.h"
+//#include "ebookcodeviewer.h"
 #include "metadataeditor.h"
 #include "webview.h"
 

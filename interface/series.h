@@ -21,8 +21,8 @@ public:
   QString name() const;
   void setName(const QString& name);
 
-  QStringList seriesWords() const;
-  void setSeriesWords(const QStringList& seriesWords);
+  QStringList wordList() const;
+  void setSeriesWords(const QStringList& wordList);
 
   static quint64 m_highest_uid;
   static quint64 nextUid() { return ++m_highest_uid; }

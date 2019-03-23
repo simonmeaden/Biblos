@@ -2,12 +2,10 @@
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
-#include <QLoggingCategory>
+#include "logging.h"
 
 int HtmlParser::INDENT_STEP = 2;
 int HtmlParser::INDENT = 0;
-
-QLoggingCategory category("htmlparser");
 
 /*!
  * \class HtmlParser
@@ -34,53 +32,59 @@ HtmlParser::HtmlParser(QObject* parent)
 HtmlParser::~HtmlParser() {}
 
 void
-HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
+HtmlParser::saveCharOrPunctuationTag(char c,
+                                     QString& data_text,
+                                     ItemList& item_list)
 {
-  if (!tag.isNull()) {
-    tag->setClosed(true);
-    tag_closed = false;
+  writeWordDataIf(data_text, item_list);
+  Char ch = Char(new EBChar(c));
+  item_list.append(ch);
+}
+
+void
+HtmlParser::writeWordDataIf(QString& data_text, ItemList& item_list)
+{
+  if (!data_text.isEmpty()) {
+    Word word = Word(new EBWord(data_text));
+    item_list.append(word);
+    data_text.clear();
   }
 }
 
-// QString
-// HtmlParser::cleanHtml(QString html)
+void
+HtmlParser::writeEndTag(QString& tag_text,
+                        QString& data_text,
+                        ItemList& item_list,
+                        bool& tag_opener,
+                        bool& tag_closed,
+                        bool& in_style)
+{
+  EBTag::Type type = EBItem::fromString(tag_text);
+  if (type != EBItem::NONE) {
+    writeWordDataIf(data_text, item_list);
+    EndTag end_tag = EBEndTag::fromtype(type);
+    item_list.append(end_tag);
+    tag_text.clear();
+    tag_opener = false;
+    tag_closed = false;
+    in_style = false;
+  }
+}
+
+// void
+// HtmlParser::insertStyleSheet(const QString& name, const QString& source)
 //{
-//  const char* input = html.toStdString().c_str();
-
-//  TidyBuffer output = { 0 };
-//  TidyBuffer errbuf = { 0 };
-
-//  int rc = -1;
-//  bool ok;
-
-//  TidyDoc tdoc = tidyCreate();
-//  ok = tidyOptSetBool(tdoc, TidyXhtmlOut, yes);
-
-//  if (ok)
-//    rc = tidySetErrorBuffer(tdoc, &errbuf); // Capture diagnostics
-//  if (rc >= 0)
-//    rc = tidyParseString(tdoc, input); // Parse the input
-//  if (rc >= 0)
-//    rc = tidyCleanAndRepair(tdoc); // Tidy it up!
-//  if (rc >= 0)
-//    rc = tidyRunDiagnostics(tdoc); // Kvetch
-//  if (rc > 1)                      // If error, force output.
-//    rc = (tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1);
-//  if (rc >= 0)
-//    rc = tidySaveBuffer(tdoc, &output); // Pretty Print
-
-//  int size = output.size;
-//  QByteArray ba(reinterpret_cast<const char*>(output.bp), size);
-//  //  if (rc >= 0) {
-//  //    if (rc > 0)
-//  //      QLOG_ERROR(QString("\nDiagnostics:\n\n%1").arg(errbuf.bp));
-//  //    printf("\nAnd here is the result:\n\n%s", output.bp);
-//  //  } else
-//  //    printf("A severe error (%d) occurred.\n", rc);
-
-//  tidyBufFree(&output);
-//  tidyBufFree(&errbuf);
-//  tidyRelease(tdoc);
+//  QWebEngineScript script;
+//  QString s = QString::fromLatin1("(function() {"
+//                                  "    css = document.createElement('style');"
+//                                  "    css.type = 'text/css';"
+//                                  "    css.id = '%1';"
+//                                  "    document.head.appendChild(css);"
+//                                  "    css.innerText = '%2';"
+//                                  "})()")
+//                .arg(name)
+//                .arg(source.simplified());
+//  m_css_names.insert(name, s);
 //}
 
 /*!
@@ -96,41 +100,40 @@ HtmlParser::setTagClosed(Tag& tag, bool& tag_closed)
  * \param css_strings - css files as strings.
  * \return
  */
-
 bool
 HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
 {
-  QLoggingCategory category("biblos.htmlparser");
 
   // text is already pruned to inside <body> tag.
   bool tag_opener = false;
   bool tag_closed = false;
   bool in_squote = false;
   bool in_dquote = false;
-  bool att_start = false;
+  bool tag_name_finished = false;
+  bool att_name_started = false;
+  bool att_name_finished = false;
+  bool att_value_started = false;
+  bool att_equals_found = false;
+  bool in_style = false;
   QString att_value, att_name;
   QString tag_text;
   QString data_text;
   QString style_text;
   QString html_doc;
   ItemList item_list;
-  QStringList word_list;
+  QStringList css_list;
 
   Tag tag = Tag(new EBTag(EBItem::NONE));
-  foreach (QChar qc, document_string) {
+  // TODO handle non-proper xhtml tags.
+  //  foreach (QChar qc, document_string) {
+  for (int i = 0; i < document_string.length(); i++) {
+    QChar qc = document_string.at(i);
     char c = qc.toLatin1();
     if (c == 0) {
       // Unicode characters.
       if (!tag_opener) { // outside of a tag
         if (qc.isSpace() || qc.isPunct()) {
-          if (!data_text.isEmpty()) {
-            Word word = Word(new EBWord(data_text));
-            item_list.append(word);
-            word_list.append(word->string());
-            data_text.clear();
-          }
-          Char ch = Char(new EBChar(c));
-          item_list.append(ch);
+          saveCharOrPunctuationTag(c, data_text, item_list);
         } else {
           data_text += qc;
         }
@@ -149,124 +152,235 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
       // html tags are always latin text chars except within quotation marks.
       switch (c) {
         case '/': {
-          tag_closed = true;
+          if (!in_dquote) {
+            tag_closed = true;
+          } else {
+            if (att_value_started) {
+              att_value += c;
+            }
+          }
           break;
         }
         case '<': {
-          if (tag->type() == EBTag::STYLE) {
-            tag.dynamicCast<EBStyleTag>()->setStyle(style_text);
-          } else {
-            if (!data_text.isEmpty()) {
-              Word word = Word(new EBWord(data_text));
-              item_list.append(word);
-              word_list.append(word->string());
-              data_text.clear();
-            }
-            tag_opener = true;
+          if (!tag.isNull()) {
+            writeWordDataIf(data_text, item_list);
           }
+          tag_opener = true;
           break;
         }
         case '>': {
           if (tag_opener) {
-            EBTag::Type type = EBItem::fromString(tag_text);
-            if (type != EBItem::NONE) {
-              tag = fromTagType(type);
-              tag_text.clear();
-            }
-            setTagClosed(tag, tag_closed);
-            if (tag->isNonClosing())
-              tag_closed = true;
-            tag_opener = false;
-            item_list.append(tag);
-            //            tag = Tag(nullptr);
-          }
-          tag_text.clear();
-          break;
-        } // end of '>' section
-        default: {
-          if (!tag_opener) {
-            // Outside a tag but still latin characters.
-            if (tag->type() != EBTag::STYLE) {
-              if (qc.isSpace() || qc.isPunct()) {
-                if (!data_text.isEmpty()) {
-                  Word word = Word(new EBWord(data_text));
-                  item_list.append(word);
-                  word_list.append(word->string());
-                  data_text.clear();
-                }
-                Char ch = Char(new EBChar(c));
-                item_list.append(ch);
-              } else {
-                data_text += qc;
-              }
-            } else {
-              // a style tag is treated as a special case
-              style_text += c;
-            }
-          } else if (tag_closed) { // tag has closed so this should be text.
-            if ((c >= 'a' && c <= 'z') || c == ' ' || c == '\\' || c == '=') {
-              tag_text += c;
-              if (tag.isNull()) {
+            if (tag.isNull()) {
+              if (!tag_closed) {
                 EBTag::Type type = EBItem::fromString(tag_text);
                 if (type != EBItem::NONE) {
-                  EndTag end_tag = EBEndTag::fromtype(type);
-                  item_list.append(end_tag);
+                  tag = fromTagType(type);
                   tag_text.clear();
+                  tag_name_finished = true;
+                  tag_closed = false;
+                  if (type == EBItem::STYLE) {
+                    in_style = true;
+                  }
+                }
+                tag->setClosed(false);
+                if (!tag->isClosableType()) {
+                  // Non closable types have no end tags they either never have
+                  // a closing '/', ie <br>, or always have one, ie <link/>. so
+                  // we need to manually set the flags.
                   tag_opener = false;
                   tag_closed = false;
                 }
+                tag_opener = false;
+                tag_name_finished = false;
+                item_list.append(tag);
+                tag = Tag(nullptr);
+              } else {
+                writeEndTag(tag_text,
+                            data_text,
+                            item_list,
+                            tag_opener,
+                            tag_closed,
+                            in_style);
+              }
+            } else {
+              // TODO debug should be handled elsewhere?
+              if (!tag.isNull()) {
+                tag_opener = false;
+                tag_name_finished = false;
+                item_list.append(tag);
+                tag = Tag(nullptr);
+              } else {
+                // shouldn't ever actually happen here. Track down why?
+                qCDebug(LOG_PARSER) << QStringLiteral("Empty Tag?");
+              }
+            }
+          }
+          //          tag_text.clear();
+          break;
+        } // end of '>' section
+        case '\n':
+          break;
+        default: {
+          if (!tag_opener) {
+            // Outside a tag but still latin characters.
+            if (!tag.isNull()) {
+              if (tag->type() != EBTag::STYLE) {
+                if (qc.isSpace() || qc.isPunct()) {
+                  saveCharOrPunctuationTag(c, data_text, item_list);
+                } else {
+                  data_text += qc;
+                }
+              } else {
+                if (in_style) {
+                  // a style tag is treated as a special case
+                  style_text += c;
+                }
+              }
+            } else {
+              if (qc.isSpace() || qc.isPunct()) {
+                saveCharOrPunctuationTag(c, data_text, item_list);
+              } else {
+                data_text += qc;
+              }
+            }
+          } else if (tag_closed && tag_name_finished) { // tag has closed so
+                                                        // this should be text.
+            if ((c >= 'a' && c <= 'z') || c == ' ' || c == '\\' || c == '=') {
+              tag_text += c;
+              if (tag.isNull()) {
+                writeEndTag(tag_text,
+                            data_text,
+                            item_list,
+                            tag_opener,
+                            tag_closed,
+                            in_style);
               }
             }
           } else if (tag_opener) {
             // inside a tag. tag name and attributes
-            if ((c >= 'a' && c <= 'z') || c == ' ' || c == '=' || c == '_' ||
-                c == '.' || c == '#' || (c >= '0' && c <= '9')) {
-              if (c == ' ') // ignore spaces in tags.
-                continue;
-              tag_text += c;
-              if (in_dquote) {
-                if (att_start) {
-                  att_value += c;
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' ||
+                c == '=' || c == '_' || c == ':' || c == '/' || c == '.' ||
+                c == '#' || (c >= '0' && c <= '9') || c == ';' || c == '-') {
+              if (c == ' ') {
+                if (!tag_name_finished) {
+                  // first space create tag.
+                  EBTag::Type type = EBItem::fromString(tag_text);
+                  if (type != EBItem::NONE) {
+                    tag = fromTagType(type);
+                    tag_text.clear();
+                    tag_name_finished = true;
+                    tag_closed = false;
+                    if (type == EBItem::STYLE) {
+                      in_style = true;
+                    }
+                  }
+                } else {
+                  if (att_name_started) {
+                    if (att_name_finished && !att_value_started) {
+                      // spaces between att name and =
+                      continue;
+                    }
+                    if (att_value_started) {
+                      if (in_dquote) { // spaces not between = and first "
+                        att_value += c;
+                      }
+                    }
+                  }
                 }
-              }
-              if (tag_text.contains("=")) {
-                att_start = true;
-                att_name = tag_text.left(tag_text.length() - 1);
-                tag_text.clear();
+              } else {
+                if (c == '=') { // && att_name_started && !att_name_finished) {
+                  if (att_name_started) {
+                    if (!att_name_finished) {
+                      att_name_finished = true;
+                      att_equals_found = true;
+                    } else {
+                      if (att_value_started) {
+                        if (in_dquote || in_squote) {
+                          att_value += c;
+                        } else {
+                          // TODO error ?
+                          qCDebug(LOG_PARSER) << QStringLiteral(
+                            "= att value started but not in quotes");
+                        }
+                      } else {
+                        // TODO debug should be handled elsewhere?
+                        qCDebug(LOG_PARSER) << QStringLiteral(
+                          "= att value not started but att_name finished?");
+                      }
+                    }
+                  } else {
+                    // shouldn't have an = here
+                    qCDebug(LOG_PARSER)
+                      << QStringLiteral("= but att name not started");
+                  }
+                } else {
+                  if (c == '"') {
+                    if (att_value_started) {
+                      att_value += c;
+                    } else if (att_name_started) {
+                      att_name_finished = true;
+                      att_equals_found = true;
+                    }
+                  } else {
+
+                    if (!tag_name_finished) {
+                      tag_text += c;
+                    } else if (att_name_started && !att_name_finished) {
+                      att_name += c;
+                    } else if (att_name_finished) {
+                      if (in_dquote) {
+                        att_value += c;
+                      }
+                    } else {
+                      if (!att_name_started) {
+                        // a non-space character between tag name and
+                        // attribute.
+                        att_name_started = true;
+                        att_name += c;
+                      }
+                    }
+                  }
+                }
               }
             } else if (c == '\'') { // single quote inside tag.
-              if (in_dquote) {
+              if (!in_dquote) {
+                if (in_squote) {
+                  in_squote = false;
+                }
+                in_squote = true;
+              } else {
                 // ignore double quote inside single quotes.
                 tag_text += c;
-                continue;
               }
-              if (in_squote) {
-                in_squote = false;
-              }
-              in_squote = true;
             } else if (c == '"') { // double quote inside tag.
-              if (in_squote) {
+              if (!in_squote) {
+                if (!in_dquote) {
+                  in_dquote = true;
+                  if (att_equals_found) {
+                    att_value_started = true;
+                  }
+                } else {
+                  if (att_value_started) {
+                    // prepare for another attribute.
+                    att_name_started = false;
+                    att_name_finished = false;
+                    att_value_started = false;
+                    att_equals_found = false;
+                    if (tag.isNull()) {
+                      qCWarning(LOG_PARSER)
+                        << QString("Missing html attribute %1").arg(att_name);
+                      continue;
+                    }
+                    tag->setAttribute(att_name, att_value);
+                    att_value.clear();
+                    att_name.clear();
+                  }
+                  in_dquote = false;
+                }
+              } else {
                 // ignore single quote inside double quotes.
                 tag_text += c;
-                continue;
               }
-              if (in_dquote) {
-                if (att_start) {
-                  att_start = false;
-                  if (tag.isNull()) {
-                    qCWarning(category)
-                      << QString("Missing hml tag %1").arg(att_name);
-                    continue;
-                  }
-                  tag->setAttribute(att_name, att_value);
-                  att_value.clear();
-                  att_name.clear();
-                  tag_text.clear();
-                }
-                in_dquote = false;
-                continue;
-              }
-              in_dquote = true;
             } /* else {
                //
              }*/
@@ -278,7 +392,7 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
   if (!item_list.isEmpty()) {
     m_lists.append(item_list);
     m_itemlist_map.insert(name, item_list);
-    m_word_list.append(word_list);
+    //    m_word_list.append(word_list);
     html_doc = toHtml(item_list, css_map);
     m_html_document_by_id.insert(name, html_doc);
     return true;
@@ -290,14 +404,14 @@ void
 HtmlParser::clearParsed()
 {
   //  m_total_list.clear();
-  m_word_list.clear();
+  //  m_word_list.clear();
 }
 
-QString
-HtmlParser::htmlById(QString id)
-{
-  return m_html_document_by_id.value(id);
-}
+// QString
+// HtmlParser::htmlById(QString id)
+//{
+//  return m_html_document_by_id.value(id);
+//}
 
 bool
 HtmlParser::insert(int index, ItemList list)
@@ -360,10 +474,19 @@ HtmlParser::htmlDocumentsById() const
 QString
 HtmlParser::toHtml(ItemList list, CSSMap styles)
 {
-  QString html = QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  foreach (Item item, list) {
-    if (!item.isNull())
-      html += item->toHtml(styles);
+  QString html = QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+  for (int i = 0; i < list.size(); i++) {
+    Item item = list.at(i);
+    if (!item.isNull()) {
+      if (item->type() == EBItem::LINK) {
+        LinkTag link_tag = item.dynamicCast<EBLinkTag>();
+        if (link_tag->isStylesheet()) {
+        }
+      } else {
+        QString item_html = item->toHtml(styles);
+        html += item_html; // item->toHtml(styles);
+      }
+    }
   }
   //  html = cleanHtml(html);
   return html;
@@ -380,7 +503,8 @@ HtmlParser::toHtml(ItemList list, CSSMap styles)
 //                   "    xmlns:epub=\"http://www.idpf.org/2007/ops\"\n"
 //                   "    epub:prefix=\"z3998: "
 //                   "http://www.daisy.org/z3998/2012/vocab/structure/#\"\n"
-//                   " xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
+//                   "
+//                   xmlns:ssml=\"http://www.w3.org/2001/10/synthesis\">\n");
 //  html += QStringLiteral("<head>\n");
 //  html += QStringLiteral("</head>\n");
 //  html += QStringLiteral("<body>\n");
@@ -505,12 +629,14 @@ EBItem::fromString(QString type)
     return SVG;
   else if (t == "style")
     return STYLE;
-  else if (t == "style")
+  else if (t == "link")
     return LINK;
   else if (t == "html")
     return HTML;
   else if (t == "head")
     return HEAD;
+  else if (t == "body")
+    return BODY;
   else if (t == "meta")
     return META;
   else if (t == "title")
@@ -625,6 +751,8 @@ EBTagBase::fromType()
       return QStringLiteral("link");
     case HTML:
       return QStringLiteral("html");
+    case BODY:
+      return QStringLiteral("body");
     case HEAD:
       return QStringLiteral("head");
     case META:
@@ -648,10 +776,16 @@ EBTag::EBTag(EBItem::Type type)
   setIndentable(INDENT);
 }
 
+/*
+ * m_closed is only used when writing the tag to html.
+ * If the tag is either EBNonClosedTag or EBAlwaysClosedTag then
+ * this is fixed as false.
+ */
 void
 EBTag::setClosed(bool value)
 {
-  m_closed = value;
+  if (!isClosableType())
+    m_closed = value;
 }
 
 void
@@ -664,16 +798,24 @@ QString EBTag::toHtml(CSSMap)
 {
   QString html;
   //  html += HtmlParser::_indent();
-  html += "<" + fromType();
-  foreach (QString key, m_attributes.keys()) {
-    QString value = m_attributes.value(key);
-    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
+  if (m_type != NONE) {
+    html += "<" + fromType();
+    foreach (QString key, m_attributes.keys()) {
+      QString value = m_attributes.value(key);
+      html += QString(" %1=\"%2\"").arg(key).arg(value);
+    }
+    if (m_closed) {
+      html += "/";
+    }
+    html += ">";
   }
-  if (m_closed) {
-    html += "/";
-  }
-  html += ">";
   return html;
+}
+
+bool
+EBTag::isClosableType()
+{
+  return true;
 }
 
 /* EBEndTag
@@ -725,9 +867,7 @@ EBChar::toString()
 EBWord::EBWord(QString word)
   : EBItem(WORD)
   , m_original(word)
-{
-  m_data = String(&word);
-}
+{}
 
 QString
 EBWord::string()
@@ -744,7 +884,6 @@ QString EBWord::toHtml(CSSMap)
 void
 EBWord::setReplacement(const QString& replacement)
 {
-  m_original = *this;
   m_replacement = replacement;
 }
 
@@ -770,6 +909,22 @@ EBStyleTag::style()
 /* EBNonClosedTag
  * ************************************************************************/
 
+EBNonClosedTag::EBNonClosedTag(EBItem::Type type)
+  : EBTag(type)
+{
+  m_closed = false;
+}
+
+/*
+ * This flag is only true if it is NOT an EBNonClosed or EBAlwaysClosed type.
+ * It cannot be set manually.
+ */
+bool
+EBNonClosedTag::isClosableType()
+{
+  return false;
+}
+
 QString EBNonClosedTag::toHtml(CSSMap)
 {
   QString html;
@@ -777,18 +932,20 @@ QString EBNonClosedTag::toHtml(CSSMap)
   html += "<" + fromType();
   foreach (QString key, m_attributes.keys()) {
     QString value = m_attributes.value(key);
-    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
+    html += QString(" %1=\"%2\"").arg(key).arg(value);
   }
   html += ">";
   return html;
 }
 
-/* EBNonClosedTag
+/* EBAlwaysClosedTag
  * ************************************************************************/
 
 EBAlwaysClosedTag::EBAlwaysClosedTag(EBItem::Type type)
   : EBNonClosedTag(type)
-{}
+{
+  m_closed = true;
+}
 
 QString EBAlwaysClosedTag::toHtml(CSSMap)
 {
@@ -797,7 +954,7 @@ QString EBAlwaysClosedTag::toHtml(CSSMap)
   html += "<" + fromType();
   foreach (QString key, m_attributes.keys()) {
     QString value = m_attributes.value(key);
-    html += QString(" %1=\"%2\"\n").arg(key).arg(value);
+    html += QString(" %1=\"%2\"").arg(key).arg(value);
   }
   html += "/>";
   return html;
@@ -825,7 +982,7 @@ EBLinkTag::setAttribute(QString name, QString value)
       value.toLower() == QStringLiteral("stylesheet")) {
     m_is_stylesheet = true;
   } else if (l_name == QStringLiteral("href")) {
-    m_stylesheet_name = value;
+    m_name = value;
   }
   EBTag::setAttribute(name, value);
 }
@@ -839,7 +996,7 @@ EBLinkTag::toHtml(CSSMap styles)
     QString stylesheet = styles->value(href);
     if (!stylesheet.isEmpty()) {
       html += QString("<style title=\"%1\">%2<\\style>")
-                .arg(m_stylesheet_name)
+                .arg(m_stylesheet)
                 .arg(stylesheet);
     }
     return html;
@@ -847,6 +1004,29 @@ EBLinkTag::toHtml(CSSMap styles)
     return EBAlwaysClosedTag::toHtml(styles);
   }
 }
+
+QString
+EBLinkTag::name() const
+{
+  return m_name;
+}
+
+QString
+EBLinkTag::stylesheet() const
+{
+  return m_stylesheet;
+}
+
+void
+EBLinkTag::setStylesheet(const QString& stylesheet)
+{
+  m_stylesheet = stylesheet;
+}
+
+// void EBLinkTag::setName(const QString &name)
+//{
+//  m_name = name;
+//}
 
 /*********************************************************************************/
 

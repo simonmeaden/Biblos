@@ -12,6 +12,7 @@ class EBookTOCWidget : public QTextBrowser
   Q_OBJECT
 public:
   EBookTOCWidget(QWidget* parent = nullptr);
+  ~EBookTOCWidget();
 
   void setDocumentString(QString document_string);
   void enableHtmlMenuItem(bool enable);

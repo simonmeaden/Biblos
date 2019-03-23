@@ -1,11 +1,11 @@
 #include "ebookmetadata.h"
 #include <QDebug>
 
-#include <QLoggingCategory>
 #include <QXmlStreamWriter>
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
+#include "logging.h"
 
 EBookMetadata::EBookMetadata()
   : m_calibre(Calibre(new EBookCalibre()))
@@ -406,8 +406,7 @@ EBookMetadata::parseOpfMeta(QString tag_name,
                             QDomElement& metadata_element,
                             QDomNamedNodeMap& /*node_map*/)
 {
-  QLoggingCategory category("biblos.metadata");
-  qCWarning(category)
+  qCWarning(LOG_METADATA)
     << QString("Unknown OPF <meta> detected : TagName=%1, NodeName=%2, "
                "NodeValue=%3, TagValue=%4")
          .arg(tag_name)
@@ -486,7 +485,6 @@ EBookMetadata::parseCreatorContributorRefines(Creator shared_creator,
                                               QString id,
                                               QDomNamedNodeMap node_map)
 {
-  QLoggingCategory category("biblos.metadata");
   QDomNode node = node_map.namedItem("property");
   if (!node.isNull()) {
     QString property = node.nodeValue().toLower();
@@ -500,8 +498,9 @@ EBookMetadata::parseCreatorContributorRefines(Creator shared_creator,
             MarcRelator::fromString(metadata_element.text());
           if (shared_creator->relator.type() == MarcRelator::NO_TYPE) {
             shared_creator->string_creator = metadata_element.text();
-            qCWarning(category) << QString("An unexpected role has come up. %1")
-                                     .arg(metadata_element.text());
+            qCWarning(LOG_METADATA)
+              << QString("An unexpected role has come up. %1")
+                   .arg(metadata_element.text());
           }
         } else {
           // TODO treat as a string if not a recognised scheme type;
@@ -629,7 +628,6 @@ EBookMetadata::parseRefineMetas(QDomElement& metadata_element,
 bool
 EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
 {
-  QLoggingCategory category("biblos.metadata");
   QDomElement metadata_element = metadata_node.toElement();
   QString tag_name = metadata_element.tagName();
   QDomNamedNodeMap node_map = metadata_element.attributes();
@@ -736,7 +734,7 @@ EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
           // TODO
         } else {
           // TODO other dcterms.
-          qCWarning(category)
+          qCWarning(LOG_METADATA)
             << QString("Unknown DCTerms object : %1").arg(dcterms.code());
         }
       }
@@ -763,7 +761,7 @@ EBookMetadata::parseMetadataItem(const QDomNode& metadata_node)
     parseOpfMeta(tag_name, metadata_element, node_map);
   } else {
     // TODO not a dc  or OPF element, maybe calibre?
-    qCWarning(category)
+    qCWarning(LOG_METADATA)
       << QString("Unknown <meta> detected : TagName=%1, NodeName=%2, "
                  "NodeValue=%3, TagValue=%4")
            .arg(tag_name)
@@ -819,7 +817,6 @@ EBookMetadata::parseTitleMetadata(QDomElement metadata_element)
 void
 EBookMetadata::parseCreatorMetadata(QDomElement metadata_element)
 {
-  QLoggingCategory category("biblos.metadata");
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Creator creator = Creator(new EBookCreator());
   QDomNode node = node_map.namedItem("id");
@@ -837,7 +834,7 @@ EBookMetadata::parseCreatorMetadata(QDomElement metadata_element)
     creator->relator = MarcRelator::fromString(node.nodeValue());
     if (creator->relator.type() == MarcRelator::NO_TYPE) {
       creator->string_creator = node.nodeValue();
-      qCWarning(category)
+      qCWarning(LOG_METADATA)
         << QString("An unexpected role has come up. %1").arg(node.nodeValue());
     }
   }
@@ -887,7 +884,6 @@ EBookMetadata::parseContributorMetadata(QDomElement metadata_element)
 {
   /* Please note that according to the 3.0 spec Contributors data are
    * identical to Creators data. */
-  QLoggingCategory category("biblos.metadata");
   QDomNamedNodeMap node_map = metadata_element.attributes();
   Contributor shared_contributor = Contributor(new EBookContributor());
   QDomNode node = node_map.namedItem("id");
@@ -900,7 +896,7 @@ EBookMetadata::parseContributorMetadata(QDomElement metadata_element)
     shared_contributor->relator = MarcRelator::fromString(node.nodeValue());
     if (shared_contributor->relator.type() == MarcRelator::NO_TYPE) {
       shared_contributor->string_creator = node.nodeValue();
-      qCWarning(category)
+      qCWarning(LOG_METADATA)
         << QString("An unexpected role has come up. %1").arg(node.nodeValue());
     }
   }

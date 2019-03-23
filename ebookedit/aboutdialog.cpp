@@ -2,14 +2,14 @@
 
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
-#include <QLoggingCategory>
 
 #include <csvsplitter/csvsplitter.h>
+
+#include "logging.h"
 
 AboutDialog::AboutDialog(QWidget* parent)
   : QDialog(parent)
 {
-  QLoggingCategory category("biblos.epub.document");
 
   setWindowTitle(tr("About EbookEditor"));
 
@@ -49,7 +49,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   QString fileName(":/files/attributions");
   QFile file(fileName);
   if (!file.open(QIODevice::ReadOnly)) {
-    qCDebug(category) << tr("Attributions file not opened.");
+    qCDebug(LOG_ABOUT_DIALOG()) << tr("Attributions file not opened.");
   } else {
     QString data = file.readLine();
     QStringList list;
@@ -90,3 +90,5 @@ AboutDialog::AboutDialog(QWidget* parent)
   setGeometry(x, y, 900, 300);
   update();
 }
+
+AboutDialog::~AboutDialog() {}

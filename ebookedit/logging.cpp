@@ -1,0 +1,11 @@
+#include "logging.h"
+
+Q_LOGGING_CATEGORY(LOG_MAINWINDOW, "biblos.mainwindow")
+Q_LOGGING_CATEGORY(LOG_ABOUT_DIALOG, "biblos.about")
+Q_LOGGING_CATEGORY(LOG_PLUGIN, "biblos.plugin")
+Q_LOGGING_CATEGORY(LOG_WEBVIEW, "biblos.webview")
+Q_LOGGING_CATEGORY(LOG_HIGHLIGHTER, "biblos.highlighter")
+Q_LOGGING_CATEGORY(LOG_EPUB, "biblos.epub")
+Q_LOGGING_CATEGORY(LOG_MOBI, "biblos.mobi")
+Q_LOGGING_CATEGORY(LOG_PARSER, "biblos.parser")
+Q_LOGGING_CATEGORY(LOG_METADATA, "biblos.metadata")

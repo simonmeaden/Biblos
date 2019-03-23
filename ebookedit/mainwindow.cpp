@@ -3,6 +3,8 @@
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
 
+#include "logging.h"
+
 #include "iebookinterface.h"
 #include "iplugininterface.h"
 #include "ispellinterface.h"
@@ -46,15 +48,9 @@ MainWindow::MainWindow(QWidget* parent)
   , m_popup(nullptr)
   , m_current_spell_checker(nullptr)
 {
-  //  QLogger::addLogger("root", q5TRACE, CONSOLE);
-
   setWindowTitle(QCoreApplication::applicationName());
-  QPixmap library_icon;
-  QPixmapCache::find(m_options->lib_key, &library_icon);
-  setWindowIcon(QIcon(library_icon));
 
-  loadPlugins();
-  initBuild();
+  //  QLogger::addLogger("root", q5TRACE, CONSOLE);
   QDir dir;
   m_options->setHomeDir(QStandardPaths::locate(
     QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory));
@@ -72,8 +68,20 @@ MainWindow::MainWindow(QWidget* parent)
                             AUTHOR_FILE);
   m_options->setSeriesFile(m_options->configDir() + QDir::separator() +
                            SERIES_FILE);
-  m_options->setDicDir(m_options->configDir() + QDir::separator() + DICT_DIR);
+  //  m_options->setDicDir(m_options->configDir() + QDir::separator() +
+  //  DICT_DIR);
   m_options->setBdicDir(m_options->configDir() + QDir::separator() + BDICT_DIR);
+  loadOptions();
+
+  QPixmap library_icon;
+  QPixmapCache::find(m_options->lib_key, &library_icon);
+  setWindowIcon(QIcon(library_icon));
+
+  loadPlugins();
+  initBuild();
+
+  setGeometry(m_options->rect());
+
   m_authors_db = AuthorsDB(new EBookAuthorsDB(m_options));
   m_series_db = SeriesDB(new EBookSeriesDB(m_options));
   m_library_db = LibraryDB(new EBookLibraryDB(m_options, m_series_db));
@@ -100,17 +108,15 @@ MainWindow::MainWindow(QWidget* parent)
   m_jquery.append("\nvar qt = { 'jQuery': jQuery.noConflict(true) };");
   file.close();
 
-  file.setFileName(":/files/one_page_js");
-  file.open(QIODevice::ReadOnly);
-  m_onepage_js = file.readAll();
-  file.close();
+  //  file.setFileName(":/files/one_page_js");
+  //  file.open(QIODevice::ReadOnly);
+  //  m_onepage_js = file.readAll();
+  //  file.close();
 
-  file.setFileName(":/files/one_page_css");
-  file.open(QIODevice::ReadOnly);
-  m_onepage_css = file.readAll();
-  file.close();
-
-  initSetup();
+  //  file.setFileName(":/files/one_page_css");
+  //  file.open(QIODevice::ReadOnly);
+  //  m_onepage_css = file.readAll();
+  //  file.close();
 
   m_initialising = false;
 }
@@ -1127,7 +1133,7 @@ MainWindow::loadDocument(QString file_name, bool from_library)
     wrapper = new EBookWrapper(
       m_options, m_authors_db, m_series_db, m_library_db, m_jquery, this);
     QStringList spine = ebook_document->spine();
-    QMap<QString, QString> pages = ebook_document->pages();
+    //    QMap<QString, QString> pages = ebook_document->pages();
     wrapper->editor()->setDocument(ebook_document);
     wrapper->editor()->setCurrentPage(m_library_db->currentBookId(filename));
 
@@ -1883,7 +1889,6 @@ MainWindow::fileNew()
 void
 MainWindow::loadPlugins()
 {
-  QLoggingCategory category("biblos.mainwindow");
   QDir pluginsDir = QDir(qApp->applicationDirPath());
   pluginsDir.cd("plugins");
 
@@ -1918,7 +1923,8 @@ MainWindow::loadPlugins()
         //      }
       }
     } else {
-      qCDebug(category) << tr("Plugin error : %1").arg(loader.errorString());
+      qCDebug(LOG_MAINWINDOW)
+        << tr("Plugin error : %1").arg(loader.errorString());
     }
   }
   // TODO handle more than one spellchecker plugin.

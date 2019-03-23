@@ -15,7 +15,7 @@
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
-#include <QThread>
+//#include <QThread>
 
 #include <csvsplitter/csvsplitter.h>
 

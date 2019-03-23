@@ -10,24 +10,28 @@ class PluginModel;
 
 class PluginDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit PluginDialog(QWidget *parent = nullptr);
+  explicit PluginDialog(QWidget* parent = nullptr);
+  ~PluginDialog();
 
-    void addPlugin(IPluginInterface *);
+  void addPlugin(IPluginInterface*);
 
 signals:
-    void loadedWasChanged(QString name, bool state);
+  void loadedWasChanged(QString name, bool state);
 
 protected:
-    QTreeWidget *m_plugin_widget;
-    QLineEdit *m_filter_edit;
-    //    PluginModel *m_model;
+  QTreeWidget* m_plugin_widget;
+  QLineEdit* m_filter_edit;
+  //    PluginModel *m_model;
 
-    QTreeWidgetItem *addTreeRoot(QString group);
-    void addTreeChild(QTreeWidgetItem *parent, QString name, bool loaded,
-                      QString verion, QString vendor);
-    void itemWasClicked(QTreeWidgetItem *item, int column);
+  QTreeWidgetItem* addTreeRoot(QString group);
+  void addTreeChild(QTreeWidgetItem* parent,
+                    QString name,
+                    bool loaded,
+                    QString verion,
+                    QString vendor);
+  void itemWasClicked(QTreeWidgetItem* item, int column);
 };
 
 #endif // PLUGINDIALOG_H

@@ -7,6 +7,7 @@ class LibraryShelf : public QFrame
 {
 public:
   LibraryShelf(QWidget* parent = 0);
+  ~LibraryShelf();
 };
 
 #endif // LIBRARYSHELF_H

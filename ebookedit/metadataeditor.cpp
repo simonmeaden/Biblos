@@ -17,6 +17,8 @@ MetadataEditor::MetadataEditor(Options options,
   initGui();
 }
 
+MetadataEditor::~MetadataEditor() {}
+
 void
 MetadataEditor::setDocument(EBookDocument doc)
 {

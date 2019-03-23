@@ -18,8 +18,9 @@ public:
   void lineNumberAreaPaintEvent(QPaintEvent* event);
   int lineNumberAreaWidth();
 
-  void setDocument(EBookDocument document);
+  //  void setDocument(EBookDocument document);
   void rehighlight();
+  void setPlainText(const QString& text);
 
 protected:
   QWidget* lineNumberArea;

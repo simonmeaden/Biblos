@@ -5,13 +5,12 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QStack>
+#include <QWebEngineScriptCollection>
 
 #include <htmltidy.h>
 #include <tidybuffio.h>
 
 #include "ebookcommon.h"
-
-typedef QSharedPointer<QString> String;
 
 class EBItem
 {
@@ -22,6 +21,7 @@ public:
     STYLE,
     LINK,
     HTML,
+    BODY,
     HEAD,
     META,
     TITLE,
@@ -99,6 +99,7 @@ typedef QList<Item> ItemList;
 typedef QMap<QString, ItemList> ItemListMap;
 typedef QStack<Item> ItemStack;
 
+class EBLinkTag;
 class EBTagBase : public EBItem
 {
 public:
@@ -121,7 +122,7 @@ public:
 
   QString toHtml(CSSMap = CSSMap(nullptr)) override;
 
-  virtual bool isNonClosing() { return false; }
+  virtual bool isClosableType();
 
 protected:
   bool m_closed;
@@ -151,7 +152,7 @@ class EBNonClosedTag : public EBTag
 public:
   EBNonClosedTag(Type type);
 
-  bool isNonClosing() override { return true; }
+  bool isClosableType() override;
 
   QString toHtml(CSSMap styles = CSSMap(nullptr)) override;
 
@@ -188,10 +189,18 @@ public:
 
   QString toHtml(CSSMap styles = CSSMap(nullptr)) override;
 
+  QString name() const;
+  //  void setName(const QString &name);
+
+  QString stylesheet() const;
+  void setStylesheet(const QString& stylesheet);
+
 protected:
   bool m_is_stylesheet;
-  QString m_stylesheet_name;
+  QString m_stylesheet;
+  QString m_name;
 };
+typedef QSharedPointer<EBLinkTag> LinkTag;
 
 Tag
 fromTagType(EBTag::Type type);
@@ -208,9 +217,7 @@ public:
 };
 typedef QSharedPointer<EBChar> Char;
 
-class EBWord
-  : public QString
-  , public EBItem
+class EBWord : public EBItem
 {
 public:
   EBWord(QString word);
@@ -220,7 +227,6 @@ public:
   void setReplacement(const QString& replacement);
 
 protected:
-  String m_data;
   QString m_original;
   QString m_replacement;
 };
@@ -236,7 +242,7 @@ public:
   bool parse(QString name, QString text, CSSMap css_map);
   void clearParsed();
 
-  QString htmlById(QString id);
+  //  QString htmlById(QString id);
 
   //  QString toHtml(int index);
   QString toHtml(ItemList list, CSSMap styles = CSSMap(nullptr));
@@ -257,14 +263,26 @@ signals:
   void itemRemoved(int index, ItemList list);
 
 protected:
-  ItemList m_total_list;   // all pages as a single page.
-  QStringList m_word_list; // a list of non-tag words for the spellchecker.
+  ItemList m_total_list; // all pages as a single page.
+  //  QStringList m_word_list; // a list of non-tag words for the spellchecker.
   QList<ItemList> m_lists; // complete web pages
   ItemListMap m_itemlist_map;
   QMap<QString, QString> m_html_document_by_id;
+  QMap<QString, QString> m_css_names;
 
-  void setTagClosed(Tag& tag, bool& tag_closed);
+  //  bool setTagClosed(Tag& tag, const bool tag_closed);
   //  QString cleanHtml(QString html);
+  void saveCharOrPunctuationTag(char c,
+                                QString& data_text,
+                                ItemList& item_list);
+  void writeWordDataIf(QString& data_text, ItemList& item_list);
+  void writeEndTag(QString& tag_text,
+                   QString& data_text,
+                   ItemList& item_list,
+                   bool& tag_opener,
+                   bool& tag_closed,
+                   bool& in_style);
+  //  void insertStyleSheet(const QString& name, const QString& source);
 };
 
 #endif // HTMLPARSER_H

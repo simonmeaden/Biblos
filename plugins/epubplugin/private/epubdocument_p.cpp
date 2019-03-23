@@ -3,7 +3,7 @@
 #include <csvsplitter/csvsplitter.h>
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
-#include <QLoggingCategory>
+#include "logging.h"
 
 const QString EPubDocumentPrivate::METADATA_FOLDER = "META-INF";
 const QString EPubDocumentPrivate::MIMETYPE_FILE = "mimetype";
@@ -217,20 +217,19 @@ bool
 EPubDocumentPrivate::loadDocument()
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   // open the epub as a zip file
   m_archive = new QuaZip(q->filename());
   m_filename = q->filename(); // stored against modification;
   if (!m_archive->open(QuaZip::mdUnzip)) {
-    qCDebug(category) << q->tr("Failed to open %1").arg(q->filename());
+    qCDebug(LOG_EPUB) << q->tr("Failed to open %1").arg(q->filename());
     return false;
   }
 
   // get list of filenames from zip file
   m_files = m_archive->getFileNameList();
   if (m_files.isEmpty()) {
-    qCDebug(category) << q->tr("Failed to read %1").arg(q->filename());
+    qCDebug(LOG_EPUB) << q->tr("Failed to read %1").arg(q->filename());
     return false;
   }
 
@@ -295,7 +294,6 @@ bool
 EPubDocumentPrivate::parseMimetype()
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   if (m_files.contains(MIMETYPE_FILE)) {
     m_archive->setCurrentFile(MIMETYPE_FILE);
@@ -303,18 +301,18 @@ EPubDocumentPrivate::parseMimetype()
 
     if (!mimetypeFile.open(QIODevice::ReadOnly)) {
       int error = m_archive->getZipError();
-      qCDebug(category)
+      qCDebug(LOG_EPUB)
         << q->tr("Unable to open mimetype file : error %1").arg(error);
       return false;
     }
 
     m_mimetype = mimetypeFile.readAll();
     if (m_mimetype != MIMETYPE) {
-      qCDebug(category)
+      qCDebug(LOG_EPUB)
         << q->tr("Unexpected mimetype %1").arg(QString(m_mimetype));
     }
   } else {
-    qCDebug(category) << q->tr("Unable to find mimetype in file");
+    qCDebug(LOG_EPUB) << q->tr("Unable to find mimetype in file");
     return false;
   }
   return true;
@@ -324,21 +322,20 @@ bool
 EPubDocumentPrivate::writeMimetype(QuaZip* save_zip)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QuaZipFile mimetype_file(save_zip);
 
   if (!mimetype_file.open(QIODevice::WriteOnly,
                           QuaZipNewInfo(MIMETYPE_FILE, MIMETYPE_FILE))) {
     int error = save_zip->getZipError();
-    qCDebug(category)
+    qCDebug(LOG_EPUB)
       << q->tr("Unable to write mimetype file : error %1").arg(error);
     return false;
   }
 
   qint64 size = mimetype_file.write(MIMETYPE);
   if (size != m_mimetype.size()) {
-    qCDebug(category) << q->tr("Unexpected mimetype size %1 should be %2")
+    qCDebug(LOG_EPUB) << q->tr("Unexpected mimetype size %1 should be %2")
                            .arg(size)
                            .arg(m_mimetype.size());
     return false;
@@ -350,7 +347,6 @@ bool
 EPubDocumentPrivate::parseContainer()
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   if (m_files.contains(CONTAINER_FILE)) {
     m_archive->setCurrentFile(CONTAINER_FILE);
@@ -359,7 +355,7 @@ EPubDocumentPrivate::parseContainer()
 
     if (!containerFile.open(QIODevice::ReadOnly)) {
       int error = m_archive->getZipError();
-      qCDebug(category)
+      qCDebug(LOG_EPUB)
         << q->tr("Unable to open container file error %1").arg(error);
       return false;
     }
@@ -381,7 +377,7 @@ EPubDocumentPrivate::parseContainer()
         m_container_fullpath = root_element.attribute("full-path");
         m_container_mediatype = root_element.attribute("media-type");
         if (m_container_fullpath.isEmpty()) {
-          qCWarning(category) << q->tr("Invalid root file entry");
+          qCWarning(LOG_EPUB) << q->tr("Invalid root file entry");
           continue;
         }
         if (parsePackageFile(m_container_fullpath)) {
@@ -391,7 +387,7 @@ EPubDocumentPrivate::parseContainer()
     }
 
   } else {
-    qCDebug(category) << q->tr("Unable to find container information");
+    qCDebug(LOG_EPUB) << q->tr("Unable to find container information");
     return false;
   }
 
@@ -404,7 +400,7 @@ EPubDocumentPrivate::parseContainer()
   //     - signatures.xml (signatures for files, standardized)
   // Actually these are rarely included in an epub file anyway.
 
-  qCDebug(category) << q->tr("Unable to find and use any content files");
+  qCDebug(LOG_EPUB) << q->tr("Unable to find and use any content files");
   return false;
 }
 
@@ -412,14 +408,13 @@ bool
 EPubDocumentPrivate::writeContainer(QuaZip* save_zip)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QuaZipFile container_file(save_zip);
 
   if (!container_file.open(QIODevice::WriteOnly,
                            QuaZipNewInfo(CONTAINER_FILE, CONTAINER_FILE))) {
     int error = save_zip->getZipError();
-    qCDebug(category)
+    qCDebug(LOG_EPUB)
       << q->tr("Unable to write container file : error %1").arg(error);
     return false;
   }
@@ -453,7 +448,7 @@ EPubDocumentPrivate::writeContainer(QuaZip* save_zip)
     if (!item_file.open(QIODevice::WriteOnly,
                         QuaZipNewInfo(item->path, item->path))) {
       int error = save_zip->getZipError();
-      qCDebug(category)
+      qCDebug(LOG_EPUB)
         << q->tr("Unable to write html/xhtml file : error %1").arg(error);
       return false;
     }
@@ -498,14 +493,13 @@ bool
 EPubDocumentPrivate::parsePackageFile(QString& full_path)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   m_archive->setCurrentFile(full_path);
   QuaZipFile contentFile(m_archive);
   contentFile.setZip(m_archive);
 
   if (!contentFile.open(QIODevice::ReadOnly)) {
-    qCDebug(category) << q->tr(
+    qCDebug(LOG_EPUB) << q->tr(
       "Malformed content file, unable to get content metadata");
     return false;
   }
@@ -661,7 +655,6 @@ bool
 EPubDocumentPrivate::writePackageFile(QuaZip* save_zip)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QuaZipFile package_file(save_zip);
 
@@ -669,7 +662,7 @@ EPubDocumentPrivate::writePackageFile(QuaZip* save_zip)
         QIODevice::WriteOnly,
         QuaZipNewInfo(m_container_fullpath, m_container_fullpath))) {
     int error = save_zip->getZipError();
-    qCDebug(category)
+    qCDebug(LOG_EPUB)
       << q->tr("Unable to write container file : error %1").arg(error);
     return false;
   }
@@ -715,7 +708,6 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
                                        const QString current_folder)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QDomElement metadata_element = manifest_node.toElement();
   QString tag_name = metadata_element.tagName();
@@ -732,7 +724,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
       item->href = value;
       item->path = path;
     } else {
-      qCDebug(category) << q->tr(
+      qCDebug(LOG_EPUB) << q->tr(
         "Warning invalid manifest item : no href value");
     }
 
@@ -741,7 +733,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
       value = node.nodeValue();
       item->id = value;
     } else {
-      qCDebug(category) << q->tr("Warning invalid manifest item : no id value");
+      qCDebug(LOG_EPUB) << q->tr("Warning invalid manifest item : no id value");
     }
 
     node = node_map.namedItem("media-type");
@@ -752,7 +744,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
           item->media_type == "image/png") {
 
         if (!QImageReader::supportedMimeTypes().contains(item->media_type)) {
-          qCDebug(category)
+          qCDebug(LOG_EPUB)
             << QString("Requested image type %1 is an unsupported type")
                  .arg(QString(item->media_type));
         }
@@ -763,7 +755,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         if (!image_file.open(QIODevice::ReadOnly)) {
           //          m_archive->getZipError();
-          qCDebug(category)
+          qCDebug(LOG_EPUB)
             << q->tr("Unable to open image file %1").arg(item->path);
         }
 
@@ -782,7 +774,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         if (!itemFile.open(QIODevice::ReadOnly)) {
           int error = m_archive->getZipError();
-          qCDebug(category)
+          qCDebug(LOG_EPUB)
             << q->tr("Unable to open container file error %1").arg(error);
           return false;
         }
@@ -832,7 +824,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         if (!itemFile.open(QIODevice::ReadOnly)) {
           int error = m_archive->getZipError();
-          qCDebug(category)
+          qCDebug(LOG_EPUB)
             << q->tr("Unable to open css file error %1").arg(error);
           return false;
         }
@@ -848,7 +840,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         if (!itemFile.open(QIODevice::ReadOnly)) {
           int error = m_archive->getZipError();
-          qCDebug(category)
+          qCDebug(LOG_EPUB)
             << q->tr("Unable to open javascript file error %1").arg(error);
           return false;
         }
@@ -857,7 +849,7 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
         m_manifest.javascript.insert(item->id, js_string);
       }
     } else {
-      qCDebug(category) << q->tr(
+      qCDebug(LOG_EPUB) << q->tr(
         "Warning invalid manifest item : no media-type value");
     }
 
@@ -964,7 +956,6 @@ SpineItem
 EPubDocumentPrivate::parseSpineItem(const QDomNode& spine_node, SpineItem item)
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QDomElement metadata_element = spine_node.toElement();
   QString tag_name = metadata_element.tagName();
@@ -981,7 +972,7 @@ EPubDocumentPrivate::parseSpineItem(const QDomNode& spine_node, SpineItem item)
       value = node.nodeValue();
       item->idref = value;
     } else {
-      qCDebug(category) << q->tr(
+      qCDebug(LOG_EPUB) << q->tr(
         "Warning invalid manifest itemref : no idref value");
     }
 
@@ -998,7 +989,7 @@ EPubDocumentPrivate::parseSpineItem(const QDomNode& spine_node, SpineItem item)
         if (value == "yes")
           item->linear = true; // false by default.
       } else {
-        qCDebug(category)
+        qCDebug(LOG_EPUB)
           << q->tr("Warning invalid manifest itemref : linear MUST be "
                    "either yes or no not %1")
                .arg(value);
@@ -1049,7 +1040,6 @@ bool
 EPubDocumentPrivate::parseTocFile()
 {
   Q_Q(EPubDocument);
-  QLoggingCategory category("biblos.epub.document");
 
   QString toc_id = m_spine.toc;
   ManifestItem toc_item = m_manifest.items_by_id.value(toc_id);
@@ -1061,7 +1051,7 @@ EPubDocumentPrivate::parseTocFile()
 
   if (!toc_file.open(QIODevice::ReadOnly)) {
     m_archive->getZipError();
-    qCDebug(category) << q->tr("Unable to open toc file %1").arg(toc_path);
+    qCDebug(LOG_EPUB) << q->tr("Unable to open toc file %1").arg(toc_path);
   }
 
   QByteArray data = toc_file.readAll();
@@ -1101,6 +1091,7 @@ EPubDocumentPrivate::parseTocFile()
   formatted_toc_string += LIST_END;
 
   m_manifest.formatted_toc_string = formatted_toc_string;
+  return true;
 }
 
 bool

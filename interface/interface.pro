@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml svg
+QT       += core gui xml svg webenginewidgets
 
 TARGET = interface
 TEMPLATE = lib
@@ -63,7 +63,8 @@ HEADERS += \
     ebookbasemetadata.h \
     series.h \
     htmlparser.h \
-    htmltidy.h
+    htmltidy.h \
+    logging.h
 
 DISTFILES += \
     spellinterface.json \

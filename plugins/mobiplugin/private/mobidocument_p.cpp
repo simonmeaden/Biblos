@@ -1,8 +1,10 @@
 #include "mobidocument_p.h"
 
-#include <QLoggingCategory>
+//#include <QLoggingCategory>
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
+
+#include "logging.h"
 
 MobiDocumentPrivate::MobiDocumentPrivate(MobiDocument* parent)
   : q_ptr(parent)
@@ -117,32 +119,31 @@ void
 MobiDocumentPrivate::openDocument(const QString& path)
 {
   Q_Q(MobiDocument);
-  QLoggingCategory category("biblos.mobi.document");
 
   m_filename = path;
 
   MOBIData* mobi_data = mobi_init();
   if (mobi_data == nullptr) {
-    qCDebug(category) << QString("Unable to create MOBI_DATA object");
+    qCDebug(LOG_MOBI) << QString("Unable to create MOBI_DATA object");
   }
 
   MOBI_RET mobi_ret = mobi_load_filename(mobi_data, path.toStdString().c_str());
   if (mobi_ret != MOBI_SUCCESS) {
     mobi_free(mobi_data);
-    qCDebug(category) << QString("Unable to read mobi document");
+    qCDebug(LOG_MOBI) << QString("Unable to read mobi document");
   }
 
   MOBIRawml* rawml = mobi_init_rawml(mobi_data);
   if (rawml == nullptr) {
     mobi_free(mobi_data);
-    qCDebug(category) << QString("Unable to read mobi document");
+    qCDebug(LOG_MOBI) << QString("Unable to read mobi document");
   }
 
   mobi_ret = mobi_parse_rawml(rawml, mobi_data);
   if (mobi_ret != MOBI_SUCCESS) {
     mobi_free(mobi_data);
     mobi_free_rawml(rawml);
-    qCDebug(category) << QString("Unable to read mobi document");
+    qCDebug(LOG_MOBI) << QString("Unable to read mobi document");
   }
 
   m_drm_key = mobi_data->drm_key;

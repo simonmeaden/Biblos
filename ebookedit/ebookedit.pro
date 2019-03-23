@@ -64,7 +64,9 @@ SOURCES += \
     webview.cpp \
     actiontabwidget.cpp \
     tocdisplaydocument.cpp \
-    dictionaryhandler.cpp
+    dictionaryhandler.cpp \
+    logging.cpp \
+    ebookcodeviewer.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -86,7 +88,8 @@ HEADERS += \
     webview.h \
     actiontabwidget.h \
     tocdisplaydocument.h \
-    dictionaryhandler.h
+    dictionaryhandler.h \
+    ebookcodeviewer.h
 
 FORMS +=
 
@@ -104,7 +107,7 @@ unix|win32: LIBS += -lyaml-cpp
 # QUAZIP
 unix|win32: LIBS += -lquazip5
 # QLOGGER library
-unix|win32: LIBS += -lqloggerlib
+#unix|win32: LIBS += -lqloggerlib
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../interface/ -linterface

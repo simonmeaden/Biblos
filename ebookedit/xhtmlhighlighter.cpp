@@ -1,8 +1,9 @@
 #include "xhtmlhighlighter.h"
 
-#include <QLoggingCategory>
 //#include <qlogger/qlogger.h>
 // using namespace qlogger;
+
+#include "logging.h"
 
 // XhtmlHighlighter::TagNode::TagNode()
 //  : prev_node(nullptr)
@@ -57,7 +58,6 @@ XhtmlHighlighter::~XhtmlHighlighter() {}
 void
 XhtmlHighlighter::highlightBlock(const QString& text)
 {
-  QLoggingCategory category("biblos.highlighter");
   /* These all need to be stored outside the method in
   case the tag is split over two or more text blocks.*/
   if (!m_tagstarted) {
@@ -197,7 +197,7 @@ XhtmlHighlighter::highlightBlock(const QString& text)
             if (!(m_squot || m_dquot)) {
               m_current_format = m_error_format;
               m_error = true;
-              qCDebug(category)
+              qCDebug(LOG_HIGHLIGHTER)
                 << tr(
                      "Error parsing xhtml, second open tag character (<) in %1")
                      .arg(text);

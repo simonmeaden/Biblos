@@ -5,6 +5,8 @@ ActionTabWidget::ActionTabWidget(QWidget* parent)
   : QTabWidget(parent)
 {}
 
+ActionTabWidget::~ActionTabWidget() {}
+
 bool
 ActionTabWidget::eventFilter(QObject* obj, QEvent* event)
 {

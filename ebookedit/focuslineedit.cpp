@@ -1,14 +1,15 @@
 #include "focuslineedit.h"
 
-const QString FocusLineEdit::SELECTED_BORDER = QString("FocusLineEdit {"
-    "border: 2px solid green;"
-    "border-radius: 4px;"
-    "padding: 2px;"
-    "}");
+const QString FocusLineEdit::SELECTED_BORDER =
+  QString("FocusLineEdit {"
+          "border: 2px solid green;"
+          "border-radius: 4px;"
+          "padding: 2px;"
+          "}");
 const QString FocusLineEdit::UNSELECTED_BORDER = QString("FocusLineEdit {"
-    "border: 0px;"
-    "padding: 4px;"
-    "}");
+                                                         "border: 0px;"
+                                                         "padding: 4px;"
+                                                         "}");
 
 FocusLineEdit::FocusLineEdit(QWidget* parent)
   : QLineEdit(parent)
@@ -16,7 +17,10 @@ FocusLineEdit::FocusLineEdit(QWidget* parent)
   setFocussed(false);
 }
 
-void FocusLineEdit::setFocussed(bool focussed)
+FocusLineEdit::~FocusLineEdit() {}
+
+void
+FocusLineEdit::setFocussed(bool focussed)
 {
   if (focussed) {
     setStyleSheet(SELECTED_BORDER);
@@ -25,13 +29,15 @@ void FocusLineEdit::setFocussed(bool focussed)
   }
 }
 
-void FocusLineEdit::focusInEvent(QFocusEvent *e)
+void
+FocusLineEdit::focusInEvent(QFocusEvent* e)
 {
   QLineEdit::focusInEvent(e);
   emit(focussed(true));
 }
 
-void FocusLineEdit::focusOutEvent(QFocusEvent *e)
+void
+FocusLineEdit::focusOutEvent(QFocusEvent* e)
 {
   QLineEdit::focusOutEvent(e);
   emit(focussed(false));
