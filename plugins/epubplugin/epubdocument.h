@@ -86,7 +86,8 @@ public:
   void setPublisher(const QString& publisher) override;
 
   Metadata metadata() override;
-  QMap<QString, QString> pages() override;
+  //  QMap<QString, QString> pages() override;
+  ManifestItemMap pages() override;
   QStringList spine() override;
   QStringList cssKeys() override;
   CSSMap css() override;

@@ -2,6 +2,12 @@
 
 IEBookDocument::~IEBookDocument() {}
 
+ITextDocumentPrivate::~ITextDocumentPrivate()
+{
+  QDir dir(m_resource_path);
+  dir.removeRecursively();
+}
+
 QString
 ITextDocumentPrivate::filename()
 {
@@ -12,6 +18,10 @@ void
 ITextDocumentPrivate::setFilename(QString filename)
 {
   m_filename = filename;
+  QFileInfo info(m_filename);
+  m_resource_path = info.path() + QDir::separator() + "resources";
+  QDir dir(m_resource_path);
+  dir.mkpath(m_resource_path);
 }
 
 QString

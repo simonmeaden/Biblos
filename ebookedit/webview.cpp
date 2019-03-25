@@ -113,26 +113,34 @@ WebView::document()
 void
 WebView::setCurrentPage(QString page_id)
 {
-  QString html;
-  if (page_id.isEmpty()) {
-    if (m_pages.isEmpty()) {
-      html = QString();
+  if (!m_pages.isEmpty()) {
+    QString html;
+    if (page_id.isEmpty()) {
+      if (m_pages.isEmpty()) {
+        html = QString();
+      } else {
+        ManifestItem item = m_pages.value(page_id);
+        if (!item.isNull()) {
+          html = m_pages.first()->document_string;
+        }
+      }
     } else {
-      html = m_pages.first();
+      ManifestItem item = m_pages.value(page_id);
+      if (!item.isNull()) {
+        html = item->document_string;
+      }
     }
-  } else {
-    html = m_pages.value(page_id, QString());
+    //  if (!html.isEmpty()) {
+    WebPage* web_page = qobject_cast<WebPage*>(page());
+    QFile file("page.html");
+    if (file.open(QFile::WriteOnly)) {
+      QTextStream stream(&file);
+      stream << html;
+    }
+    file.close();
+    web_page->setHtml(html);
+    //  }
   }
-  //  if (!html.isEmpty()) {
-  WebPage* web_page = qobject_cast<WebPage*>(page());
-  QFile file("page.html");
-  if (file.open(QFile::WriteOnly)) {
-    QTextStream stream(&file);
-    stream << html;
-  }
-  file.close();
-  web_page->setHtml(html);
-  //  }
 }
 
 QString
@@ -221,7 +229,8 @@ WebView::handleViewSourceTriggered()
     page->toHtml(
       [editor](const QString& result) { editor->setPlainText(result); });
     //    page->toPlainText(
-    //      [editor](const QString& result) { editor->setPlainText(result); });
+    //      [editor](const QString& result) { editor->setPlainText(result);
+    //      });
   }
 }
 

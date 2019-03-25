@@ -36,7 +36,7 @@ EPubDocumentPrivate::EPubDocumentPrivate(EPubDocument* parent)
   , m_loaded(false)
 {
   m_metadata = Metadata(new EBookMetadata());
-  m_parser = new HtmlParser(q_ptr);
+  //  m_parser = new HtmlParser(q_ptr);
 }
 
 EPubDocumentPrivate::~EPubDocumentPrivate() {}
@@ -50,8 +50,8 @@ EPubDocumentPrivate::loaded()
 void
 EPubDocumentPrivate::openDocument(const QString& path)
 {
-  Q_Q(EPubDocument);
-  m_filename = path;
+  //  Q_Q(EPubDocument);
+  setFilename(path);
   loadDocument();
 }
 
@@ -88,7 +88,7 @@ EPubDocumentPrivate::buildTocfromHtml()
   QRegularExpression re_href("href=\\\"[^\"]*\"");
   int anchor_start, pos = 0;
 
-  foreach (ManifestItem item, m_manifest.html_items) {
+  foreach (ManifestItem item, m_manifest.html_items.values()) {
     QString document_string = item->document_string;
     if (!document_string.isEmpty()) {
       QRegularExpressionMatchIterator i =
@@ -118,7 +118,7 @@ EPubDocumentPrivate::buildTocfromHtml()
             QStringList splits = href_attr.split("#", QString::KeepEmptyParts);
             if (splits.length() == 1) {
               QString filename = splits.at(0);
-              ManifestItemList files = m_manifest.html_items;
+              ManifestItemList files = m_manifest.html_items.values();
               foreach (ManifestItem item, files) {
                 QString href = item->href;
                 if (href == filename) {
@@ -219,8 +219,7 @@ EPubDocumentPrivate::loadDocument()
   Q_Q(EPubDocument);
 
   // open the epub as a zip file
-  m_archive = new QuaZip(q->filename());
-  m_filename = q->filename(); // stored against modification;
+  m_archive = new QuaZip(m_filename);
   if (!m_archive->open(QuaZip::mdUnzip)) {
     qCDebug(LOG_EPUB) << q->tr("Failed to open %1").arg(q->filename());
     return false;
@@ -243,13 +242,13 @@ EPubDocumentPrivate::loadDocument()
     return false;
   }
 
-  foreach (ManifestItem item, m_manifest.html_items) {
-    CSSMap css_strings = cssMap();
-    QString doc_string = item->document_string;
-    if (m_parser->parse(item->id, doc_string, css_strings)) {
-      // TODO use data?
-    }
-  }
+  //  foreach (ManifestItem item, m_manifest.html_items.values()) {
+  //    CSSMap css_strings = cssMap();
+  //    QString doc_string = item->document_string;
+  //    //    if (m_parser->parse(item->id, doc_string, css_strings)) {
+  //    //      // TODO use data?
+  //    //    }
+  //  }
 
   emit q->loadCompleted();
   return true;
@@ -280,8 +279,6 @@ EPubDocumentPrivate::saveDocument()
     }
     // TODO the rest
   }
-  m_filename = m_filename;
-
   temp_file.close();
 
   // TODO backup/rename etc.
@@ -441,7 +438,7 @@ EPubDocumentPrivate::writeContainer(QuaZip* save_zip)
 
   writePackageFile(save_zip);
 
-  foreach (ManifestItem item, m_manifest.html_items) {
+  foreach (ManifestItem item, m_manifest.html_items.values()) {
     QuaZipFile item_file(save_zip);
     item_file.setFileName(item->path);
 
@@ -648,6 +645,24 @@ EPubDocumentPrivate::parsePackageFile(QString& full_path)
   //  parseLandmarkItem();
   //  parseBindingsItem(); // Tis is used for non-epb standard media types.
 
+  // TODO doctor the image paths to point to local files.
+  for (int i1 = 0; i1 < m_manifest.html_items.keys().size(); i1++) {
+    QString key = m_manifest.html_items.keys().at(i1);
+    ManifestItem item = m_manifest.html_items.value(key);
+    QString document_string = item->document_string;
+    bool changed = false;
+    for (int i2 = 0; i2 < m_manifest.images.size(); i2++) {
+      QString image_id = m_manifest.images.keys().at(i2);
+      QString image_path = m_manifest.images.value(image_id);
+      if (document_string.contains(image_id)) {
+        document_string.replace(image_id, image_path, Qt::CaseSensitive);
+        changed = true;
+      }
+    }
+    if (changed) {
+      item->document_string = document_string;
+    }
+  }
   return true;
 }
 
@@ -761,11 +776,23 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
 
         QByteArray data = image_file.readAll();
         QImage image = QImage::fromData(data);
-        m_manifest.images.insert(item->id, image);
+        QFileInfo info(item->href);
+        QString path = info.path();
+        if (!path.isEmpty()) {
+          QDir dir(m_resource_path);
+          dir.mkpath(path);
+        }
 
+        QString res_path = m_resource_path + QDir::separator() + item->href;
+        image.save(res_path);
+        res_path.prepend(QStringLiteral("file://"));
+        m_manifest.images.insert(item->href, res_path);
+
+      } else if (item->media_type == "image/svg+xml") {
+        qCDebug(LOG_EPUB);
       } else if (item->media_type == "application/vnd.ms-opentype" ||
                  item->media_type == "application/font-woff") {
-        m_manifest.fonts.insert(item->id, item);
+        m_manifest.fonts.insert(item->href, item);
 
       } else if (item->media_type == "application/xhtml+xml") {
         m_archive->setCurrentFile(item->path);
@@ -794,29 +821,8 @@ EPubDocumentPrivate::parseManifestItem(const QDomNode& manifest_node,
         }
 
         extractHeadInformationFromHtmlFile(item, container);
-
-        //        QString in_body;
-        //        QRegularExpression regex("<body[^>]*>((.|[\n\r])*)<\\/body>");
-        //        QRegularExpressionMatch match = regex.match(container);
-        //        int start, end;
-        //        if (match.isValid()) {
-        //          in_body = match.captured(0);
-        //          regex = QRegularExpression("<body[^>]*>");
-        //          match = regex.match(in_body);
-        //          if (match.isValid()) {
-        //            start = match.capturedEnd(0);
-        //            regex = QRegularExpression("<\\/body>");
-        //            match = regex.match(in_body);
-        //            if (match.isValid()) {
-        //              end = match.capturedStart(0);
-        //              in_body = in_body.mid(start, end - start);
-        //            }
-        //          }
-        //        }
-
-        //        item->document_string = in_body.trimmed();
         item->document_string = container;
-        m_manifest.html_items.append(item);
+        m_manifest.html_items.insert(item->id, item);
       } else if (item->media_type == "text/css") {
         m_archive->setCurrentFile(item->path);
         QuaZipFile itemFile(m_archive);
@@ -1400,10 +1406,12 @@ EPubDocumentPrivate::spine()
   return m_spine.ordered_items;
 }
 
-QMap<QString, QString>
+// QMap<QString, QString>
+ManifestItemMap
 EPubDocumentPrivate::pages()
 {
-  return m_parser->htmlDocumentsById();
+  //  return m_parser->htmlDocumentsById();
+  return m_manifest.html_items;
 }
 
 ManifestItem

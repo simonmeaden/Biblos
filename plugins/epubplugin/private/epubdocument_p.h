@@ -40,7 +40,8 @@ public:
   QStringList cssKeys();
   QStringList jsKeys();
   QStringList spine();
-  QMap<QString, QString> pages();
+  //  QMap<QString, QString> pages();
+  ManifestItemMap pages();
   ManifestItem itemByHref(QString href);
 
   IEBookInterface* plugin() { return m_plugin; }
@@ -83,7 +84,7 @@ protected:
     m_package_direction; // text direction - overridden  by Undicode values.
   QString m_package_id;  // unique identifier.
   int m_toc_chapter_index;
-  HtmlParser* m_parser;
+  //  HtmlParser* m_parser;
 
   EPubDocumentPrivate(EPubDocumentPrivate& d);
   bool loadDocument();

@@ -197,7 +197,8 @@ EPubDocument::metadata()
   return d->metadata();
 }
 
-QMap<QString, QString>
+// QMap<QString, QString>
+ManifestItemMap
 EPubDocument::pages()
 {
   Q_D(EPubDocument);

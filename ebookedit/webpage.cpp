@@ -6,6 +6,9 @@ WebPage::WebPage(QWebEngineProfile* profile, QString jquery, QObject* parent)
   , m_jquery(jquery)
 {
   //  connect(this, &WebPage::WebAction)
+  QWebEngineSettings* settings = QWebEnginePage::settings();
+  settings->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls,
+                         true);
 }
 
 WebPage::~WebPage() {}

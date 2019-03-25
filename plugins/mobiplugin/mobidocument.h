@@ -68,7 +68,8 @@ public:
   QString buildTocFromData() override;
 
   Metadata metadata() override;
-  QMap<QString, QString> pages() override {}
+  //  QMap<QString, QString> pages() override {}
+  ManifestItemMap pages() override {}
   QStringList spine() override {}
   CSSMap css() override {}
   QString css(QString key) override {}

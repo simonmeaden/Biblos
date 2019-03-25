@@ -2,6 +2,8 @@
 #define IEBOOKDOCUMENT_H
 
 #include <QDateTime>
+#include <QDir>
+#include <QFileInfo>
 #include <QString>
 #include <QTextDocument>
 
@@ -50,7 +52,8 @@ public:
   virtual QString buildTocFromData() = 0;
 
   virtual Metadata metadata() = 0;
-  virtual QMap<QString, QString> pages() = 0;
+  //  virtual QMap<QString, QString> pages() = 0;
+  virtual ManifestItemMap pages() = 0;
   virtual QStringList spine() = 0;
   virtual QStringList cssKeys() = 0;
   virtual QString css(QString key) = 0;
@@ -84,6 +87,7 @@ typedef QSharedPointer<ITextDocument> EITextDocument;
 class ITextDocumentPrivate
 {
 public:
+  ~ITextDocumentPrivate();
   QString filename();
   void setFilename(QString filename);
 
@@ -101,7 +105,7 @@ public:
 
 protected:
   IEBookInterface* m_plugin;
-  QString m_filename;
+  QString m_filename, m_resource_path;
   QStringList m_creators;
   QString m_publisher;
   QDate m_published;

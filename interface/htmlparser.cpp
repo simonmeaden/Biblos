@@ -54,6 +54,7 @@ HtmlParser::writeWordDataIf(QString& data_text, ItemList& item_list)
 void
 HtmlParser::writeEndTag(QString& tag_text,
                         QString& data_text,
+                        QString& style_text,
                         ItemList& item_list,
                         bool& tag_opener,
                         bool& tag_closed,
@@ -68,6 +69,10 @@ HtmlParser::writeEndTag(QString& tag_text,
     tag_opener = false;
     tag_closed = false;
     in_style = false;
+    //    if (end_tag->type() == EBItem::STYLE) {
+    //      in_style = false;
+    //      style_text.clear();
+    //    }
   }
 }
 
@@ -86,6 +91,19 @@ HtmlParser::writeEndTag(QString& tag_text,
 //                .arg(source.simplified());
 //  m_css_names.insert(name, s);
 //}
+
+void
+HtmlParser::writeStyleIf(QString& style_text,
+                         bool in_style,
+                         ItemList& item_list)
+{
+  if (!style_text.isEmpty()) {
+    Style style = Style(new EBStyle(style_text));
+    item_list.append(style);
+    style_text.clear();
+    in_style = false;
+  }
+}
 
 /*!
  * \brief parsing method.
@@ -164,6 +182,7 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
         case '<': {
           if (!tag.isNull()) {
             writeWordDataIf(data_text, item_list);
+            writeStyleIf(style_text, in_style, item_list);
           }
           tag_opener = true;
           break;
@@ -178,16 +197,16 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
                   tag_text.clear();
                   tag_name_finished = true;
                   tag_closed = false;
-                  if (type == EBItem::STYLE) {
+                  if (tag->type() == EBItem::STYLE) {
                     in_style = true;
+                    style_text.clear();
                   }
                 }
                 tag->setClosed(false);
                 if (!tag->isClosableType()) {
                   // Non closable types have no end tags they either never have
                   // a closing '/', ie <br>, or always have one, ie <link/>. so
-                  // we need to manually set the flags.
-                  tag_opener = false;
+                  // we need to manually reset the flag.
                   tag_closed = false;
                 }
                 tag_opener = false;
@@ -197,6 +216,7 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
               } else {
                 writeEndTag(tag_text,
                             data_text,
+                            style_text,
                             item_list,
                             tag_opener,
                             tag_closed,
@@ -205,6 +225,10 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
             } else {
               // TODO debug should be handled elsewhere?
               if (!tag.isNull()) {
+                if (tag->type() == EBItem::STYLE) {
+                  in_style = true;
+                  style_text.clear();
+                }
                 tag_opener = false;
                 tag_name_finished = false;
                 item_list.append(tag);
@@ -224,23 +248,29 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
           if (!tag_opener) {
             // Outside a tag but still latin characters.
             if (!tag.isNull()) {
-              if (tag->type() != EBTag::STYLE) {
+              if (!in_style /*tag->type() != EBTag::STYLE*/) {
                 if (qc.isSpace() || qc.isPunct()) {
                   saveCharOrPunctuationTag(c, data_text, item_list);
                 } else {
                   data_text += qc;
                 }
               } else {
-                if (in_style) {
-                  // a style tag is treated as a special case
-                  style_text += c;
-                }
+                // a style tag is treated as a special case
+                style_text += c;
               }
             } else {
               if (qc.isSpace() || qc.isPunct()) {
-                saveCharOrPunctuationTag(c, data_text, item_list);
+                if (in_style) {
+                  style_text += c;
+                } else {
+                  saveCharOrPunctuationTag(c, data_text, item_list);
+                }
               } else {
-                data_text += qc;
+                if (in_style) {
+                  style_text += c;
+                } else {
+                  data_text += qc;
+                }
               }
             }
           } else if (tag_closed && tag_name_finished) { // tag has closed so
@@ -250,6 +280,7 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
               if (tag.isNull()) {
                 writeEndTag(tag_text,
                             data_text,
+                            style_text,
                             item_list,
                             tag_opener,
                             tag_closed,
@@ -270,9 +301,6 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
                     tag_text.clear();
                     tag_name_finished = true;
                     tag_closed = false;
-                    if (type == EBItem::STYLE) {
-                      in_style = true;
-                    }
                   }
                 } else {
                   if (att_name_started) {
@@ -287,6 +315,8 @@ HtmlParser::parse(QString name, QString document_string, CSSMap css_map)
                     }
                   }
                 }
+              } else if (in_style) {
+                style_text += qc;
               } else {
                 if (c == '=') { // && att_name_started && !att_name_finished) {
                   if (att_name_started) {
@@ -887,11 +917,37 @@ EBWord::setReplacement(const QString& replacement)
   m_replacement = replacement;
 }
 
-/* EBWord
+/* EBStyle
  * ************************************************************************/
 
-EBStyleTag::EBStyleTag(EBItem::Type type)
-  : EBTag(type)
+EBStyle::EBStyle(QString style)
+  : EBItem(STYLE)
+  , m_original(style)
+{}
+
+QString
+EBStyle::string()
+{
+  return m_original;
+}
+
+QString EBStyle::toHtml(CSSMap)
+{
+  QString word = string();
+  return word;
+}
+
+void
+EBStyle::setReplacement(const QString& replacement)
+{
+  m_replacement = replacement;
+}
+
+/* EBStyleTag
+ * ************************************************************************/
+
+EBStyleTag::EBStyleTag()
+  : EBTag(STYLE)
 {}
 
 void
@@ -963,8 +1019,8 @@ QString EBAlwaysClosedTag::toHtml(CSSMap)
 /* EBLinkTag
  * ************************************************************************/
 
-EBLinkTag::EBLinkTag(EBItem::Type type)
-  : EBAlwaysClosedTag(type)
+EBLinkTag::EBLinkTag()
+  : EBAlwaysClosedTag(LINK)
   , m_is_stylesheet(false)
 {}
 
@@ -1030,16 +1086,27 @@ EBLinkTag::setStylesheet(const QString& stylesheet)
 
 /*********************************************************************************/
 
+/*!
+ * \brief fromTagType - Constructor for various Tags.
+ *
+ * This should be used in prefernce to creating the Tag's directly as this takes
+ * care of special types such as <meta> and <br>, the first of which always has
+ * a closing '/' and no tag enclosed data and the second has no '/' or closing
+ * tag.
+ *
+ * \param type - the ENItem::Type tag type.
+ * \return the constructed Tag object.
+ */
 Tag
 fromTagType(EBItem::Type type)
 {
   Tag tag;
   if (type == EBTag::STYLE)
-    tag = Tag(new EBStyleTag(type));
+    tag = Tag(new EBStyleTag());
   else if (type == EBTag::BR)
     tag = Tag(new EBNonClosedTag(type));
   else if (type == EBTag::LINK)
-    tag = Tag(new EBLinkTag(type));
+    tag = Tag(new EBLinkTag());
   else if (type == EBTag::META)
     tag = Tag(new EBAlwaysClosedTag(type));
   else

@@ -89,11 +89,11 @@ public:
   ManifestItem nav;              // 1
   ManifestItemMap items_by_id;   // all items
   ManifestItemMap items_by_href; // all items
-  ManifestItemList html_items;
-  ManifestItemMap mathml;                    // subset of items for math markup
-  ManifestItemMap svg_images;                // subset of items for images
-  QMap<QString, QImage> rendered_svg_images; // rendered svg images
-  QMap<QString, QImage> images;
+  ManifestItemMap html_items;
+  ManifestItemMap mathml;     // subset of items for math markup
+  ManifestItemMap svg_images; // subset of items for images
+  //  QMap<QString, QImage> rendered_svg_images; // rendered svg images
+  QMap<QString, QString> images;
   ManifestItemMap remotes;
   ManifestItemMap scripted;
   ManifestItemMap switches;

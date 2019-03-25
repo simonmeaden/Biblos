@@ -162,7 +162,7 @@ protected:
 class EBStyleTag : public EBTag
 {
 public:
-  EBStyleTag(Type type);
+  EBStyleTag();
 
   void setStyle(QString style);
   QString style();
@@ -170,6 +170,7 @@ public:
 protected:
   QString style_string;
 };
+typedef QSharedPointer<EBStyleTag> StyleTag;
 
 class EBAlwaysClosedTag : public EBNonClosedTag
 {
@@ -182,7 +183,7 @@ public:
 class EBLinkTag : public EBAlwaysClosedTag
 {
 public:
-  EBLinkTag(Type type);
+  EBLinkTag();
 
   bool isStylesheet();
   void setAttribute(QString name, QString value) override;
@@ -201,9 +202,6 @@ protected:
   QString m_name;
 };
 typedef QSharedPointer<EBLinkTag> LinkTag;
-
-Tag
-fromTagType(EBTag::Type type);
 
 class EBChar
   : public QChar
@@ -231,6 +229,21 @@ protected:
   QString m_replacement;
 };
 typedef QSharedPointer<EBWord> Word;
+
+class EBStyle : public EBItem
+{
+public:
+  EBStyle(QString style);
+  QString string() override;
+  QString toHtml(CSSMap = CSSMap(nullptr)) override;
+
+  void setReplacement(const QString& replacement);
+
+protected:
+  QString m_original;
+  QString m_replacement;
+};
+typedef QSharedPointer<EBStyle> Style;
 
 class HtmlParser : public QObject
 {
@@ -278,11 +291,16 @@ protected:
   void writeWordDataIf(QString& data_text, ItemList& item_list);
   void writeEndTag(QString& tag_text,
                    QString& data_text,
+                   QString& style_text,
                    ItemList& item_list,
                    bool& tag_opener,
                    bool& tag_closed,
                    bool& in_style);
   //  void insertStyleSheet(const QString& name, const QString& source);
+  void writeStyleIf(QString& style_text, bool in_style, ItemList& item_list);
 };
+
+Tag
+fromTagType(EBTag::Type type);
 
 #endif // HTMLPARSER_H

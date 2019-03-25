@@ -48,7 +48,8 @@ protected:
   int m_load_progress;
   QWebEngineProfile* m_profile;
   QStringList m_spine;
-  QMap<QString, QString> m_pages;
+  //  QMap<QString, QString> m_pages;
+  ManifestItemMap m_pages;
   //  WebPage *m_page;
   EBookDocument m_ebook_document;
   QPixmapCache::Key dialog_error_key, view_refresh_key, text_html_key;
